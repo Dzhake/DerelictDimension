@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using MonoPlus.Assets;
 using MonoPlus.Input;
+using MonoPlus.Time;
 
 namespace DerelictDimension;
 
@@ -42,20 +43,23 @@ public class Engine : Game
 
     protected async void LoadContentAsync()
     {
-        idk = await Assets.LoadAsync<Texture2D>("vanilla:/idk");
+
     }
 
     protected override void Update(GameTime gameTime)
     {
+        if (GraphicsSettings.PauseOnFocusLoss && !IsActive) return;
         base.Update(gameTime);
         Input.Update();
-
+        Time.Update(gameTime);
 
         Input.PostUpdate();
     }
 
+    
     protected override void Draw(GameTime gameTime)
     {
+        if (GraphicsSettings.PauseOnFocusLoss && !IsActive) return;
         GraphicsDevice.Clear(Color.Black);
         Renderer.Begin();
         if (idk is not null) Renderer.DrawTexture(idk, Vector2.Zero, Color.White);

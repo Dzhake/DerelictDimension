@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <RollForward>Major</RollForward>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <TieredCompilation>false</TieredCompilation>
+    <Nullable>enable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <OutputPath>bin/</OutputPath>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  
+    
+  <ItemGroup>
+    <None Remove="Icon.ico" />
+    <None Remove="Icon.bmp" />
+    <EmbeddedResource Include="Icon.ico" />
+    <EmbeddedResource Include="Icon.bmp" />
+
+    <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.Assets\MonoPlus.Assets.csproj" />
+    <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.csproj" />
+    <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.Graphics\MonoPlus.Graphics.csproj" />
+    <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.Input\MonoPlus.Input.csproj" />
+    <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.Time\MonoPlus.Time.csproj" />
+
+    <Content Include="Content\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Folder Include="Content\" />
+  </ItemGroup>
+</Project>

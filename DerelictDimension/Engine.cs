@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoPlus.Graphics;
 using System.Globalization;
-using System.Threading.Tasks;
+using System.IO;
 using MonoPlus.Assets;
 using MonoPlus.Input;
 using MonoPlus.Time;
@@ -35,10 +35,14 @@ public class Engine : Game
 
     protected override void LoadContent()
     {
-        MainAssetManager = new FileSystemAssetManager($"{AppContext.BaseDirectory}Content/");
+        string contentArchivePath = $"{AppContext.BaseDirectory}Content.zip";
+        if (File.Exists(contentArchivePath))
+            MainAssetManager = new ZipArchiveAssetManager(contentArchivePath);
+        else
+            MainAssetManager = new FileSystemAssetManager($"{AppContext.BaseDirectory}Content/");
         Assets.RegisterAssetManager(MainAssetManager, "vanilla");
         Renderer.spriteBatch = new SpriteBatch(GraphicsDevice);
-        MainAssetManager.PreloadAssetsAsync();
+        MainAssetManager.PreloadAssets();
     }
 
     protected override void Update(GameTime gameTime)

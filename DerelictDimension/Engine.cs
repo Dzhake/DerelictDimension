@@ -38,12 +38,7 @@ public class Engine : Game
         MainAssetManager = new FileSystemAssetManager($"{AppContext.BaseDirectory}Content/");
         Assets.RegisterAssetManager(MainAssetManager, "vanilla");
         Renderer.spriteBatch = new SpriteBatch(GraphicsDevice);
-        Task.Run(LoadContentAsync);
-    }
-
-    protected async void LoadContentAsync()
-    {
-
+        MainAssetManager.PreloadAssetsAsync();
     }
 
     protected override void Update(GameTime gameTime)
@@ -52,7 +47,6 @@ public class Engine : Game
         base.Update(gameTime);
         Input.Update();
         Time.Update(gameTime);
-
         Input.PostUpdate();
     }
 

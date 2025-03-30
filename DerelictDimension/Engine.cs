@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoPlus.Graphics;
 using System.Globalization;
 using System.IO;
-using System.Threading.Tasks;
 using MonoPlus.Assets;
 using MonoPlus.Input;
 using MonoPlus.Time;

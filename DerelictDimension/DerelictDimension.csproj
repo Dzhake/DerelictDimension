@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
@@ -15,9 +15,6 @@
   
     
   <ItemGroup>
-    <None Remove="Icon.ico" />
-    <None Remove="Icon.bmp" />
-    <EmbeddedResource Include="Icon.ico" />
     <EmbeddedResource Include="Icon.bmp" />
 
     <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.Assets\MonoPlus.Assets.csproj" />
@@ -26,8 +23,21 @@
     <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.Input\MonoPlus.Input.csproj" />
     <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.Time\MonoPlus.Time.csproj" />
 
-    <Content Include="Content\**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Content Include="Content\**" Exclude="Content\**\*.fx" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <!-- Code for compiling effects... -->
+
+  <!--  "CompileEffects" uses @(Effects) in Inputs="", so we must set @(Effects) before "CompileEffects" runs.  -->
+  <Target Name="SetEffectsVar" AfterTargets="Build">
+    <ItemGroup>
+      <Effects Include="Content/**/*.fx" />
+    </ItemGroup>
+  </Target>
+  
+  <Target Name="CompileEffects" AfterTargets="SetEffectsVar">
+    <Message Text="Found effects: @(Effects)" Importance="high"/>
+    <Exec Command="mgfxc %(Effects.FullPath) $(BaseOutputPath)%(Effects.RelativeDir)%(Effects.Filename).mgfx"/>
+  </Target>
+  
 </Project>

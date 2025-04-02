@@ -35,7 +35,7 @@
     </ItemGroup>
   </Target>
   
-  <Target Name="CompileEffects" AfterTargets="SetEffectsVar">
+  <Target Name="CompileEffects" AfterTargets="SetEffectsVar" Inputs="@(Effects)" Outputs="$(BaseOutputPath)\**\*.mgfx">
     <Message Text="Found effects: @(Effects)" Importance="high"/>
     <Exec Command="mgfxc %(Effects.FullPath) $(BaseOutputPath)%(Effects.RelativeDir)%(Effects.Filename).mgfx"/>
   </Target>

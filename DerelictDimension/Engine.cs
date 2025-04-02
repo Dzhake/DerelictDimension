@@ -61,7 +61,7 @@ public class Engine : Game
         if (GraphicsSettings.PauseOnFocusLoss && !IsActive) return;
         GraphicsDevice.Clear(Color.Black);
         Renderer.Begin(SpriteSortMode.Immediate, effect: effect);
-        Renderer.DrawRect(new(0,0), new(500, 500), Color.DarkBlue);
+        Renderer.DrawRect(new(0,0), new(1000, 500), Color.DarkBlue);
         Renderer.End();
         base.Draw(gameTime);
     }

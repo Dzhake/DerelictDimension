@@ -17,11 +17,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Icon.bmp" />
 
-    <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.Assets\MonoPlus.Assets.csproj" />
     <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.csproj" />
-    <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.Graphics\MonoPlus.Graphics.csproj" />
-    <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.Input\MonoPlus.Input.csproj" />
-    <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.Time\MonoPlus.Time.csproj" />
 
     <Content Include="Content\**" Exclude="Content\**\*.fx" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

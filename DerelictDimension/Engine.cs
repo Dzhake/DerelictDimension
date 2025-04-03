@@ -4,9 +4,13 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoPlus.Graphics;
 using System.Globalization;
 using System.IO;
+using MonoPlus;
 using MonoPlus.Assets;
 using MonoPlus.Input;
 using MonoPlus.Time;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace DerelictDimension;
 
@@ -30,6 +34,7 @@ public class Engine : Game
     {
         Renderer.Initialize(this);
         Input.Initialize(this);
+        Logging.Initialize();
         base.Initialize();
     }
 
@@ -44,6 +49,7 @@ public class Engine : Game
             MainAssetManager = new FileSystemAssetManager($"{AppContext.BaseDirectory}Content/");
         Assets.RegisterAssetManager(MainAssetManager, "vanilla");
         MainAssetManager.PreloadAssets();
+        Log.Information("Started loading content");
     }
 
     protected override void Update(GameTime gameTime)

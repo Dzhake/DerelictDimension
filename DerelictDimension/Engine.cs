@@ -9,8 +9,6 @@ using MonoPlus.Assets;
 using MonoPlus.Input;
 using MonoPlus.Time;
 using Serilog;
-using Serilog.Core;
-using Serilog.Events;
 
 namespace DerelictDimension;
 

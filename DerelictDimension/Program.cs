@@ -8,7 +8,8 @@ public static class Program
 {
     public static int RestartsCount = 0;
     public static int MaxRestarts = 1;
-    private static string errorFile = $"{AppContext.BaseDirectory}error.txt";
+    public static string errorFile = $"{AppContext.BaseDirectory}error.txt";
+    public static string logFile = $"{AppContext.BaseDirectory}log.txt";
 
     public static void Main(string[] args)
     {
@@ -17,6 +18,7 @@ public static class Program
             try
             {
                 File.Delete(errorFile);
+                File.Delete(logFile);
                 RunGame();
             }
             catch (Exception exception)
@@ -42,19 +44,22 @@ public static class Program
 
                     Environment.Exit(2);
                 }
+                
+                RestartsCount++;
+                continue;
             }
 
-            RestartsCount++;
+            Environment.Exit(0); //Exit if no exception caught
         }
         
         try
         {
-            File.Create(errorFile);
             File.WriteAllText(errorFile, "Too many restarts!");
         }
         catch (Exception exception)
         {
             Console.WriteLine(exception.ToString());
+            File.Create($"{AppContext.BaseDirectory}ERRORX2.txt");
         }
     }
 

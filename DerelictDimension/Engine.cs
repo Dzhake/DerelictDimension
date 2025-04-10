@@ -7,6 +7,7 @@ using System.IO;
 using MonoPlus;
 using MonoPlus.Assets;
 using MonoPlus.Input;
+using MonoPlus.Logging;
 using MonoPlus.Time;
 using Serilog;
 
@@ -40,11 +41,9 @@ public class Engine : Game
     {
         Renderer.spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        string contentArchivePath = $"{AppContext.BaseDirectory}Content.zip";
-        if (File.Exists(contentArchivePath))
-            MainAssetManager = new ZipArchiveAssetManager(contentArchivePath);
-        else
-            MainAssetManager = new FileSystemAssetManager($"{AppContext.BaseDirectory}Content/");
+        string contentPath = $"{AppContext.BaseDirectory}Content";
+        MainAssetManager = ExternalAssetManagerBase.FolderOrZip(contentPath);
+        if (MainAssetManager is null) throw new InvalidOperationException("Couldn't create MainAssetManager!");
         Assets.RegisterAssetManager(MainAssetManager, "vanilla");
         MainAssetManager.PreloadAssets();
         Log.Information("Started loading content");

@@ -5,7 +5,7 @@ using MonoPlus.Graphics;
 using System.Globalization;
 using System.IO;
 using MonoPlus;
-using MonoPlus.Assets;
+using MonoPlus.AssetsManagment;
 using MonoPlus.Input;
 using MonoPlus.Logging;
 using MonoPlus.Time;

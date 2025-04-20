@@ -8,6 +8,7 @@ using MonoPlus;
 using MonoPlus.AssetsManagment;
 using MonoPlus.Input;
 using MonoPlus.Logging;
+using MonoPlus.Modding;
 using MonoPlus.Time;
 using Serilog;
 
@@ -55,6 +56,9 @@ public class Engine : Game
         base.Update(gameTime);
         Input.Update();
         Time.Update(gameTime);
+
+        ModManager.Update();
+
         Input.PostUpdate();
     }
 

@@ -1,39 +1,43 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
-    <RollForward>Major</RollForward>
-    <PublishReadyToRun>false</PublishReadyToRun>
-    <TieredCompilation>false</TieredCompilation>
-    <Nullable>enable</Nullable>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <OutputPath>bin/</OutputPath>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Icon.ico</ApplicationIcon>
-  </PropertyGroup>
-  
-    
-  <ItemGroup>
-    <EmbeddedResource Include="Icon.bmp" />
 
-    <ProjectReference Include="..\..\MonoPlus\MonoPlus\MonoPlus.csproj" />
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <RollForward>Major</RollForward>
+        <PublishReadyToRun>false</PublishReadyToRun>
+        <TieredCompilation>false</TieredCompilation>
+        <Nullable>enable</Nullable>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+        <OutputPath>bin/</OutputPath>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon>Icon.ico</ApplicationIcon>
+    </PropertyGroup>
 
-    <Content Include="Content\**" Exclude="Content\**\*.fx" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
 
-  <!-- Code for compiling effects... -->
-
-  <!--  "CompileEffects" uses @(Effects) in Inputs="", so we must set @(Effects) before "CompileEffects" runs.  -->
-  <Target Name="SetEffectsVar" AfterTargets="Build">
     <ItemGroup>
-      <Effects Include="Content/**/*.fx" />
+        <EmbeddedResource Include="Icon.bmp" />
+
+        <ProjectReference Include="$(ProjectDir)..\..\MonoPlus\MonoPlus\MonoPlus.csproj" />
+
+        <Content Include="Content\**" Exclude="Content\**\*.fx" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
-  </Target>
-  
-  <Target Name="CompileEffects" AfterTargets="SetEffectsVar" Inputs="@(Effects)" Outputs="$(BaseOutputPath)\**\*.mgfx">
-    <Message Text="Found effects: @(Effects)" Importance="high"/>
-    <Exec Command="mgfxc %(Effects.FullPath) $(BaseOutputPath)%(Effects.RelativeDir)%(Effects.Filename).mgfx"/>
-  </Target>
-  
+
+    <!-- Code for compiling effects... -->
+
+    <UsingTask AssemblyFile="..\..\MonoPlus\MonoPlus\bin\MonoPlus.dll" TaskName="MonoPlus.AssetsManagement.MSBuild.CompileEffectsTask" />
+
+    <!--  "CompileEffects" uses @(Effects) in Inputs="", so we must set @(Effects) before "CompileEffects" runs.  -->
+    <Target Name="SetEffectsVar" AfterTargets="Build">
+        <ItemGroup>
+            <Effects Include="Content/**/*.fx" />
+        </ItemGroup>
+    </Target>
+
+    <Target Name="CompileEffects" AfterTargets="SetEffectsVar" Inputs="@(Effects)" Outputs="$(OutputPath)\**\*.mgfx">
+        <Message Text="Found effects: @(Effects)" Importance="high"/>
+        <CompileEffectsTask/>
+        <!--Exec Command="mgfxc &quot;%(Effects.FullPath)&quot; &quot;$(ProjectDir)$(BaseOutputPath)%(Effects.RelativeDir)%(Effects.Filename).mgfx&quot;"/-->
+    </Target>
+
 </Project>

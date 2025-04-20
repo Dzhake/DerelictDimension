@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Harmony", "..\MonoPlus\HarmonyX\Harmony\Harmony.csproj", "{48843332-B594-45E7-A1A7-251FAD7F62C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDL3.Core", "..\MonoPlus\SDL3-CS\SDL3\SDL3.Core.csproj", "{EDAF96BA-4B6C-435F-A4DB-C256B5B9D61E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,10 +30,10 @@ Global
 		{C6F0E7C0-F281-4AC7-84FB-E38082381CD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6F0E7C0-F281-4AC7-84FB-E38082381CD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6F0E7C0-F281-4AC7-84FB-E38082381CD0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{48843332-B594-45E7-A1A7-251FAD7F62C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{48843332-B594-45E7-A1A7-251FAD7F62C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{48843332-B594-45E7-A1A7-251FAD7F62C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{48843332-B594-45E7-A1A7-251FAD7F62C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDAF96BA-4B6C-435F-A4DB-C256B5B9D61E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDAF96BA-4B6C-435F-A4DB-C256B5B9D61E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDAF96BA-4B6C-435F-A4DB-C256B5B9D61E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDAF96BA-4B6C-435F-A4DB-C256B5B9D61E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

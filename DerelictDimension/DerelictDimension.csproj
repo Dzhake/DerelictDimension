@@ -12,6 +12,7 @@
         <OutputPath>bin/</OutputPath>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Icon.ico</ApplicationIcon>
+        <ContentDirectory>Content\</ContentDirectory>
     </PropertyGroup>
 
 
@@ -20,12 +21,12 @@
 
         <ProjectReference Include="$(ProjectDir)..\..\MonoPlus\MonoPlus\MonoPlus.csproj" />
 
-        <Content Include="Content\**" Exclude="Content\**\*.fx" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="$(ContentDirectory)**" Exclude="$(ContentDirectory)**\*.fx" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <!-- Code for compiling effects... -->
 
-    <UsingTask AssemblyFile="..\..\MonoPlus\MonoPlus\bin\MonoPlus.dll" TaskName="MonoPlus.AssetsManagement.MSBuild.CompileEffectsTask" />
+    <UsingTask AssemblyFile="..\..\MonoPlus\MonoPlus\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="MonoPlus.MSBuild.CompileEffectsTask" />
 
     <!--  "CompileEffects" uses @(Effects) in Inputs="", so we must set @(Effects) before "CompileEffects" runs.  -->
     <Target Name="SetEffectsVar" AfterTargets="Build">
@@ -35,8 +36,7 @@
     </Target>
 
     <Target Name="CompileEffects" AfterTargets="SetEffectsVar" Inputs="@(Effects)" Outputs="$(OutputPath)\**\*.mgfx">
-        <Message Text="Found effects: @(Effects)" Importance="high"/>
-        <CompileEffectsTask/>
+        <CompileEffectsTask Effects="@(Effects)" PathToContent="$(ProjectDir)" OutputPath="$(OutputPath)"/>
         <!--Exec Command="mgfxc &quot;%(Effects.FullPath)&quot; &quot;$(ProjectDir)$(BaseOutputPath)%(Effects.RelativeDir)%(Effects.Filename).mgfx&quot;"/-->
     </Target>
 

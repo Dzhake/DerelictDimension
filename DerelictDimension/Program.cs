@@ -10,15 +10,18 @@ public static class Program
     public static int MaxRestarts = 1;
     public static string errorFile = $"{AppContext.BaseDirectory}error.txt";
     public static string logFile = $"{AppContext.BaseDirectory}log.txt";
+    public static string errorx2File = $"{AppContext.BaseDirectory}ERRORX2.txt";
 
     public static void Main(string[] args)
     {
+        File.Delete(errorx2File);
+        File.Create(errorFile); //clears files
+        File.Create(logFile);
+
         while (RestartsCount < MaxRestarts)
         {
             try
             {
-                File.Delete(errorFile);
-                File.Delete(logFile);
                 RunGame();
             }
             catch (Exception exception)
@@ -29,18 +32,8 @@ public static class Program
                 }
                 catch (Exception exception2)
                 {
-                    try
-                    {
-                        File.Create(errorFile);
-                        File.WriteAllText(errorFile, $"{exception}\n\n\n{exception2}");
-                    }
-                    catch (Exception exception3)
-                    {
-                        Console.WriteLine(exception.ToString());
-                        Console.WriteLine(exception2.ToString());
-                        Console.WriteLine(exception3.ToString());
-                        //this can't throw an exception, right?
-                    }
+                    //DO NOT TRY/CATCH THIS! If the program exits without writing error file then error is here.
+                    File.AppendAllText(errorFile, $"{exception}\n\n\n{exception2}");
 
                     Environment.Exit(2);
                 }

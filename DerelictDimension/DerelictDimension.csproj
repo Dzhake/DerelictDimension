@@ -7,12 +7,14 @@
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
         <OutputPath>bin/</OutputPath>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Icon.ico</ApplicationIcon>
         <ContentDirectory>Content\</ContentDirectory>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
 

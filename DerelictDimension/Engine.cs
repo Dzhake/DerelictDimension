@@ -3,11 +3,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoPlus.Graphics;
 using System.Globalization;
-using System.IO;
 using MonoPlus;
 using MonoPlus.AssetsManagement;
-using MonoPlus.Input;
-using MonoPlus.Logging;
+using MonoPlus.InputHandling;
 using MonoPlus.Modding;
 using MonoPlus.Time;
 using Serilog;
@@ -24,17 +22,14 @@ public class Engine : Game
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-
-        Renderer.OnGameCreated(this);
+        MonoPlusMain.OnGameCreated(this);
         Instance = this;
         IsFixedTimeStep = false;
     }
 
     protected override void Initialize()
     {
-        Renderer.Initialize(this);
-        Input.Initialize(this);
-        Logging.Initialize();
+        MonoPlusMain.OnGameInitialize(this);
         base.Initialize();
     }
 

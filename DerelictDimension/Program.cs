@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using MonoPlus;
+using MonoPlus.Logging;
 using Serilog;
+using Serilog.Events;
 
 namespace DerelictDimension;
 
@@ -28,11 +29,6 @@ public static class Program
     public static string errorFile = $"{AppContext.BaseDirectory}error.txt";
 
     /// <summary>
-    /// <see cref="File"/> path to file with run log
-    /// </summary>
-    public static string logFile = $"{AppContext.BaseDirectory}log.txt";
-
-    /// <summary>
     /// <see cref="File"/> path to file which is created if the game fails to log an exception
     /// </summary>
     public static string errorx2File = $"{AppContext.BaseDirectory}ERRORX2.txt";
@@ -42,25 +38,25 @@ public static class Program
     /// </summary>
     public static void Main()
     {
-        MonoPlusMain.EarlyInitialize();
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) WindowsAPI.AllocConsole();
+        //DO NOT LOG anything with level below Information until this is called! Otherwise, logged lines will never be logged.
+        MonoPlusMain.EarlyInitialize();
 
-        //DO NOT USE Main(string[]) ! That is different from Environment.GetCommandLineArgs(); because it doesn't include path to process executable as first arg, so to prevent confusion and messing up indexes use this Environment.GetCommandLineArgs(); instead.
+        //DO NOT USE Main(string[]) ! That is different from Environment.GetCommandLineArgs(); because it doesn't include path to process executable as first arg, so to prevent confusion and [messing up indexes] use this Environment.GetCommandLineArgs(); instead.
         string[] args = Environment.GetCommandLineArgs();
         Log.Information("Command-line arguments: {Args}", string.Join(' ', args));
         File.Delete(errorx2File);
         File.WriteAllText(errorFile, $"{DateTime.Now}\n");
-        File.Create(logFile);
 
         try
         {
             if (args.Length > 1)
                 switch (args[1])
                 {
-                    case "mod":
-                        ModsCLI.Run(args);
-                        Environment.Exit(0);
-                        break;
+                case "mod":
+                    ModsCLI.Run(args);
+                    Environment.Exit(0);
+                    break;
                 }
         }
         catch (Exception exception)
@@ -68,7 +64,7 @@ public static class Program
             Crash(exception);
             Environment.Exit(2);
         }
-        
+
 
         while (RestartsCount < MaxRestarts)
         {
@@ -85,7 +81,7 @@ public static class Program
 
             Environment.Exit(0); //Exit if no exception caught
         }
-        
+
         try
         {
             File.WriteAllText(errorFile, "Too many restarts!");

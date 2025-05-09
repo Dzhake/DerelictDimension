@@ -1,8 +1,7 @@
 {
   "profiles": {
     "DerelictDimension": {
-      "commandName": "Project",
-      "commandLineArgs": "mod create"
+      "commandName": "Project"
     }
   }
 }

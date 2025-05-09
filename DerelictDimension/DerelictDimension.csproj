@@ -15,15 +15,19 @@
         <ApplicationIcon>Icon.ico</ApplicationIcon>
         <ContentDirectory>Content\</ContentDirectory>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <DebugType>embedded</DebugType>
     </PropertyGroup>
 
-
     <ItemGroup>
-        <EmbeddedResource Include="Icon.bmp" />
 
         <ProjectReference Include="$(ProjectDir)..\..\MonoPlus\MonoPlus\MonoPlus.csproj" />
+        <PackageReference Include="CommandLineParser" Version="2.9.1" />
 
         <Content Include="$(ContentDirectory)**" Exclude="$(ContentDirectory)**\*.fx" CopyToOutputDirectory="PreserveNewest" />
+        <None Remove="app.manifest" />
+        <None Remove="Icon.bmp" />
+        <None Remove="Icon.ico" />
+
     </ItemGroup>
 
     <!-- Code for compiling effects... -->
@@ -38,7 +42,7 @@
     </Target>
 
     <Target Name="CompileEffects" AfterTargets="SetEffectsVar" Inputs="@(Effects)" Outputs="$(OutputPath)\**\*.mgfx">
-        <CompileEffectsTask Effects="@(Effects)" PathToContent="$(ProjectDir)" OutputPath="$(OutputPath)"/>
+        <CompileEffectsTask Effects="@(Effects)" PathToContent="$(ProjectDir)" OutputPath="$(ProjectDir)$(OutputPath)" />
         <!--Exec Command="mgfxc &quot;%(Effects.FullPath)&quot; &quot;$(ProjectDir)$(BaseOutputPath)%(Effects.RelativeDir)%(Effects.Filename).mgfx&quot;"/-->
     </Target>
 

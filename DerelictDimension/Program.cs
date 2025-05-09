@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using DerelictDimension.ModsTool;
 using MonoPlus;
 using MonoPlus.Logging;
+using MonoPlus.Modding;
 using Serilog;
-using Serilog.Events;
 
 namespace DerelictDimension;
 
@@ -14,9 +18,14 @@ namespace DerelictDimension;
 public static class Program
 {
     /// <summary>
+    /// Name of running application
+    /// </summary>
+    public static string AppName = "DerelictDimension";
+
+    /// <summary>
     /// Times the game was restarted after throwing an <see cref="Exception"/>
     /// </summary>
-    public static int RestartsCount = 0;
+    public static int RestartsCount;
 
     /// <summary>
     /// Max amount of times game should restart after throwing an <see cref="Exception"/>
@@ -54,7 +63,7 @@ public static class Program
                 switch (args[1])
                 {
                 case "mod":
-                    ModsCLI.Run(args);
+                    ModsCLI.Run(args.Skip(2).ToArray());
                     Environment.Exit(0);
                     break;
                 }
@@ -62,14 +71,16 @@ public static class Program
         catch (Exception exception)
         {
             Crash(exception);
-            Environment.Exit(2);
+            Environment.Exit(1);
         }
 
+        LoggingHelper.WriteStartupInfo();
 
         while (RestartsCount < MaxRestarts)
         {
             try
             {
+                ModManager.Initialize();
                 RunGame();
             }
             catch (Exception exception)
@@ -82,14 +93,26 @@ public static class Program
             Environment.Exit(0); //Exit if no exception caught
         }
 
+        //open log.txt
+        new Process
+        {
+            StartInfo = new ProcessStartInfo(LoggingHelper.LogFile)
+            {
+                UseShellExecute = true
+            }
+        }.Start();
+
+        if (MaxRestarts == 1) Environment.Exit(0);
+
         try
         {
-            File.WriteAllText(errorFile, "Too many restarts!");
+            File.AppendAllText(errorFile, "Too many restarts!");
         }
         catch (Exception exception)
         {
             Console.WriteLine(exception.ToString());
             File.Create($"{AppContext.BaseDirectory}ERRORX2.txt");
+            Environment.Exit(3);
         }
     }
 
@@ -102,6 +125,7 @@ public static class Program
         try
         {
             Log.Fatal(exception, "An exception was throw, restarting the program.");
+            File.AppendAllText(errorFile, $"{exception}\n\n\n");
         }
         catch (Exception exception2)
         {

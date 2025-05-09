@@ -64,6 +64,7 @@ public class Engine : Game
         GraphicsDevice.Clear(Color.Black);
         Renderer.Begin(SpriteSortMode.Immediate, effect: effect);
         Renderer.DrawRect(new(0,0), new(1000, 500), Color.DarkBlue);
+        if (Assets.LoadAsync<string>("NewMod:/oof.txt").IsCompleted) Renderer.DrawRect(new(0,0), new(1000, 200), Color.Green);
         Renderer.End();
         base.Draw(gameTime);
     }

@@ -1,7 +1,7 @@
-﻿using Chasm.SemanticVersioning;
+﻿using System;
+using Chasm.SemanticVersioning;
 using CommandLine;
 using MonoPlus.Modding;
-using System;
 
 namespace DerelictDimension.ModsTool;
 

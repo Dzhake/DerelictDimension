@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoPlus.Graphics;
-using System.Globalization;
 using MonoPlus;
 using MonoPlus.AssetsManagement;
+using MonoPlus.Graphics;
 using MonoPlus.InputHandling;
 using MonoPlus.Modding;
 using MonoPlus.Time;

@@ -21,7 +21,7 @@ public class ValidateMod : IRunnableOptions
     public int Run()
     {
         //load mod from folder, get config, validate, etc.
-        ModConfig config = ModLoader.LoadModFromFolder(ModManager.ModsDirectory+ModName);
+        ModConfig config = ModLoader.LoadModConfigFromFolder(ModManager.ModsDirectory+ModName);
         ModId id = config.Id;
         string name = id.Name;
         if (id.Version == new SemanticVersion(0, 0, 0))

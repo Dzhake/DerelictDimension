@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using DerelictDimension.ModsTool;
 using MonoPlus;
@@ -124,7 +123,7 @@ public static class Program
     {
         try
         {
-            Log.Fatal(exception, "An exception was throw, restarting the program.");
+            Log.Fatal(exception, "An exception was thrown.");
             File.AppendAllText(errorFile, $"{exception}\n\n\n");
         }
         catch (Exception exception2)

@@ -10,7 +10,7 @@ namespace DerelictDimension.ModsTool;
 /// Represents options for creating a new mod, and <see cref="Run"/> method to run creation after options are set
 /// </summary>
 [Verb("create", HelpText = "Create a new mod")]
-public class CreateMod : IRunnableOptions
+public class CreateMod : IRunnableOptions //TODO check performance with writing multiply lines at once.
 {
     /// <summary>
     /// Name of new mod
@@ -74,8 +74,11 @@ public class CreateMod : IRunnableOptions
     {
         writer.WriteLine("using MonoPlus.Modding;");
         writer.WriteLine("");
-        writer.WriteLine($"public class {ModName} : Mod {{");
-        writer.WriteLine();
+        writer.WriteLine($"namespace {ModName};");
+        writer.WriteLine("");
+        writer.WriteLine($"public class {ModName}Core : Mod");
+        writer.WriteLine("{");
+        writer.WriteLine("");
         writer.WriteLine("}");
     }
 
@@ -130,6 +133,18 @@ public class CreateMod : IRunnableOptions
 
         writer.WriteLine($"<Reference Include=\"{Program.AppName}\">");
         writer.WriteLine($"<HintPath>../../../{Program.AppName}.dll</HintPath>");
+        writer.WriteLine("</Reference>");
+
+        writer.WriteLine("<Reference Include=\"MonoGame.Framework\">");
+        writer.WriteLine("<HintPath>../../../MonoGame.Framework.dll</HintPath>");
+        writer.WriteLine("</Reference>");
+
+        writer.WriteLine("<Reference Include=\"Serilog\">");
+        writer.WriteLine("<HintPath>../../../Serilog.dll</HintPath>");
+        writer.WriteLine("</Reference>");
+
+        writer.WriteLine("<Reference Include=\"0Harmony\">");
+        writer.WriteLine("<HintPath>../../../0Harmony.dll</HintPath>");
         writer.WriteLine("</Reference>");
     }
 

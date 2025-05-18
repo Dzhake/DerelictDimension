@@ -12,12 +12,25 @@ using Serilog;
 
 namespace DerelictDimension;
 
+/// <inheritdoc/> 
 public class Engine : Game
 {
+    /// <summary>
+    /// Static singleton instance of the <see cref="Engine"/>.
+    /// </summary>
     public static Engine? Instance;
+
+    /// <summary>
+    /// Main <see cref="AssetManager"/> for vanilla game.
+    /// </summary>
     public static AssetManager? MainAssetManager;
+
+    
     public Effect? effect;
 
+    /// <summary>
+    /// Creates a new <see cref="Engine"/>.
+    /// </summary>
     public Engine()
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -25,14 +38,17 @@ public class Engine : Game
         MonoPlusMain.OnGameCreated(this);
         Instance = this;
         IsFixedTimeStep = false;
+        Window.AllowUserResizing = true;
     }
 
+    /// <inheritdoc/> 
     protected override void Initialize()
     {
         MonoPlusMain.OnGameInitialize(this);
         base.Initialize();
     }
 
+    /// <inheritdoc/> 
     protected override void LoadContent()
     {
         Renderer.spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -45,26 +61,26 @@ public class Engine : Game
         Log.Information("Started loading content");
     }
 
+    /// <inheritdoc/> 
     protected override void Update(GameTime gameTime)
     {
+        Time.Update(gameTime, IsActive);
         if (GraphicsSettings.PauseOnFocusLoss && !IsActive) return;
         base.Update(gameTime);
         Input.Update();
-        Time.Update(gameTime);
 
         ModManager.Update();
 
         Input.PostUpdate();
     }
 
-    
+    /// <inheritdoc/> 
     protected override void Draw(GameTime gameTime)
     {
         if (GraphicsSettings.PauseOnFocusLoss && !IsActive) return;
         GraphicsDevice.Clear(Color.Black);
         Renderer.Begin(SpriteSortMode.Immediate, effect: effect);
         Renderer.DrawRect(new(0,0), new(1000, 500), Color.DarkBlue);
-        if (Assets.LoadAsync<string>("NewMod:/oof.txt").IsCompleted) Renderer.DrawRect(new(0,0), new(1000, 200), Color.Green);
         Renderer.End();
         base.Draw(gameTime);
     }

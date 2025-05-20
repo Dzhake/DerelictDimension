@@ -105,7 +105,7 @@ public static class Program
 
         try
         {
-            File.AppendAllText(errorFile, "Too many restarts!");
+            File.AppendAllText(errorFile, "Too many restarts");
         }
         catch (Exception exception)
         {

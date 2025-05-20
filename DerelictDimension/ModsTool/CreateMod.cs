@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using CommandLine;
 using MonoPlus.Modding;
+using MonoPlus.Utils;
 
 namespace DerelictDimension.ModsTool;
 
@@ -10,7 +11,7 @@ namespace DerelictDimension.ModsTool;
 /// Represents options for creating a new mod, and <see cref="Run"/> method to run creation after options are set
 /// </summary>
 [Verb("create", HelpText = "Create a new mod")]
-public class CreateMod : IRunnableOptions //TODO check performance with writing multiply lines at once.
+public class CreateMod : IRunnableOptions
 {
     /// <summary>
     /// Name of new mod
@@ -30,7 +31,7 @@ public class CreateMod : IRunnableOptions //TODO check performance with writing 
         string modDir = $"{ModManager.ModsDirectory}{ModName}/";
         if (Directory.Exists(modDir))
         {
-            Console.WriteLine("Mod directory with same name already exists!");
+            Console.WriteLine("Mod directory with same name already exists");
             return 1;
         }
 
@@ -43,10 +44,8 @@ public class CreateMod : IRunnableOptions //TODO check performance with writing 
         if (Code) config.AssemblyFile = $"bin/{ModName}.dll";
 
         FileStream configStream = new($"{modDir}config.json", FileMode.Create);
-        var serializeOptions = new JsonSerializerOptions { WriteIndented = true };
-        JsonSerializer.Serialize(configStream, config, serializeOptions);
+        JsonSerializer.Serialize(configStream, config, Json.Readable);
         configStream.Close();
-
         if (Code) WriteCode(modDir);
 
         return 0;
@@ -65,21 +64,23 @@ public class CreateMod : IRunnableOptions //TODO check performance with writing 
         WriteProjectFile(projectWriter);
         projectWriter.Close();
 
-        StreamWriter modFileWriter = new($"{sourceDir}{ModName}.cs");
+        StreamWriter modFileWriter = new($"{sourceDir}{ModName}Core.cs");
         WriteModFile(modFileWriter);
         modFileWriter.Close();
     }
 
     private void WriteModFile(StreamWriter writer)
     {
-        writer.WriteLine("using MonoPlus.Modding;");
-        writer.WriteLine("");
-        writer.WriteLine($"namespace {ModName};");
-        writer.WriteLine("");
-        writer.WriteLine($"public class {ModName}Core : Mod");
-        writer.WriteLine("{");
-        writer.WriteLine("");
-        writer.WriteLine("}");
+        writer.WriteLine($$"""
+                         using MonoPlus.Modding;
+                         
+                         namespace {{ModName}};
+                         
+                         public class {{ModName}}Core : Mod
+                         {
+                         
+                         }
+                         """);
     }
 
     /// <summary>
@@ -113,12 +114,14 @@ public class CreateMod : IRunnableOptions //TODO check performance with writing 
     /// <param name="writer">Writer which should write properties</param>
     private void WriteProjectProperties(StreamWriter writer)
     {
-        writer.WriteLine("<TargetFramework>net9.0</TargetFramework>");
-        writer.WriteLine("<Nullable>enable</Nullable>");
-        writer.WriteLine("<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>");
-        writer.WriteLine("<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>");
-        //writer.WriteLine("<GenerateDocumentationFile>true</GenerateDocumentationFile>");
-        writer.WriteLine("<DebugType>embedded</DebugType>");
+        writer.WriteLine("""
+                         <TargetFramework>net9.0</TargetFramework>
+                         <Nullable>enable</Nullable>
+                         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+                         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+                         <DebugType>embedded</DebugType>
+                         """);
+        //<GenerateDocumentationFile>true</GenerateDocumentationFile>
     }
 
     /// <summary>
@@ -127,25 +130,34 @@ public class CreateMod : IRunnableOptions //TODO check performance with writing 
     /// <param name="writer">Writer which should write items</param>
     private void WriteProjectItems(StreamWriter writer)
     {
-        writer.WriteLine("<Reference Include=\"MonoPlus\">");
-        writer.WriteLine("<HintPath>../../../MonoPlus.dll</HintPath>");
-        writer.WriteLine("</Reference>");
+        //<Private> is actually "Copy Local"..       ???
 
-        writer.WriteLine($"<Reference Include=\"{Program.AppName}\">");
-        writer.WriteLine($"<HintPath>../../../{Program.AppName}.dll</HintPath>");
-        writer.WriteLine("</Reference>");
-
-        writer.WriteLine("<Reference Include=\"MonoGame.Framework\">");
-        writer.WriteLine("<HintPath>../../../MonoGame.Framework.dll</HintPath>");
-        writer.WriteLine("</Reference>");
-
-        writer.WriteLine("<Reference Include=\"Serilog\">");
-        writer.WriteLine("<HintPath>../../../Serilog.dll</HintPath>");
-        writer.WriteLine("</Reference>");
-
-        writer.WriteLine("<Reference Include=\"0Harmony\">");
-        writer.WriteLine("<HintPath>../../../0Harmony.dll</HintPath>");
-        writer.WriteLine("</Reference>");
+        writer.WriteLine("""
+                         <Reference Include=\"MonoPlus\">
+                         <HintPath>../../../MonoPlus.dll</HintPath>
+                         <Private>False</Private>
+                         </Reference>
+                         
+                         writer.WriteLine($"<Reference Include=\"{Program.AppName}\">
+                         writer.WriteLine($"<HintPath>../../../{Program.AppName}.dll</HintPath>
+                         <Private>False</Private>
+                         </Reference>
+                         
+                         <Reference Include=\"MonoGame.Framework\">
+                         <HintPath>../../../MonoGame.Framework.dll</HintPath>
+                         <Private>False</Private>
+                         </Reference>
+                         
+                         <Reference Include=\"Serilog\">
+                         <HintPath>../../../Serilog.dll</HintPath>
+                         <Private>False</Private>
+                         </Reference>
+                         
+                         <Reference Include=\"0Harmony\">
+                         <HintPath>../../../0Harmony.dll</HintPath>
+                         <Private>False</Private>
+                         </Reference>
+                         """);
     }
 
     /// <summary>
@@ -154,8 +166,10 @@ public class CreateMod : IRunnableOptions //TODO check performance with writing 
     /// <param name="writer">Writer which should write tasks</param>
     private void WriteProjectTasks(StreamWriter writer)
     {
-        writer.WriteLine("<Target Name=\"CopyFiles\" AfterTargets=\"Build\">");
-        writer.WriteLine("<Copy SourceFiles=\"$(OutputPath)/$(AssemblyName).dll\" DestinationFolder=\"../bin\" />");
-        writer.WriteLine("</Target>");
+        writer.WriteLine("""
+                         <Target Name="CopyFiles" AfterTargets="Build">
+                            <Copy SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="../bin" />
+                         </Target> 
+                         """);
     }
 }

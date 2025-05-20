@@ -19,7 +19,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-
         <ProjectReference Include="$(ProjectDir)..\..\MonoPlus\MonoPlus\MonoPlus.csproj" />
         <PackageReference Include="CommandLineParser" Version="2.9.1" />
 
@@ -27,23 +26,16 @@
         <None Remove="app.manifest" />
         <None Remove="Icon.bmp" />
         <None Remove="Icon.ico" />
-
+    
+        <Effects Include="Content/**/*.fx" />
     </ItemGroup>
 
     <!-- Code for compiling effects... -->
 
     <UsingTask AssemblyFile="..\..\MonoPlus\MonoPlus\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="MonoPlus.MSBuild.CompileEffectsTask" />
 
-    <!--  "CompileEffects" uses @(Effects) in Inputs="", so we must set @(Effects) before "CompileEffects" runs.  -->
-    <Target Name="SetEffectsVar" AfterTargets="Build">
-        <ItemGroup>
-            <Effects Include="Content/**/*.fx" />
-        </ItemGroup>
-    </Target>
-
-    <Target Name="CompileEffects" AfterTargets="SetEffectsVar" Inputs="@(Effects)" Outputs="$(OutputPath)\**\*.mgfx">
+    <Target Name="CompileEffects" AfterTargets="Build" Inputs="@(Effects)" Outputs="$(OutputPath)\**\*.mgfx">
         <CompileEffectsTask Effects="@(Effects)" PathToContent="$(ProjectDir)" OutputPath="$(ProjectDir)$(OutputPath)" />
-        <!--Exec Command="mgfxc &quot;%(Effects.FullPath)&quot; &quot;$(ProjectDir)$(BaseOutputPath)%(Effects.RelativeDir)%(Effects.Filename).mgfx&quot;"/-->
     </Target>
 
 </Project>

@@ -29,14 +29,7 @@ public class ValidateMod : IRunnableOptions
             Console.WriteLine("Mod version is 0.0.0, you must use 0.0.1 or above");
             return 1;
         }
-
-        if (name is "ExampleMod")
-        {
-            Console.WriteLine($"Mod is called {id.Name}, call your mod something original to prevent conflicts with other mods");
-            return 1;
-        }
-            
-        //todo?
+        
         return 0;
     }
 }

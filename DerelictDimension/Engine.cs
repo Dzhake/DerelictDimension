@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Globalization;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoPlus;
 using MonoPlus.AssetsManagement;
 using MonoPlus.Graphics;
+using MonoPlus.Graphics.BitmapFonts;
 using MonoPlus.InputHandling;
 using MonoPlus.Modding;
 using MonoPlus.Time;
+using MonoPlus.Utils;
 using Serilog;
 
 namespace DerelictDimension;
@@ -25,8 +29,10 @@ public class Engine : Game
     /// </summary>
     public static AssetManager? MainAssetManager;
 
-    
-    public Effect? effect;
+
+    public ValueTask<Texture2D>? texture;
+    public ValueTask<string>? info;
+    public BitmapFont? font;
 
     /// <summary>
     /// Creates a new <see cref="Engine"/>.
@@ -55,9 +61,10 @@ public class Engine : Game
 
         string contentPath = $"{AppContext.BaseDirectory}Content";
         MainAssetManager = ExternalAssetManagerBase.FolderOrZip(contentPath);
-        if (MainAssetManager is null) throw new InvalidOperationException("Couldn't create MainAssetManager!");
+        if (MainAssetManager is null) throw new InvalidOperationException("Couldn't create MainAssetManager");
         Assets.RegisterAssetManager(MainAssetManager, "vanilla");
-        MainAssetManager.PreloadAssets();
+        texture = Assets.LoadAsync<Texture2D>("vanilla:/THEFONT");
+        info = Assets.LoadAsync<string>("vanilla:/THEFONT_info");
         Log.Information("Started loading content");
     }
 
@@ -65,11 +72,14 @@ public class Engine : Game
     protected override void Update(GameTime gameTime)
     {
         Time.Update(gameTime, IsActive);
-        if (GraphicsSettings.PauseOnFocusLoss && !IsActive) return;
+        if (GraphicsSettings.FocusLossBehaviour < GraphicsSettings.OnFocusLossBehaviour.Eco && !IsActive) return;
         base.Update(gameTime);
         Input.Update();
 
         ModManager.Update();
+
+        if ((texture?.IsCompleted ?? false) && (info?.IsCompleted ?? false))
+            font = new(texture.Value.Result, JsonSerializer.Deserialize<BitmapFont.Info>(info.Value.Result, Json.WithFields));
 
         Input.PostUpdate();
     }
@@ -77,10 +87,26 @@ public class Engine : Game
     /// <inheritdoc/> 
     protected override void Draw(GameTime gameTime)
     {
-        if (GraphicsSettings.PauseOnFocusLoss && !IsActive) return;
+        if (GraphicsSettings.FocusLossBehaviour < GraphicsSettings.OnFocusLossBehaviour.Eco && !IsActive) return;
+        if (font is null) return;
         GraphicsDevice.Clear(Color.Black);
-        Renderer.Begin(SpriteSortMode.Immediate, effect: effect);
-        Renderer.DrawRect(new(0,0), new(1000, 500), Color.DarkBlue);
+        Renderer.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp);
+        if (ModLoader.ModReloadTasks.Count > 0)
+        {
+            font.DrawText($"Reloading {ModLoader.ModReloadTasks.Count} mods:", Renderer.spriteBatch, Vector2.Zero);
+            Vector2 drawPosition = new(0, font.GlyphSize.Y);
+            foreach (ModReloadTask reloadTask in ModLoader.ModReloadTasks)
+            {
+                font.DrawText(reloadTask.Config.Id.ToString(), Renderer.spriteBatch, drawPosition);
+                drawPosition.Y += font.GlyphSize.Y;
+            }
+        }
+        else
+        {
+            Renderer.DrawRect(new(0, 0), new(1000, 500), Color.DarkSlateBlue);
+            font.DrawText("Derelict Dimension", Renderer.spriteBatch, Vector2.Zero, Color.LightGreen, scale: new(3));
+            font.DrawText("(quick, brown, fox jumps over lazy dog)", Renderer.spriteBatch, new(0, 50), Color.Orange, scale: new(2));
+        }
         Renderer.End();
         base.Draw(gameTime);
     }

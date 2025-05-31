@@ -43,9 +43,8 @@ public class CreateMod : IRunnableOptions
         };
         if (Code) config.AssemblyFile = $"bin/{ModName}.dll";
 
-        FileStream configStream = new($"{modDir}config.json", FileMode.Create);
+        using FileStream configStream = new($"{modDir}config.json", FileMode.Create);
         JsonSerializer.Serialize(configStream, config, Json.Readable);
-        configStream.Close();
         if (Code) WriteCode(modDir);
 
         return 0;
@@ -60,13 +59,11 @@ public class CreateMod : IRunnableOptions
         string sourceDir = $"{modDir}Source/";
         Directory.CreateDirectory(sourceDir);
 
-        StreamWriter projectWriter = new($"{sourceDir}{ModName}.csproj");
+        using StreamWriter projectWriter = new($"{sourceDir}{ModName}.csproj");
         WriteProjectFile(projectWriter);
-        projectWriter.Close();
 
-        StreamWriter modFileWriter = new($"{sourceDir}{ModName}Core.cs");
+        using StreamWriter modFileWriter = new($"{sourceDir}{ModName}Core.cs");
         WriteModFile(modFileWriter);
-        modFileWriter.Close();
     }
 
     private void WriteModFile(StreamWriter writer)

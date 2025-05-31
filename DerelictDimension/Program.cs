@@ -3,10 +3,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using DerelictDimension.ModsTool;
+//using DerelictDimension.ModsTool;
 using MonoPlus;
 using MonoPlus.Logging;
-using MonoPlus.Modding;
+//using MonoPlus.Modding;
+using MonoPlus.Utils.Collections;
 using Serilog;
 
 namespace DerelictDimension;
@@ -62,7 +63,7 @@ public static class Program
                 switch (args[1])
                 {
                 case "mod":
-                    ModsCLI.Run(args.Skip(2).ToArray());
+                    //ModsCLI.Run(args.Skip(2).ToArray());
                     Environment.Exit(0);
                     break;
                 }
@@ -79,7 +80,7 @@ public static class Program
         {
             try
             {
-                ModManager.Initialize();
+                //TODO fixme ModManager.Initialize();
                 RunGame();
             }
             catch (Exception exception)

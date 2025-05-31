@@ -30,6 +30,16 @@
         <Effects Include="Content/**/*.fx" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="ModsTool\**" />
+      <EmbeddedResource Remove="ModsTool\**" />
+      <None Remove="ModsTool\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Engine.cs" />
+    </ItemGroup>
+
     <!-- Code for compiling effects... -->
 
     <UsingTask AssemblyFile="..\..\MonoPlus\MonoPlus\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="MonoPlus.MSBuild.CompileEffectsTask" />

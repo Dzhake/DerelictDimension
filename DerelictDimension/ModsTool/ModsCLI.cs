@@ -18,7 +18,7 @@ public static class ModsCLI
     public static void Run(string[] args)
     {
         Log.Information("Running ModsCLI.");
-        var parser = new Parser(with => with.HelpWriter = null);
+        var parser = new Parser(static with => with.HelpWriter = null);
         var parserResult = parser.ParseArguments(args, typeof(CreateMod), typeof(ValidateMod));
         parserResult
         .WithParsed(RunOptions)
@@ -29,7 +29,7 @@ public static class ModsCLI
                 h.AutoHelp = false;     // hides --help
                 h.AutoVersion = false;  // hides --version
                 return HelpText.DefaultParsingErrorsHandler(parserResult, h);
-            }, e => e);
+            }, static e => e);
             Console.WriteLine(helpText);
         });
         AwaitInput();

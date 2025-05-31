@@ -12,6 +12,7 @@ using MonoPlus.InputHandling;
 using MonoPlus.Modding;
 using MonoPlus.Time;
 using MonoPlus.Utils;
+using MonoPlus.Utils.Collections;
 using Serilog;
 
 namespace DerelictDimension;
@@ -30,8 +31,8 @@ public class Engine : Game
     public static AssetManager? MainAssetManager;
 
 
-    public ValueTask<Texture2D>? texture;
-    public ValueTask<string>? info;
+    public Texture2D? texture;
+    public string? info;
     public BitmapFont? font;
 
     /// <summary>
@@ -63,9 +64,16 @@ public class Engine : Game
         MainAssetManager = ExternalAssetManagerBase.FolderOrZip(contentPath);
         if (MainAssetManager is null) throw new InvalidOperationException("Couldn't create MainAssetManager");
         Assets.RegisterAssetManager(MainAssetManager, "vanilla");
-        texture = Assets.LoadAsync<Texture2D>("vanilla:/THEFONT");
-        info = Assets.LoadAsync<string>("vanilla:/THEFONT_info");
+        MainAssetManager.AddListener(SetContent);
+        MainAssetManager.ReloadAssets();
         Log.Information("Started loading content");
+    }
+
+    protected void SetContent(object[] _)
+    {
+        texture = Assets.Load<Texture2D>("vanilla:/THEFONT");
+        info = Assets.Load<string>("vanilla:/THEFONT_info");
+        font = new(texture, JsonSerializer.Deserialize<BitmapFont.Info>(info, Json.WithFields));
     }
 
     /// <inheritdoc/> 
@@ -77,9 +85,7 @@ public class Engine : Game
         Input.Update();
 
         ModManager.Update();
-
-        if ((texture?.IsCompleted ?? false) && (info?.IsCompleted ?? false))
-            font = new(texture.Value.Result, JsonSerializer.Deserialize<BitmapFont.Info>(info.Value.Result, Json.WithFields));
+        Assets.Update();
 
         Input.PostUpdate();
     }
@@ -91,13 +97,14 @@ public class Engine : Game
         if (font is null) return;
         GraphicsDevice.Clear(Color.Black);
         Renderer.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp);
-        if (ModLoader.ModReloadTasks.Count > 0)
+        MultiTaskWithContextManager<ModConfig> modReloadTaskManager = ModLoader.reloadTaskManager;
+        if (modReloadTaskManager.InProgress)
         {
-            font.DrawText($"Reloading {ModLoader.ModReloadTasks.Count} mods:", Renderer.spriteBatch, Vector2.Zero);
+            font.DrawText($"Reloading {modReloadTaskManager.Tasks.Count} mods:", Renderer.spriteBatch, Vector2.Zero);
             Vector2 drawPosition = new(0, font.GlyphSize.Y);
-            foreach (ModReloadTask reloadTask in ModLoader.ModReloadTasks)
+            foreach (ModConfig config in modReloadTaskManager.GetContexts())
             {
-                font.DrawText(reloadTask.Config.Id.ToString(), Renderer.spriteBatch, drawPosition);
+                font.DrawText(config.Id.ToString(), Renderer.spriteBatch, drawPosition);
                 drawPosition.Y += font.GlyphSize.Y;
             }
         }

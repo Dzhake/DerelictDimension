@@ -141,7 +141,7 @@ public static class Program
     /// </summary>
     public static void RunGame()
     {
-        new Engine().Run();
+        //TODO fixme new Engine().Run();
     }
 }
 

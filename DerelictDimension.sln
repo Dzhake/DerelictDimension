@@ -9,6 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DerelictDimension", "Dereli
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DD7724BA-A7C0-46E5-B6D2-443C1D5E32C2}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		EXITCODES.txt = EXITCODES.txt
 		LICENSE.txt = LICENSE.txt

@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-//using DerelictDimension.ModsTool;
+using LogSystem;
 using MonoPlus;
-using MonoPlus.Logging;
-//using MonoPlus.Modding;
-using MonoPlus.Utils.Collections;
 using Serilog;
+//using DerelictDimension.ModsTool;
+//using MonoPlus.Modding;
 
 namespace DerelictDimension;
 
@@ -74,7 +72,7 @@ public static class Program
             Environment.Exit(1);
         }
 
-        LoggingHelper.WriteStartupInfo();
+        LogHelper.WriteStartupInfo();
 
         while (RestartsCount < MaxRestarts)
         {
@@ -96,7 +94,7 @@ public static class Program
         //open log.txt
         new Process
         {
-            StartInfo = new ProcessStartInfo(LoggingHelper.LogFile)
+            StartInfo = new ProcessStartInfo(LogHelper.LogFile)
             {
                 UseShellExecute = true
             }

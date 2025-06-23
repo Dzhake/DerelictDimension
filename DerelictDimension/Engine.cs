@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Globalization;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoPlus;
-using MonoPlus.AssetsManagement;
-using MonoPlus.Graphics;
-using MonoPlus.Graphics.BitmapFonts;
-using MonoPlus.InputHandling;
-using MonoPlus.Modding;
-using MonoPlus.Time;
+using MonoPlus.AssetsSystem;
+using MonoPlus.GraphicsSystem;
+using MonoPlus.GraphicsSystem.BitmapFonts;
+using MonoPlus.InputSystem;
+using MonoPlus.ModSystem;
+using MonoPlus.TimeSystem;
 using MonoPlus.Utils;
-using MonoPlus.Utils.Collections;
 using Serilog;
 
 namespace DerelictDimension;
@@ -26,9 +24,9 @@ public class Engine : Game
     public static Engine? Instance;
 
     /// <summary>
-    /// Main <see cref="AssetManager"/> for vanilla game.
+    /// Main <see cref="AssetsManager"/> for vanilla game.
     /// </summary>
-    public static AssetManager? MainAssetManager;
+    public static AssetsManager? MainAssetManager;
 
 
     public Texture2D? texture;
@@ -61,19 +59,11 @@ public class Engine : Game
         Renderer.spriteBatch = new SpriteBatch(GraphicsDevice);
 
         string contentPath = $"{AppContext.BaseDirectory}Content";
-        MainAssetManager = ExternalAssetManagerBase.FolderOrZip(contentPath);
+        MainAssetManager = new FileAssetsManager(contentPath);
         if (MainAssetManager is null) throw new InvalidOperationException("Couldn't create MainAssetManager");
         Assets.RegisterAssetManager(MainAssetManager, "vanilla");
-        MainAssetManager.AddListener(SetContent);
-        MainAssetManager.ReloadAssets();
+        MainAssetManager.LoadAssets();
         Log.Information("Started loading content");
-    }
-
-    protected void SetContent(object[] _)
-    {
-        texture = Assets.Load<Texture2D>("vanilla:/THEFONT");
-        info = Assets.Load<string>("vanilla:/THEFONT_info");
-        font = new(texture, JsonSerializer.Deserialize<BitmapFont.Info>(info, Json.WithFields));
     }
 
     /// <inheritdoc/> 
@@ -83,9 +73,9 @@ public class Engine : Game
         if (GraphicsSettings.FocusLossBehaviour < GraphicsSettings.OnFocusLossBehaviour.Eco && !IsActive) return;
         base.Update(gameTime);
         Input.Update();
+        MainThread.Update();
 
         ModManager.Update();
-        Assets.Update();
 
         Input.PostUpdate();
     }
@@ -93,20 +83,15 @@ public class Engine : Game
     /// <inheritdoc/> 
     protected override void Draw(GameTime gameTime)
     {
+        //Console.ReadLine();
+        
         if (GraphicsSettings.FocusLossBehaviour < GraphicsSettings.OnFocusLossBehaviour.Eco && !IsActive) return;
         if (font is null) return;
         GraphicsDevice.Clear(Color.Black);
         Renderer.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp);
-        MultiTaskWithContextManager<ModConfig> modReloadTaskManager = ModLoader.reloadTaskManager;
-        if (modReloadTaskManager.InProgress)
+        if (ModManager.InProgress)
         {
-            font.DrawText($"Reloading {modReloadTaskManager.Tasks.Count} mods:", Renderer.spriteBatch, Vector2.Zero);
-            Vector2 drawPosition = new(0, font.GlyphSize.Y);
-            foreach (ModConfig config in modReloadTaskManager.GetContexts())
-            {
-                font.DrawText(config.Id.ToString(), Renderer.spriteBatch, drawPosition);
-                drawPosition.Y += font.GlyphSize.Y;
-            }
+            font.DrawText($"Loading mods.", Renderer.spriteBatch, Vector2.Zero);
         }
         else
         {

@@ -4,44 +4,43 @@ using System.IO;
 using System.Runtime.InteropServices;
 using LogSystem;
 using MonoPlus;
+using MonoPlus.ModSystem;
 using Serilog;
-//using DerelictDimension.ModsTool;
-//using MonoPlus.Modding;
 
 namespace DerelictDimension;
 
 /// <summary>
-/// Entry class for the executable
+/// Entry class for the executable.
 /// </summary>
 public static class Program
 {
     /// <summary>
-    /// Name of running application
+    /// Name of running application.
     /// </summary>
     public static string AppName = "DerelictDimension";
 
     /// <summary>
-    /// Times the game was restarted after throwing an <see cref="Exception"/>
+    /// Times the game was restarted after throwing an <see cref="Exception"/>.
     /// </summary>
     public static int RestartsCount;
 
     /// <summary>
-    /// Max amount of times game should restart after throwing an <see cref="Exception"/>
+    /// Max amount of times game should restart after throwing an <see cref="Exception"/>.
     /// </summary>
     public static int MaxRestarts = 1;
 
     /// <summary>
-    /// <see cref="File"/> path to file where error should be written
+    /// <see cref="File"/> path to file where error should be written.
     /// </summary>
-    public static string errorFile = $"{AppContext.BaseDirectory}error.txt";
+    public static readonly string errorFile = $"{AppContext.BaseDirectory}error.txt";
 
     /// <summary>
-    /// <see cref="File"/> path to file which is created if the game fails to log an exception
+    /// <see cref="File"/> path to file which is created if the game fails to log an exception.
     /// </summary>
-    public static string errorx2File = $"{AppContext.BaseDirectory}ERRORX2.txt";
+    public static readonly string errorx2File = $"{AppContext.BaseDirectory}ERRORX2.txt";
 
     /// <summary>
-    /// Entry point of the executable
+    /// Entry point of the executable.
     /// </summary>
     public static void Main()
     {
@@ -61,7 +60,7 @@ public static class Program
                 switch (args[1])
                 {
                 case "mod":
-                    //ModsCLI.Run(args.Skip(2).ToArray());
+                    //TODO uncomment at "mod builder" phase ModsCLI.Run(args.Skip(2).ToArray());
                     Environment.Exit(0);
                     break;
                 }
@@ -78,7 +77,11 @@ public static class Program
         {
             try
             {
-                //TODO fixme ModManager.Initialize();
+                if (Directory.Exists(ModManager.ModsDirectory))
+                {
+                    ModManager.Initialize();
+                    ModManager.LoadMods();
+                }
                 RunGame();
             }
             catch (Exception exception)
@@ -115,9 +118,9 @@ public static class Program
     }
 
     /// <summary>
-    /// Logs the <paramref name="exception"/>. Call before quitting the program
+    /// Logs the <paramref name="exception"/>. Call before quitting the program.
     /// </summary>
-    /// <param name="exception"><see cref="Exception"/> to <see cref="Log"/></param>
+    /// <param name="exception"><see cref="Exception"/> to log.</param>
     public static void Crash(Exception exception)
     {
         try
@@ -135,11 +138,11 @@ public static class Program
     }
 
     /// <summary>
-    /// Runs <see langword="new"/> <see cref="Engine"/>
+    /// Runs <see langword="new"/> <see cref="Engine"/>.
     /// </summary>
     public static void RunGame()
     {
-        //TODO fixme new Engine().Run();
+        new Engine().Run();
     }
 }
 

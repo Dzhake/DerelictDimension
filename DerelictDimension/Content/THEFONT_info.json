@@ -1,7 +1,11 @@
 {
 	"GlyphSize": {
-		"X": 9,
+		"X": 5,
 		"Y": 9
 	},
-	"Glyphs": "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789()/%:,."
+	"Spacing": {
+		"X": 1,
+		"Y": -1
+	},
+	"Glyphs": "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789()/%:,.",
 }

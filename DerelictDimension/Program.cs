@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using LogSystem;
 using MonoPlus;
 using MonoPlus.ModSystem;
 using Serilog;
+using Serilog.Events;
 
 namespace DerelictDimension;
 
@@ -44,9 +46,16 @@ public static class Program
     /// </summary>
     public static void Main()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) WindowsAPI.AllocConsole();
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            WindowsAPI.AllocConsole();
+            typeof(Console).GetField("s_in", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
+            typeof(Console).GetField("s_out", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
+            typeof(Console).GetField("s_error", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
+        }
         //DO NOT LOG anything with level below Information until this is called! Otherwise, logged lines will never be logged.
         MonoPlusMain.EarlyInitialize();
+        LogHelper.SetMinimumLogLevel(LogEventLevel.Verbose);
 
         //DO NOT USE Main(string[]) ! That is different from Environment.GetCommandLineArgs(); because it doesn't include path to process executable as first arg, so to prevent confusion and [messing up indexes] use this Environment.GetCommandLineArgs(); instead.
         string[] args = Environment.GetCommandLineArgs();

@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using MonoPlus;
 using MonoPlus.AssetsSystem;
 using MonoPlus.GraphicsSystem;
@@ -28,10 +29,11 @@ public class Engine : Game
     /// </summary>
     public static AssetsManager? MainAssetManager;
 
-
-    public Texture2D? texture;
-    public string? info;
     public BitmapFont? font;
+
+    public string text = "None";
+
+    public Point offset = Point.Zero;
 
     /// <summary>
     /// Creates a new <see cref="Engine"/>.
@@ -76,6 +78,17 @@ public class Engine : Game
         MainThread.Update();
 
         ModManager.Update();
+        DevConsole.Update();
+
+        if (Input.Down(Keys.Right))
+            offset.X += 1;
+        else if (Input.Down(Keys.Left))
+            offset.X -= 1;
+
+        if (Input.Down(Keys.Up))
+            offset.Y -= 1;
+        else if (Input.Down(Keys.Down))
+            offset.Y += 1;
 
         Input.PostUpdate();
 
@@ -91,6 +104,7 @@ public class Engine : Game
         if (GraphicsSettings.FocusLossBehaviour < GraphicsSettings.OnFocusLossBehaviour.Eco && !IsActive) return;
         if (font is null) return;
         GraphicsDevice.Clear(Color.Black);
+
         Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
         if (ModManager.InProgress)
         {
@@ -98,13 +112,20 @@ public class Engine : Game
         }
         else
         {
-            //Renderer.DrawRect(new(0, 0), new(1000, 500), Color.DarkSlateBlue);
-            font.DrawText("Derelict Dimension", Renderer.spriteBatch, Vector2.Zero, Color.LightGreen, scale: new(3));
-            font.DrawText("(quick brown fox jumps over lazy dog)", Renderer.spriteBatch, new(0, 50), Color.Orange, scale: new(2));
-            font.DrawText("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789()/%:,.", Renderer.spriteBatch, new(0, 100), Color.LightGoldenrodYellow, scale: new(2));
-            font.DrawText("0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n:)", Renderer.spriteBatch, new(0, 150), Color.Aquamarine);
+            Renderer.DrawRect(new(0, 0), new(1000, 500), Color.DarkSlateBlue);
+            Vector2 pos = offset.ToVector2();
+            font.DrawText("Derelict Dimension", Renderer.spriteBatch, pos, Color.LightGreen, scale: new(3));
+            pos.Y += 50;
+            font.DrawText("(quick brown fox jumps over lazy dog)", Renderer.spriteBatch, pos, Color.Orange, scale: new(2));
+            pos.Y += 50;
+            font.DrawText("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789()/%:,.", Renderer.spriteBatch, pos, Color.LightGoldenrodYellow, scale: new(2));
+            pos.Y += 50;
+            font.DrawText("0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n:)", Renderer.spriteBatch, pos, Color.Aquamarine);
+            pos.Y += 150;
+            font.DrawText(text, Renderer.spriteBatch, pos, Color.Red);
         }
         Renderer.End();
         base.Draw(gameTime);
+
     }
 }

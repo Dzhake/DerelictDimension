@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using LogSystem;
 using MonoPlus;
 using MonoPlus.ModSystem;
@@ -22,16 +23,6 @@ public static class Program
     public static string AppName = "DerelictDimension";
 
     /// <summary>
-    /// Times the game was restarted after throwing an <see cref="Exception"/>.
-    /// </summary>
-    public static int RestartsCount;
-
-    /// <summary>
-    /// Max amount of times game should restart after throwing an <see cref="Exception"/>.
-    /// </summary>
-    public static int MaxRestarts = 1;
-
-    /// <summary>
     /// <see cref="File"/> path to file where error should be written.
     /// </summary>
     public static readonly string errorFile = $"{AppContext.BaseDirectory}error.txt";
@@ -42,88 +33,61 @@ public static class Program
     public static readonly string errorx2File = $"{AppContext.BaseDirectory}ERRORX2.txt";
 
     /// <summary>
-    /// Entry point of the executable.
+    /// Entry point of the executable. Acts as try/catch wrapper around <see cref="SafeMain"/>.
     /// </summary>
     public static void Main()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            WindowsAPI.AllocConsole();
-            typeof(Console).GetField("s_in", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
-            typeof(Console).GetField("s_out", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
-            typeof(Console).GetField("s_error", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
-        }
-        //DO NOT LOG anything with level below Information until this is called! Otherwise, logged lines will never be logged.
-        MonoPlusMain.EarlyInitialize();
-        LogHelper.SetMinimumLogLevel(LogEventLevel.Verbose);
-
-        //DO NOT USE Main(string[]) ! That is different from Environment.GetCommandLineArgs(); because it doesn't include path to process executable as first arg, so to prevent confusion and [messing up indexes] use this Environment.GetCommandLineArgs(); instead.
-        string[] args = Environment.GetCommandLineArgs();
-        Log.Information("Command-line arguments: {Args}", string.Join(' ', args));
-        File.Delete(errorx2File);
-        File.WriteAllText(errorFile, $"{DateTime.Now}\n");
-
         try
         {
-            if (args.Length > 1)
-                switch (args[1])
-                {
-                case "mod":
-                    //TODO uncomment at "mod builder" phase ModsCLI.Run(args.Skip(2).ToArray());
-                    Environment.Exit(0);
-                    break;
-                }
+            SafeMain();
         }
         catch (Exception exception)
         {
             Crash(exception);
             Environment.Exit(1);
         }
+    }
+
+    /// <summary>
+    /// Entry point of executable, wrapped by <see cref="Main"/>. All exceptions here are caught and logged.
+    /// </summary>
+    public static void SafeMain()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            WindowsAPI.AllocConsole();
+            Task.Run(ReadConsoleInput);
+        }
+        
+
+        //DO NOT LOG anything with level below Information until this is called! Otherwise, logged lines will never be logged.
+        MonoPlusMain.EarlyInitialize();
+        LogHelper.SetMinimumLogLevel(LogEventLevel.Verbose);
+
+        //DO NOT USE Main(string[]) ! That is different from Environment.GetCommandLineArgs(); because it doesn't include path to process executable as first arg. To prevent confusion and messing up indexes use Environment.GetCommandLineArgs(); instead.
+        string[] args = Environment.GetCommandLineArgs();
+        Log.Information("Command-line arguments: {Args}", string.Join(' ', args));
+        File.Delete(errorx2File);
+        File.WriteAllText(errorFile, $"{DateTime.Now}\n");
+
+        if (args.Length > 1)
+            switch (args[1])
+            {
+                case "mod":
+                    //TODO uncomment at "mod builder" phase ModsCLI.Run(args.Skip(2).ToArray());
+                    Environment.Exit(0);
+                    break;
+            }
 
         LogHelper.WriteStartupInfo();
 
-        while (RestartsCount < MaxRestarts)
+        if (Directory.Exists(ModManager.ModsDirectory))
         {
-            try
-            {
-                if (Directory.Exists(ModManager.ModsDirectory))
-                {
-                    ModManager.Initialize();
-                    ModManager.LoadMods();
-                }
-                RunGame();
-            }
-            catch (Exception exception)
-            {
-                Crash(exception);
-                RestartsCount++;
-                continue;
-            }
-
-            Environment.Exit(0); //Exit if no exception caught
+            ModManager.Initialize();
+            ModManager.LoadMods();
         }
 
-        //open log.txt
-        new Process
-        {
-            StartInfo = new ProcessStartInfo(LogHelper.LogFile)
-            {
-                UseShellExecute = true
-            }
-        }.Start();
-
-        if (MaxRestarts == 1) Environment.Exit(0);
-
-        try
-        {
-            File.AppendAllText(errorFile, "Too many restarts");
-        }
-        catch (Exception exception)
-        {
-            Console.WriteLine(exception.ToString());
-            File.Create($"{AppContext.BaseDirectory}ERRORX2.txt");
-            Environment.Exit(3);
-        }
+        RunGame();
     }
 
     /// <summary>
@@ -136,6 +100,15 @@ public static class Program
         {
             Log.Fatal(exception, "An exception was thrown.");
             File.AppendAllText(errorFile, $"{exception}\n\n\n");
+
+            //open log.txt
+            new Process
+            {
+                StartInfo = new ProcessStartInfo(LogHelper.LogFile)
+                {
+                    UseShellExecute = true
+                }
+            }.Start();
         }
         catch (Exception exception2)
         {
@@ -152,6 +125,24 @@ public static class Program
     public static void RunGame()
     {
         new Engine().Run();
+    }
+
+    public static void ReadConsoleInput()
+    {
+        while (true)
+        {
+            string? command = Console.ReadLine();
+            switch (command)
+            {
+                case null:
+                    continue;
+                case "exit":
+                    Environment.Exit(0);
+                    break;
+            }
+            
+            DevConsole.CommandsQueue.Enqueue(command);
+        }
     }
 }
 

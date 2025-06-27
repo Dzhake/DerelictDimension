@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using DerelictDimension.CommandLine;
 using LogSystem;
 using MonoPlus;
 using MonoPlus.ModSystem;
@@ -53,41 +55,66 @@ public static class Program
     /// </summary>
     public static void SafeMain()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            WindowsAPI.AllocConsole();
-            Task.Run(ReadConsoleInput);
-        }
-        
-
-        //DO NOT LOG anything with level below Information until this is called! Otherwise, logged lines will never be logged.
-        MonoPlusMain.EarlyInitialize();
-        LogHelper.SetMinimumLogLevel(LogEventLevel.Verbose);
-
-        //DO NOT USE Main(string[]) ! That is different from Environment.GetCommandLineArgs(); because it doesn't include path to process executable as first arg. To prevent confusion and messing up indexes use Environment.GetCommandLineArgs(); instead.
-        string[] args = Environment.GetCommandLineArgs();
-        Log.Information("Command-line arguments: {Args}", string.Join(' ', args));
+        //It's very important to erase those files early, in case crash will occur they always need to be up-to-date
         File.Delete(errorx2File);
         File.WriteAllText(errorFile, $"{DateTime.Now}\n");
+        File.WriteAllText(LogHelper.LogFile, $"{DateTime.Now}\n");
+        
+        //DO NOT USE Main(string[]) ! That is different from Environment.GetCommandLineArgs(); because it doesn't include path to process executable as first arg. To prevent confusion and messing up indexes use Environment.GetCommandLineArgs(); instead.
+        string[] args = Environment.GetCommandLineArgs();
+        if (args.Contains("--help") && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            WindowsAPI.AllocConsole();
+            typeof(Console).GetField("s_in", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
+            typeof(Console).GetField("s_out", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
+            typeof(Console).GetField("s_error", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
+        }
+        CMD.Parse(args);
+        if (args.Contains("--help"))
+        {
+            Console.WriteLine("['--help' found, exiting the program]");
+            Console.WriteLine("\nPress any key to exit..");
+            Console.ReadKey();
+            File.AppendAllText(LogHelper.LogFile, $"Command-line arguments: {args}\n['--help' found, exiting the program]");
+            return; //Assume user doesn't want to launch the app, and wants help instead.
+        }
+        InitializeMonoPlus(args);
+        InitializeMods();
+        RunGame();
+    }
 
-        if (args.Length > 1)
-            switch (args[1])
-            {
-                case "mod":
-                    //TODO uncomment at "mod builder" phase ModsCLI.Run(args.Skip(2).ToArray());
-                    Environment.Exit(0);
-                    break;
-            }
+    private static void InitializeMonoPlus(string[] args)
+    {
+        if (CommandLineArgs.Console && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            WindowsAPI.AllocConsole();
+            Log.Information("Allocated console for the game");
+            Task.Run(ReadConsoleInput);
+        }
 
+        
+        //DO NOT LOG anything with level below Information until this is called! Otherwise, those lines will never be logged.
+        MonoPlusMain.EarlyInitialize();
+        LogHelper.SetMinimumLogLevel(CommandLineArgs.LogLevel);
+        Log.Verbose("1");
+        Log.Debug("2");
+        Log.Information("3");
+        Log.Warning("4");
+        Log.Error("5");
+        
+        
+
+        Log.Information("Command-line arguments: {Args}", string.Join(' ', args));
         LogHelper.WriteStartupInfo();
+    }
 
+    private static void InitializeMods()
+    {
         if (Directory.Exists(ModManager.ModsDirectory))
         {
             ModManager.Initialize();
             ModManager.LoadMods();
         }
-
-        RunGame();
     }
 
     /// <summary>
@@ -127,6 +154,9 @@ public static class Program
         new Engine().Run();
     }
 
+    /// <summary>
+    /// Reads input from <see cref="Console"/> add adds it to <see cref="DevConsole.CommandsQueue"/>.
+    /// </summary>
     public static void ReadConsoleInput()
     {
         while (true)
@@ -143,6 +173,7 @@ public static class Program
             
             DevConsole.CommandsQueue.Enqueue(command);
         }
+        // ReSharper disable once FunctionNeverReturns yep i know that's the point
     }
 }
 

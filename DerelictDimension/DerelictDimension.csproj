@@ -20,7 +20,6 @@
 
     <ItemGroup>
         <ProjectReference Include="$(ProjectDir)..\..\MonoPlus\MonoPlus\MonoPlus.csproj" />
-        <PackageReference Include="CommandLineParser" Version="2.9.1" />
 
         <Content Include="$(ContentDirectory)**" Exclude="$(ContentDirectory)**\*.fx" CopyToOutputDirectory="PreserveNewest" />
         <None Remove="app.manifest" />
@@ -31,9 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Remove="ModsTool\**" />
-      <EmbeddedResource Remove="ModsTool\**" />
-      <None Remove="ModsTool\**" />
+      <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />
     </ItemGroup>
 
     <!-- Code for compiling effects... -->

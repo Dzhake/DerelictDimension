@@ -14,10 +14,11 @@ create:
 
 
 validate:
-1 issue with mod's name or version
+1 failed to deserialize mod config
+2 issue with mod's name or version
 
 
 compile effects task:
 1 caught exception; not Win32Exception.
-2 Win32 error after starting MGFXC process
+2 Win32Exception after starting MGFXC process
 3 Not enough arguments

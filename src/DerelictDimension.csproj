@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <RollForward>Major</RollForward>
+        <PublishReadyToRun>false</PublishReadyToRun>
+        <TieredCompilation>false</TieredCompilation>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+        <OutputPath>bin/</OutputPath>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon>Icon.ico</ApplicationIcon>
+        <ContentDirectory>Content\</ContentDirectory>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="$(ProjectDir)..\..\MonoPlus\src\MonoPlus.csproj" />
+
+        <Content Include="$(ContentDirectory)**" Exclude="$(ContentDirectory)**\*.fx" CopyToOutputDirectory="PreserveNewest" />
+        <None Remove="app.manifest" />
+        <None Remove="Icon.bmp" />
+        <None Remove="Icon.ico" />
+    
+        <Effects Include="Content/**/*.fx" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />
+    </ItemGroup>
+
+    <!-- Code for compiling effects... -->
+
+    <UsingTask AssemblyFile="..\..\MonoPlus\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="MonoPlus.MSBuild.CompileEffectsTask" />
+
+    <Target Name="CompileEffects" AfterTargets="Build" Inputs="@(Effects)" Outputs="$(OutputPath)\**\*.mgfx">
+        <CompileEffectsTask Effects="@(Effects)" PathToContent="$(ProjectDir)" OutputPath="$(ProjectDir)$(OutputPath)" />
+    </Target>
+
+</Project>

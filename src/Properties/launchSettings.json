@@ -2,7 +2,7 @@
   "profiles": {
     "DerelictDimension": {
       "commandName": "Project",
-      "commandLineArgs": "--help"
+      "commandLineArgs": "--console"
     }
   }
 }

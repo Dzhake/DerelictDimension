@@ -46,7 +46,6 @@ public static class CMD
     private static RootCommand CreateRootCommand()
     {
         RootCommand rootCommand = new();
-        
         rootCommand.SetAction(AssignResults);
         AddOptionsToRoot(rootCommand);
         return rootCommand;

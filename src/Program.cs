@@ -64,11 +64,8 @@ public static class Program
         if (args.Contains("--help") && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             WindowsAPI.AllocConsole();
-            typeof(Console).GetField("s_in", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
-            typeof(Console).GetField("s_out", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
-            typeof(Console).GetField("s_error", BindingFlags.NonPublic | BindingFlags.Static)?.SetValue(null, null);
         }
-        CMD.Parse(args);
+        CMD.Parse(args.Skip(1).ToArray()); //First arg is path to .exe/.dll, which crashes the parser :^)
         if (args.Contains("--help"))
         {
             Console.WriteLine("['--help' found, exiting the program]");

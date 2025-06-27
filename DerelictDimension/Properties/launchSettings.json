@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "DerelictDimension": {
-      "commandName": "Project",
-      "commandLineArgs": "--help"
-    }
-  }
-}

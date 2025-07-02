@@ -9,6 +9,7 @@ using MonoPlus.AssetsSystem;
 using MonoPlus.GraphicsSystem;
 using MonoPlus.GraphicsSystem.BitmapFonts;
 using MonoPlus.InputSystem;
+using MonoPlus.LocalizationSystem;
 using MonoPlus.ModSystem;
 using MonoPlus.TimeSystem;
 using MonoPlus.Utils;
@@ -123,6 +124,10 @@ public class Engine : Game
             font.DrawText("0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n:)", Renderer.spriteBatch, pos, Color.Aquamarine);
             pos.Y += 150;
             font.DrawText(text, Renderer.spriteBatch, pos, Color.Red);
+            pos.Y += 100;
+            font.DrawText(Locale.Get("One"), Renderer.spriteBatch, pos, Color.Blue, scale: new(2,2));
+            pos.Y += 40;
+            font.DrawText(Locale.Get("Two"), Renderer.spriteBatch, pos, Color.Blue, scale: new(2,2));
         }
         Renderer.End();
         base.Draw(gameTime);

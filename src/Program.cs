@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using DerelictDimension.CommandLine;
 using MonoPlus.LogSystem;
 using MonoPlus;
+using MonoPlus.LocalizationSystem;
 using MonoPlus.ModSystem;
 using Serilog;
 
@@ -88,18 +89,11 @@ public static class Program
             Task.Run(ReadConsoleInput);
         }
 
-        
-        //DO NOT LOG anything with level below Information until this is called! Otherwise, those lines will never be logged.
         MonoPlusMain.EarlyInitialize();
+        //DO NOT LOG anything with level below Information until this is called! Otherwise, those lines will never be logged.
         LogHelper.SetMinimumLogLevel(CommandLineArgs.LogLevel);
-        Log.Verbose("1");
-        Log.Debug("2");
-        Log.Information("3");
-        Log.Warning("4");
-        Log.Error("5");
+        if (CommandLineArgs.Language is not null) Locale.CurrentLanguage = CommandLineArgs.Language;
         
-        
-
         Log.Information("Command-line arguments: {Args}", string.Join(' ', args));
         LogHelper.WriteStartupInfo();
     }

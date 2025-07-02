@@ -19,6 +19,11 @@ public static class CMD
         Description = "Minimum log level, messages of level less important it will be ignored",
         DefaultValueFactory = _ => LogEventLevel.Information,
     };
+
+    private static Option<string> LanguageOp = new("--language", "--lang")
+    {
+        Description = "Change language the game uses",
+    };
     
     /// <summary>
     /// Parses the specified command-line arguments, and sets <see cref="CommandLineArgs"/> based on parse result.
@@ -37,6 +42,7 @@ public static class CMD
     {
         CommandLineArgs.Console = result.GetValue(ConsoleOp);
         CommandLineArgs.LogLevel = result.GetValue(LogLevelOp);
+        CommandLineArgs.Language = result.GetValue(LanguageOp);
     }
 
     /// <summary>
@@ -57,6 +63,6 @@ public static class CMD
     /// <param name="root">Command, to which add options.</param>
     private static void AddOptionsToRoot(Command root)
     {
-        root.Options.AddRange([ConsoleOp, LogLevelOp]);
+        root.Options.AddRange([ConsoleOp, LogLevelOp, LanguageOp]);
     }
 }

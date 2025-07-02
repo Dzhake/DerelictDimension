@@ -15,5 +15,7 @@ public static class CommandLineArgs
     /// <summary>
     /// Minimum log level, messages of level less important it will be ignored.
     /// </summary>
-    public static LogEventLevel LogLevel = LogEventLevel.Verbose;
+    public static LogEventLevel LogLevel;
+
+    public static string? Language;
 }

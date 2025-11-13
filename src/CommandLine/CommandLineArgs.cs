@@ -17,5 +17,8 @@ public static class CommandLineArgs
     /// </summary>
     public static LogEventLevel LogLevel;
 
+    /// <summary>
+    /// Change language the game uses.
+    /// </summary>
     public static string? Language;
 }

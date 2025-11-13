@@ -1,2 +1,0 @@
-One = Odin
-Two = Dva

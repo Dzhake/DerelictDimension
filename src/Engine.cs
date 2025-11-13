@@ -13,6 +13,7 @@ using MonoPlus.LocalizationSystem;
 using MonoPlus.ModSystem;
 using MonoPlus.TimeSystem;
 using MonoPlus.Utils;
+using MonoPlus.Utils.General;
 using Serilog;
 
 namespace DerelictDimension;
@@ -26,9 +27,9 @@ public class Engine : Game
     public static Engine? Instance;
 
     /// <summary>
-    /// Main <see cref="AssetsManager"/> for vanilla game.
+    /// Main <see cref="AssetManager"/> for vanilla game.
     /// </summary>
-    public static AssetsManager? MainAssetManager;
+    public static AssetManager? MainAssetManager;
 
     public BitmapFont? font;
 
@@ -62,7 +63,7 @@ public class Engine : Game
         Renderer.spriteBatch = new SpriteBatch(GraphicsDevice);
 
         string contentPath = $"{AppContext.BaseDirectory}Content";
-        MainAssetManager = new FileAssetsManager(contentPath);
+        MainAssetManager = new FileAssetManager(contentPath);
         if (MainAssetManager is null) throw new InvalidOperationException("Couldn't create MainAssetManager");
         Assets.RegisterAssetManager(MainAssetManager, "");
         MainAssetManager.LoadAssets();
@@ -73,7 +74,7 @@ public class Engine : Game
     protected override void Update(GameTime gameTime)
     {
         Time.Update(gameTime, IsActive);
-        if (GraphicsSettings.FocusLossBehaviour < GraphicsSettings.OnFocusLossBehaviour.Eco && !IsActive) return;
+        if (GraphicsSettings.FocusLossBehaviour > GraphicsSettings.OnFocusLossBehaviour.Eco && !IsActive) return;
         base.Update(gameTime);
         Input.Update();
         MainThread.Update();
@@ -102,7 +103,7 @@ public class Engine : Game
     /// <inheritdoc/> 
     protected override void Draw(GameTime gameTime)
     {
-        if (GraphicsSettings.FocusLossBehaviour < GraphicsSettings.OnFocusLossBehaviour.Eco && !IsActive) return;
+        if (GraphicsSettings.FocusLossBehaviour > GraphicsSettings.OnFocusLossBehaviour.Eco && !IsActive) return;
         if (font is null) return;
         GraphicsDevice.Clear(Color.Black);
 

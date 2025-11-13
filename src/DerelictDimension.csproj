@@ -1,43 +1,58 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>WinExe</OutputType>
-        <TargetFramework>net9.0</TargetFramework>
-        <RollForward>Major</RollForward>
-        <PublishReadyToRun>false</PublishReadyToRun>
-        <TieredCompilation>false</TieredCompilation>
+        <!--  Compilation settings  -->
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <TargetFramework>net9.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <DebugType>embedded</DebugType>
+        
+        <!--  Output settings   -->
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
         <OutputPath>bin/</OutputPath>
+        <OutputType>WinExe</OutputType>
+        
+        <!--  App settings  -->
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Icon.ico</ApplicationIcon>
-        <ContentDirectory>Content\</ContentDirectory>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <DebugType>embedded</DebugType>
+        
+        <!--  Custom, for ItemGroup and tasks  -->
+        <ContentDirectory>Content/</ContentDirectory>
+        <LocalizationDirectory>Localization/</LocalizationDirectory>
+        
+        <!--  Removes lotsa dirs with localization files for System.CommandLine from output dir (on build)  -->
+        <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="$(ProjectDir)..\..\MonoPlus\src\MonoPlus.csproj" />
+        <!--  MonoPlus repo clone next to DerelictDimension repo  -->
+        <ProjectReference Include="$(ProjectDir)../../MonoPlus/src/MonoPlus.csproj" />
 
-        <Content Include="$(ContentDirectory)**" Exclude="$(ContentDirectory)**\*.fx" CopyToOutputDirectory="PreserveNewest" />
-        <None Remove="app.manifest" />
-        <None Remove="Icon.bmp" />
-        <None Remove="Icon.ico" />
-    
+        <!--  Nuget packages  -->
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1"/>
+
+        <!--  Copy everything from the 'Content/' but '*.fx' to output dir, those are handled by special task to compile them  -->
+        <Content Include="$(ContentDirectory)**" Exclude="$(ContentDirectory)**/*.fx" CopyToOutputDirectory="PreserveNewest" />
+        
+        <!--  Copy everything from the 'Localization/' to output dir  -->
+        <Content Include="$(LocalizationDirectory)**" CopyToOutputDirectory="PreserveNewest" />
+        
+        <!--  Special Item for content effects files  -->
         <Effects Include="Content/**/*.fx" />
+            
+        
     </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />
-    </ItemGroup>
-
-    <!-- Code for compiling effects... -->
-
+    <!-- Tasks -->
+    
+    <!--  Compile effects task  -->
+    <!--  Import task from MonoPlus repo - MSBuildTasks project -->
     <UsingTask AssemblyFile="..\..\MonoPlus\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="MonoPlus.MSBuild.CompileEffectsTask" />
-
-    <Target Name="CompileEffects" AfterTargets="Build" Inputs="@(Effects)" Outputs="$(OutputPath)\**\*.mgfx">
+    
+    <!--  Run task  -->
+    <Target Name="CompileEffects" AfterTargets="Build">
         <CompileEffectsTask Effects="@(Effects)" PathToContent="$(ProjectDir)" OutputPath="$(ProjectDir)$(OutputPath)" />
     </Target>
 

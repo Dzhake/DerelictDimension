@@ -1,2 +1,0 @@
-One = One
-Two = Two

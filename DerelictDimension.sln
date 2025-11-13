@@ -14,13 +14,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDL3.Core", "..\MonoPlus\SDL3-CS\SDL3\SDL3.Core.csproj", "{EDAF96BA-4B6C-435F-A4DB-C256B5B9D61E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoPlusTests", "..\MonoPlus\MonoPlus.Tests\MonoPlus.Tests\MonoPlusTests.csproj", "{B4CB93E6-9A2D-44AD-AB9A-32F83E48135B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonodTests", "..\MonoPlus\MonoPlus.Tests\MonoPlus.Tests\MonodTests.csproj", "{B4CB93E6-9A2D-44AD-AB9A-32F83E48135B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DerelictDimension", "src\DerelictDimension.csproj", "{92AD4022-02A2-4794-A9FC-35FAB432275A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTasks", "..\MonoPlus\MSBuildTasks\MSBuildTasks.csproj", "{96E092FE-C166-42CE-99EA-CCBB177FF67B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoPlus", "..\MonoPlus\src\MonoPlus.csproj", "{10700435-9C54-4014-BDFC-6653A99EED1B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monod", "..\MonoPlus\src\Monod.csproj", "{10700435-9C54-4014-BDFC-6653A99EED1B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

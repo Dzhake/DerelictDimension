@@ -4,16 +4,18 @@ using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Monod;
+using Monod.AssetsSystem;
+using Monod.GraphicsSystem;
+using Monod.GraphicsSystem.BitmapFonts;
+using Monod.InputSystem;
+using Monod.LocalizationSystem;
+using Monod.ModSystem;
+using Monod.TimeSystem;
+using Monod.Utils;
+using Monod.Utils.General;
 using MonoPlus;
 using MonoPlus.AssetsSystem;
-using MonoPlus.GraphicsSystem;
-using MonoPlus.GraphicsSystem.BitmapFonts;
-using MonoPlus.InputSystem;
-using MonoPlus.LocalizationSystem;
-using MonoPlus.ModSystem;
-using MonoPlus.TimeSystem;
-using MonoPlus.Utils;
-using MonoPlus.Utils.General;
 using Serilog;
 
 namespace DerelictDimension;
@@ -44,7 +46,7 @@ public class Engine : Game
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-        MonoPlusMain.OnGameCreated(this);
+        MonodMain.OnGameCreated(this);
         Instance = this;
         IsFixedTimeStep = false;
         Window.AllowUserResizing = true;
@@ -53,7 +55,7 @@ public class Engine : Game
     /// <inheritdoc/> 
     protected override void Initialize()
     {
-        MonoPlusMain.OnGameInitialize(this);
+        MonodMain.OnGameInitialize(this);
         base.Initialize();
     }
 

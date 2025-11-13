@@ -28,7 +28,7 @@
 
     <ItemGroup>
         <!--  MonoPlus repo clone next to DerelictDimension repo  -->
-        <ProjectReference Include="$(ProjectDir)../../MonoPlus/src/MonoPlus.csproj" />
+        <ProjectReference Include="..\..\MonoPlus\src\Monod.csproj" />
 
         <!--  Nuget packages  -->
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1"/>

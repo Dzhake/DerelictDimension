@@ -6,10 +6,11 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using DerelictDimension.CommandLine;
-using MonoPlus.LogSystem;
+using Monod.LogSystem;
+using Monod;
+using Monod.LocalizationSystem;
+using Monod.ModSystem;
 using MonoPlus;
-using MonoPlus.LocalizationSystem;
-using MonoPlus.ModSystem;
 using Serilog;
 
 namespace DerelictDimension;
@@ -89,7 +90,7 @@ public static class Program
             Task.Run(ReadConsoleInput);
         }
 
-        MonoPlusMain.EarlyInitialize();
+        MonodMain.EarlyInitialize();
         //DO NOT LOG anything with level below Information until this is called! Otherwise, those lines will never be logged.
         LogHelper.SetMinimumLogLevel(CommandLineArgs.LogLevel);
         if (CommandLineArgs.Language is not null) Locale.CurrentLanguage = CommandLineArgs.Language;

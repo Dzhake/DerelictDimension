@@ -1,38 +1,26 @@
-﻿using System;
-using System.Globalization;
-using System.Text.Json;
+﻿using System.Text.Json;
+using JetBrains.Annotations;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Monod;
-using Monod.AssetsSystem;
 using Monod.GraphicsSystem;
 using Monod.GraphicsSystem.BitmapFonts;
 using Monod.InputSystem;
 using Monod.LocalizationSystem;
-using Monod.ModSystem;
-using Monod.TimeSystem;
-using Monod.Utils;
 using Monod.Utils.General;
 using MonoPlus;
 using MonoPlus.AssetsSystem;
-using Serilog;
 
 namespace DerelictDimension;
 
 /// <inheritdoc/> 
-public class Engine : Game
+public class Engine : MonodGame
 {
     /// <summary>
     /// Static singleton instance of the <see cref="Engine"/>.
     /// </summary>
-    public static Engine? Instance;
-
-    /// <summary>
-    /// Main <see cref="AssetManager"/> for vanilla game.
-    /// </summary>
-    public static AssetManager? MainAssetManager;
-
+    public static Engine Instance = null!;
+    
     public BitmapFont? font;
 
     public string text = "None";
@@ -44,46 +32,12 @@ public class Engine : Game
     /// </summary>
     public Engine()
     {
-        CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
-        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-        MonodMain.OnGameCreated(this);
         Instance = this;
-        IsFixedTimeStep = false;
-        Window.AllowUserResizing = true;
     }
 
     /// <inheritdoc/> 
-    protected override void Initialize()
+    protected override void UpdateM()
     {
-        MonodMain.OnGameInitialize(this);
-        base.Initialize();
-    }
-
-    /// <inheritdoc/> 
-    protected override void LoadContent()
-    {
-        Renderer.spriteBatch = new SpriteBatch(GraphicsDevice);
-
-        string contentPath = $"{AppContext.BaseDirectory}Content";
-        MainAssetManager = new FileAssetManager(contentPath);
-        if (MainAssetManager is null) throw new InvalidOperationException("Couldn't create MainAssetManager");
-        Assets.RegisterAssetManager(MainAssetManager, "");
-        MainAssetManager.LoadAssets();
-        Log.Information("Started loading content");
-    }
-
-    /// <inheritdoc/> 
-    protected override void Update(GameTime gameTime)
-    {
-        Time.Update(gameTime, IsActive);
-        if (GraphicsSettings.FocusLossBehaviour > GraphicsSettings.OnFocusLossBehaviour.Eco && !IsActive) return;
-        base.Update(gameTime);
-        Input.Update();
-        MainThread.Update();
-
-        ModManager.Update();
-        DevConsole.Update();
-
         if (Input.Down(Keys.Right))
             offset.X += 1;
         else if (Input.Down(Keys.Left))
@@ -94,8 +48,6 @@ public class Engine : Game
         else if (Input.Down(Keys.Down))
             offset.Y += 1;
 
-        Input.PostUpdate();
-
         if (font is not null) return;
         Texture2D? fontTexture = Assets.GetOrDefault<Texture2D>(":/THEFONT");
         string? fontInfo = Assets.GetOrDefault<string>(":/THEFONT_info");
@@ -103,37 +55,25 @@ public class Engine : Game
     }
 
     /// <inheritdoc/> 
-    protected override void Draw(GameTime gameTime)
+    protected override void DrawM()
     {
-        if (GraphicsSettings.FocusLossBehaviour > GraphicsSettings.OnFocusLossBehaviour.Eco && !IsActive) return;
         if (font is null) return;
-        GraphicsDevice.Clear(Color.Black);
-
         Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
-        if (ModManager.InProgress)
-        {
-            font.DrawText("Loading mods.", Renderer.spriteBatch, Vector2.Zero);
-        }
-        else
-        {
-            Renderer.DrawRect(new(0, 0), new(1000, 500), Color.DarkSlateBlue);
-            Vector2 pos = offset.ToVector2();
-            font.DrawText("Derelict Dimension", Renderer.spriteBatch, pos, Color.LightGreen, scale: new(3));
-            pos.Y += 50;
-            font.DrawText("(quick brown fox jumps over lazy dog)", Renderer.spriteBatch, pos, Color.Orange, scale: new(2));
-            pos.Y += 50;
-            font.DrawText("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789()/%:,.", Renderer.spriteBatch, pos, Color.LightGoldenrodYellow, scale: new(2));
-            pos.Y += 50;
-            font.DrawText("0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n:)", Renderer.spriteBatch, pos, Color.Aquamarine);
-            pos.Y += 150;
-            font.DrawText(text, Renderer.spriteBatch, pos, Color.Red);
-            pos.Y += 100;
-            font.DrawText(Locale.Get("One"), Renderer.spriteBatch, pos, Color.Blue, scale: new(2,2));
-            pos.Y += 40;
-            font.DrawText(Locale.Get("Two"), Renderer.spriteBatch, pos, Color.Blue, scale: new(2,2));
-        }
+        Renderer.DrawRect(new(0, 0), new(1000, 500), Color.DarkSlateBlue);
+        Vector2 pos = offset.ToVector2();
+        font.DrawText("Derelict Dimension", Renderer.spriteBatch, pos, Color.LightGreen, scale: new(3));
+        pos.Y += 50;
+        font.DrawText("(quick brown fox jumps over lazy dog)", Renderer.spriteBatch, pos, Color.Orange, scale: new(2));
+        pos.Y += 50;
+        font.DrawText("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789()/%:,.", Renderer.spriteBatch, pos, Color.LightGoldenrodYellow, scale: new(2));
+        pos.Y += 50;
+        font.DrawText("0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n:)", Renderer.spriteBatch, pos, Color.Aquamarine);
+        pos.Y += 150;
+        font.DrawText(text, Renderer.spriteBatch, pos, Color.Red);
+        pos.Y += 100;
+        font.DrawText(Locale.Get("One"), Renderer.spriteBatch, pos, Color.Blue, scale: new(2,2));
+        pos.Y += 40;
+        font.DrawText(Locale.Get("Two"), Renderer.spriteBatch, pos, Color.Blue, scale: new(2,2));
         Renderer.End();
-        base.Draw(gameTime);
-
     }
 }

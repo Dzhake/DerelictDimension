@@ -8,8 +8,8 @@ using Monod.GraphicsSystem.BitmapFonts;
 using Monod.InputSystem;
 using Monod.LocalizationSystem;
 using Monod.Utils.General;
-using MonoPlus;
-using MonoPlus.AssetsSystem;
+using Monod;
+using Monod.AssetsSystem;
 
 namespace DerelictDimension;
 
@@ -49,8 +49,8 @@ public class Engine : MonodGame
             offset.Y += 1;
 
         if (font is not null) return;
-        Texture2D? fontTexture = Assets.GetOrDefault<Texture2D>(":/THEFONT");
-        string? fontInfo = Assets.GetOrDefault<string>(":/THEFONT_info");
+        Texture2D? fontTexture = Assets.GetOrDefault<Texture2D>(":THEFONT");
+        string? fontInfo = Assets.GetOrDefault<string>(":THEFONT_info");
         if (fontTexture is not null && fontInfo is not null) font = new(fontTexture, JsonSerializer.Deserialize<BitmapFont.Info>(fontInfo, Json.WithFields));
     }
 

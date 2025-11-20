@@ -2,7 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../MonoPlus" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../MonoPlus/SDL3-CS" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Monod" vcs="Git"/>
+    <mapping directory="$PROJECT_DIR$/../Monod/SDL3-CS" vcs="Git"/>
   </component>
 </project>

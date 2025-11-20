@@ -4,7 +4,7 @@
         <!--  Compilation settings  -->
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <DebugType>embedded</DebugType>
         
@@ -27,8 +27,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <!--  MonoPlus repo clone next to DerelictDimension repo  -->
-        <ProjectReference Include="..\..\MonoPlus\src\Monod.csproj" />
+        <!--  Monod repo clone next to DerelictDimension repo  -->
+        <ProjectReference Include="..\..\Monod\MSBuildTasks\MSBuildTasks.csproj" />
+        <ProjectReference Include="..\..\Monod\src\Monod.csproj" />
 
         <!--  Nuget packages  -->
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1"/>
@@ -48,8 +49,8 @@
     <!-- Tasks -->
     
     <!--  Compile effects task  -->
-    <!--  Import task from MonoPlus repo - MSBuildTasks project -->
-    <UsingTask AssemblyFile="..\..\MonoPlus\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="MonoPlus.MSBuild.CompileEffectsTask" />
+    <!--  Import task from Monod repo - MSBuildTasks project -->
+    <UsingTask AssemblyFile="..\..\Monod\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="Monod.MSBuild.CompileEffectsTask" />
     
     <!--  Run task  -->
     <Target Name="CompileEffects" AfterTargets="Build">

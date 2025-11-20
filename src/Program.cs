@@ -8,7 +8,7 @@ using DerelictDimension.CommandLine;
 using Monod.LogSystem;
 using Monod.LocalizationSystem;
 using Monod.ModSystem;
-using MonoPlus;
+using Monod;
 using Serilog;
 
 namespace DerelictDimension;

@@ -74,12 +74,12 @@ public static class Program
             File.AppendAllText(LogHelper.LogFile, $"Command-line arguments: {args}\n['--help' found, exiting the program]");
             return; //Assume user doesn't want to launch the app, and wants help instead.
         }
-        InitializeMonoPlus(args);
+        InitializeMonod(args);
         InitializeMods();
         RunGame();
     }
 
-    private static void InitializeMonoPlus(string[] args)
+    private static void InitializeMonod(string[] args)
     {
         if (CommandLineArgs.Console && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -89,7 +89,7 @@ public static class Program
         }
 
         MonodMain.EarlyInitialize();
-        //DO NOT LOG anything with level below Information until this is called! Otherwise, those lines will never be logged.
+        //DO NOT log anything with level below Information until this is called! Otherwise, those lines will never be logged.
         LogHelper.SetMinimumLogLevel(CommandLineArgs.LogLevel);
         if (CommandLineArgs.Language is not null) Locale.CurrentLanguage = CommandLineArgs.Language;
         
@@ -107,7 +107,7 @@ public static class Program
     }
 
     /// <summary>
-    /// Logs the <paramref name="exception"/>. Call before quitting the program.
+    /// Logs the <paramref name="exception"/>. Call before quitting the program on error.
     /// </summary>
     /// <param name="exception"><see cref="Exception"/> to log.</param>
     public static void Crash(Exception exception)
@@ -128,7 +128,7 @@ public static class Program
         }
         catch (Exception exception2)
         {
-            //DO NOT TRY/CATCH THIS! If the program exits without writing error file then error is here.
+            //If the program exits without writing error file then error is here. I'm not even sure what would you if catch an exception here. Return some very uncommon exit code? 
             File.AppendAllText(errorFile, $"{exception}\n\n\n{exception2}");
 
             Environment.Exit(2);
@@ -162,7 +162,6 @@ public static class Program
             
             DevConsole.CommandsQueue.Enqueue(command);
         }
-        // ReSharper disable once FunctionNeverReturns yep i know that's the point
     }
 }
 

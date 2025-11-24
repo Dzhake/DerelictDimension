@@ -3,6 +3,7 @@ using System.Runtime.Versioning;
 
 namespace DerelictDimension;
 
+
 /// <summary>
 /// Class for native windows API calls using <see cref="LibraryImportAttribute"/>
 /// </summary>

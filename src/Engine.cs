@@ -50,7 +50,7 @@ public class Engine : MonodGame
         if (font is not null) return;
         Texture2D? fontTexture = Assets.GetOrDefault<Texture2D>(":THEFONT");
         string? fontInfo = Assets.GetOrDefault<string>(":THEFONT_info");
-        if (fontTexture is not null && fontInfo is not null) font = new(fontTexture, JsonSerializer.Deserialize<BitmapFont.Info>(fontInfo, Json.WithFields));
+        if (fontTexture is not null && fontInfo is not null) font = new(fontTexture, JsonSerializer.Deserialize<BitmapFont.Info>(fontInfo, Json.SerializeWithFields));
     }
 
     /// <inheritdoc/> 

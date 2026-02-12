@@ -4,6 +4,9 @@ root = true
 # C# files
 [*.cs]
 
+dotnet_diagnostic.S1104.severity = none
+dotnet_diagnostic.S2696.severity = none
+
 #### Core EditorConfig Options ####
 
 # Indentation and spacing
@@ -121,7 +124,7 @@ csharp_prefer_simple_using_statement = true:suggestion
 csharp_prefer_system_threading_lock = true:warning
 csharp_style_namespace_declarations = file_scoped:warning
 csharp_style_prefer_method_group_conversion = false:silent
-csharp_style_prefer_primary_constructors = true:suggestion
+csharp_style_prefer_primary_constructors = false:suggestion
 csharp_style_prefer_top_level_statements = false:error
 
 # Expression-level preferences

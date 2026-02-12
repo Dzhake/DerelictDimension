@@ -1,15 +1,15 @@
-﻿using System;
+﻿using DerelictDimension.CommandLine;
+using Monod;
+using Monod.LocalizationSystem;
+using Monod.LogSystem;
+using Monod.ModSystem;
+using Serilog;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using DerelictDimension.CommandLine;
-using Monod.LogSystem;
-using Monod.LocalizationSystem;
-using Monod.ModSystem;
-using Monod;
-using Serilog;
 
 namespace DerelictDimension;
 
@@ -58,7 +58,7 @@ public static class Program
         File.Delete(errorx2File);
         File.WriteAllText(errorFile, $"{DateTime.Now}\n");
         File.WriteAllText(LogHelper.LogFile, $"{DateTime.Now}\n");
-        
+
         //DO NOT USE Main(string[]) ! That is different from Environment.GetCommandLineArgs(); because it doesn't include path to process executable as first arg. To prevent confusion and messing up indexes use Environment.GetCommandLineArgs(); instead.
         string[] args = Environment.GetCommandLineArgs();
         if (args.Contains("--help") && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -92,7 +92,7 @@ public static class Program
         //DO NOT log anything with level below Information until this is called! Otherwise, those lines will never be logged.
         LogHelper.SetMinimumLogLevel(CommandLineArgs.LogLevel);
         if (CommandLineArgs.Language is not null) Locale.CurrentLanguage = CommandLineArgs.Language;
-        
+
         Log.Information("Command-line arguments: {Args}", string.Join(' ', args));
         LogHelper.WriteStartupInfo();
     }
@@ -140,7 +140,7 @@ public static class Program
     /// </summary>
     public static void RunGame()
     {
-        new Engine().Run();
+        Engine.Instance.Run();
     }
 
     /// <summary>
@@ -159,7 +159,7 @@ public static class Program
                     Environment.Exit(0);
                     break;
             }
-            
+
             DevConsole.CommandsQueue.Enqueue(command);
         }
     }

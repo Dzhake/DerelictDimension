@@ -1,8 +1,8 @@
 ﻿using DerelictDimension.CommandLine;
 using Monod;
-using Monod.LocalizationSystem;
-using Monod.LogSystem;
-using Monod.ModSystem;
+using Monod.Localization;
+using Monod.LogModule;
+using Monod.Modding.ModdingOld;
 using Serilog;
 using System;
 using System.Diagnostics;

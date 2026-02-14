@@ -33,13 +33,14 @@
     <!--  Import tasks -->
     <!--  Compile effects task  -->
     <!--  Import task from Monod repo - MSBuildTasks project -->
-    <UsingTask AssemblyFile="..\..\Monod\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="Monod.MSBuild.CompileEffectsTask" />
-    <UsingTask AssemblyFile="..\..\Monod\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="Monod.MSBuild.CreateSymlink" />
+    <UsingTask AssemblyFile="..\..\Monod\src\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="Monod.MSBuild.CompileEffectsTask" />
+    <UsingTask AssemblyFile="..\..\Monod\src\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="Monod.MSBuild.CreateSymlink" />
 
     <ItemGroup>
         <!--  Monod repo clone next to DerelictDimension repo  -->
-        <ProjectReference Include="..\..\Monod\MSBuildTasks\MSBuildTasks.csproj" />
-        <ProjectReference Include="..\..\Monod\src\Monod.csproj" />
+        <!-- Build tasks project before this one -->
+        <ProjectReference Include="../../Monod/src/MSBuildTasks/MSBuildTasks.csproj" />
+        <ProjectReference Include="../../Monod/src/Main/Monod.csproj" />
 
         <!--  Nuget packages  -->
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />

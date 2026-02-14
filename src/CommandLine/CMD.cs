@@ -1,6 +1,6 @@
-using Monod.Utils.Collections;
 using System.CommandLine;
 using Serilog.Events;
+using Monod.Shared.Extensions;
 
 namespace DerelictDimension.CommandLine;
 

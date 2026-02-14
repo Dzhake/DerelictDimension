@@ -1,15 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monod;
-using Monod.AssetsSystem;
-using Monod.AssetsSystem.AssetLoaders;
-using Monod.GraphicsSystem;
-using Monod.GraphicsSystem.BitmapFonts;
-using Monod.GraphicsSystem.Fonts;
+using Monod.AssetsModule;
+using Monod.AssetsModule.AssetLoaders;
+using Monod.Graphics;
+using Monod.Graphics.Fonts;
+using Monod.Graphics.Fonts.Bitmap;
 using Monod.InputModule;
 using Monod.InputModule.InputActions;
 using Monod.InputModule.Parsing;
-using Monod.Utils.General;
+using Monod.Shared;
 using System;
 using System.Text.Json;
 

@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		EXITCODES.txt = EXITCODES.txt
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
+		..\Monod\LICENSE.txt = ..\Monod\LICENSE.txt
+		..\Monod\README.md = ..\Monod\README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DerelictDimension", "src\DerelictDimension.csproj", "{92AD4022-02A2-4794-A9FC-35FAB432275A}"

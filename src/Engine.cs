@@ -67,6 +67,7 @@ public class Engine : MonodGame
     {
         errors = "";
         Action = InputActionParser.TryParse(textbox);
+        textbox += $"\n{Action}";
         string errorText = textbox; //string is recreated after the first Insert
         int addedIndex = 0;
         string underlineStart = "<u #FF0000>";

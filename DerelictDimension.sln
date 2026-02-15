@@ -9,16 +9,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		EXITCODES.txt = EXITCODES.txt
 		LICENSE.txt = LICENSE.txt
-		README.md = README.md
 		..\Monod\LICENSE.txt = ..\Monod\LICENSE.txt
+		README.md = README.md
 		..\Monod\README.md = ..\Monod\README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DerelictDimension", "src\DerelictDimension.csproj", "{92AD4022-02A2-4794-A9FC-35FAB432275A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDL3.Core", "..\Monod\src\SDL3-CS\SDL3\SDL3.Core.csproj", "{86CA5C14-0FF0-550B-6ED1-FC4A81DF261D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monod.Shared", "..\Monod\src\Shared\Monod.Shared.csproj", "{E3FF57F7-932C-8583-1CF7-6D2D68837413}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTasks", "..\Monod\src\MSBuildTasks\MSBuildTasks.csproj", "{D66AED84-3524-3BA9-B260-83C5C0D8B9AA}"
 EndProject
@@ -42,10 +40,6 @@ Global
 		{86CA5C14-0FF0-550B-6ED1-FC4A81DF261D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86CA5C14-0FF0-550B-6ED1-FC4A81DF261D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86CA5C14-0FF0-550B-6ED1-FC4A81DF261D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E3FF57F7-932C-8583-1CF7-6D2D68837413}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E3FF57F7-932C-8583-1CF7-6D2D68837413}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E3FF57F7-932C-8583-1CF7-6D2D68837413}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E3FF57F7-932C-8583-1CF7-6D2D68837413}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D66AED84-3524-3BA9-B260-83C5C0D8B9AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D66AED84-3524-3BA9-B260-83C5C0D8B9AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D66AED84-3524-3BA9-B260-83C5C0D8B9AA}.Release|Any CPU.ActiveCfg = Release|Any CPU

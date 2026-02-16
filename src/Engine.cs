@@ -66,7 +66,7 @@ public class Engine : MonodGame
     private void Parse()
     {
         errors = "";
-        Action = InputActionParser.TryParse(textbox);
+        Action = InputActionParser.Parse(textbox);
         textbox += $"\n{Action}";
         string errorText = textbox; //string is recreated after the first Insert
         int addedIndex = 0;

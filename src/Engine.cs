@@ -59,7 +59,6 @@ public class Engine : MonodGame
         Assets.OnReload += LoadFont;
         MainAssetManager.LoadAssets();
 
-        //Action = new OrAction([new HeldAction(Key.D1), new AndAction([new PressedAction(Key.D2), new DownAction(Key.LeftControl)])]);
         Parse();
     }
 
@@ -174,6 +173,8 @@ public class Engine : MonodGame
         tokenized.Draw(new(), Renderer.spriteBatch, pos, font, Color.White, 1, 0);
         pos.Y += 100;
         font.DrawString(Renderer.spriteBatch, errors, pos, Color.Red);
+        pos.Y += 100;
+        font.DrawString(Renderer.spriteBatch, $"Total: {MainAssetManager.Loader.TotalAssets}, Loaded: {MainAssetManager.Loader.LoadedAssets}", pos, Color.White);
         Renderer.End();
     }
 }

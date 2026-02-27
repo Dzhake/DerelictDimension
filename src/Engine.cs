@@ -150,11 +150,6 @@ public class Engine : MonodGame
 
         if (Action?.IsActive(0) ?? false) text = "Active";
         else text = "Inactive";
-
-        /*if (font is not null) return;
-        Texture2D? fontTexture = Assets.GetOrDefault<Texture2D>(":THEFONT.png");
-        string? fontInfo = Assets.GetOrDefault<string>(":THEFONT_info.json");
-        if (fontTexture is not null && fontInfo is not null) font = new(fontTexture, JsonSerializer.Deserialize<BitmapFont.Info>(fontInfo, Json.SerializeWithFields));*/
     }
 
     /// <inheritdoc/> 

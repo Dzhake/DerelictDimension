@@ -6,13 +6,13 @@ using MLEM.Font;
 using MLEM.Formatting;
 using Monod;
 using Monod.AssetsModule;
-using Monod.AssetsModule.AssetLoaders;
 using Monod.Graphics;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.InputModule.InputActions;
 using Monod.InputModule.Parsing;
 using System;
+using System.Diagnostics;
 
 namespace DerelictDimension;
 
@@ -36,6 +36,8 @@ public class Engine : MonodGame
 
     public TokenizedString tokenized;
 
+    public Stopwatch stopwatch;
+
     /// <summary>
     /// Creates a new <see cref="Engine"/>.
     /// </summary>
@@ -50,9 +52,11 @@ public class Engine : MonodGame
         Renderer.spriteBatch = new SpriteBatch(GraphicsDevice);
 
         string contentPath = $"{AppContext.BaseDirectory}Content";
-        MainAssetManager = new AssetManager(new FileAssetLoader((contentPath)));
+        MainAssetManager = new AssetManager(new AssetLoader((contentPath)));
 
         Assets.RegisterAssetManager(MainAssetManager, "");
+        stopwatch = new();
+        stopwatch.Start();
         MainAssetManager.LoadAsset("Fonts/monogram-extended.ttf");
         MainAssetManager.LoadAsset("Fonts/monogram-extended-italic.ttf");
         LoadFont();
@@ -155,6 +159,7 @@ public class Engine : MonodGame
     /// <inheritdoc/> 
     protected override void DrawM()
     {
+        stopwatch.Stop();
         GenericFont? font = GlobalFonts.MenuFont;
         if (font is null) return;
         Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
@@ -169,7 +174,7 @@ public class Engine : MonodGame
         pos.Y += 100;
         font.DrawString(Renderer.spriteBatch, errors, pos, Color.Red);
         pos.Y += 100;
-        font.DrawString(Renderer.spriteBatch, $"Total: {MainAssetManager.Loader.TotalAssets}, Loaded: {MainAssetManager.Loader.LoadedAssets}", pos, Color.White);
+        font.DrawString(Renderer.spriteBatch, $"Loaded: {MainAssetManager.Loader.LoadedAssets}", pos, Color.White);
         Renderer.End();
     }
 }

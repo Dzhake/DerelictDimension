@@ -101,14 +101,14 @@ public class Engine : MonodGame
     protected override void UpdateM()
     {
         if (Input.Down(Key.Right))
-            offset.X += 1;
+            offset.X -= 10;
         else if (Input.Down(Key.Left))
-            offset.X -= 1;
+            offset.X += 10;
 
         if (Input.Down(Key.Up))
-            offset.Y -= 1;
+            offset.Y += 10;
         else if (Input.Down(Key.Down))
-            offset.Y += 1;
+            offset.Y -= 10;
 
         if (Input.Down(Key.Q))
         {
@@ -166,6 +166,8 @@ public class Engine : MonodGame
         Renderer.Clear(Color.Black);
         Vector2 pos = offset.ToVector2();
         pos.X += 10;
+        font.DrawString(Renderer.spriteBatch, $"ms: {stopwatch.ElapsedMilliseconds}", pos, Color.White);
+        pos.Y += 50;
         font.DrawString(Renderer.spriteBatch, $"D1: {Input.GetValue(Key.D1)}, LeftControl: {Input.GetValue(Key.LeftControl)}, D2: {Input.GetValue(Key.D2)}", pos, Color.White);
         pos.Y += 50;
         font.DrawString(Renderer.spriteBatch, text, pos, Color.White);

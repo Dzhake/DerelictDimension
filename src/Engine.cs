@@ -11,7 +11,6 @@ using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.InputModule.InputActions;
 using Monod.InputModule.Parsing;
-using System;
 using System.Diagnostics;
 
 namespace DerelictDimension;
@@ -37,6 +36,7 @@ public class Engine : MonodGame
     public TokenizedString tokenized;
 
     public Stopwatch stopwatch;
+    public RebindMenu Rebind;
 
     /// <summary>
     /// Creates a new <see cref="Engine"/>.
@@ -49,21 +49,19 @@ public class Engine : MonodGame
     ///<inheritdoc/>
     protected override void LoadContent()
     {
-        Renderer.spriteBatch = new SpriteBatch(GraphicsDevice);
-
-        string contentPath = $"{AppContext.BaseDirectory}Content";
-        MainAssetManager = new AssetManager(new AssetLoader((contentPath)));
-
-        Assets.RegisterAssetManager(MainAssetManager, "");
-        stopwatch = new();
-        stopwatch.Start();
         MainAssetManager.LoadAsset("Fonts/monogram-extended.ttf");
         MainAssetManager.LoadAsset("Fonts/monogram-extended-italic.ttf");
         LoadFont();
+        base.LoadContent();
         Assets.OnReload += LoadFont;
-        MainAssetManager.LoadAssets();
+
+        Input.ActionNames.AddValue("Jump");
+        Input.ActionNames.AddValue("Move Left");
+        Input.ActionNames.AddValue("Move Right");
 
         Parse();
+
+        Rebind = new(MainUiSystem);
     }
 
     private void Parse()
@@ -71,7 +69,7 @@ public class Engine : MonodGame
         errors = "";
         Action = InputActionParser.Parse(textbox);
         textbox += $"\n{Action}";
-        string errorText = textbox; //string is recreated after the first Insert
+        string errorText = textbox; //string is recreated after the first Insert, so original textbox is unchanged
         int addedIndex = 0;
         string underlineStart = "<u #FF0000>";
         string underlineEnd = "</u>";
@@ -84,17 +82,20 @@ public class Engine : MonodGame
             errors += $"{error}\n";
         }
 
-        tokenized = new TextFormatter().Tokenize(GlobalFonts.MenuFont!, errorText);
+        Input.Players[0].Map.Actions[Input.ActionNames.GetValue("Jump")] = InputActionParser.Parse("Up(LeftControl)");
+        Input.Players[0].Map.Actions[Input.ActionNames.GetValue("Move Left")] = InputActionParser.Parse("Down(D3)");
+        Input.Players[0].Map.Actions[Input.ActionNames.GetValue("Move Right")] = Action;
+        tokenized = new TextFormatter().Tokenize(GlobalFonts.MenuFont, errorText);
     }
 
     ///<inheritdoc/>
     protected static void LoadFont()
     {
-        FontSystem defFontSystem = new();
-        defFontSystem.AddFont(Assets.Get<byte[]>("Fonts/monogram-extended.ttf"));
+        FontSystem defaultFontSystem = new();
+        defaultFontSystem.AddFont(Assets.Get<byte[]>("Fonts/monogram-extended.ttf"));
         FontSystem italicFontSystem = new();
         italicFontSystem.AddFont(Assets.Get<byte[]>("Fonts/monogram-extended-italic.ttf"));
-        GlobalFonts.MenuFont = new GenericStashFont(defFontSystem.GetFont(36), null!, italicFontSystem.GetFont(36));
+        GlobalFonts.MenuFont = new GenericStashFont(defaultFontSystem.GetFont(36), null!, italicFontSystem.GetFont(36));
     }
 
     ///<inheritdoc/>
@@ -110,7 +111,7 @@ public class Engine : MonodGame
         else if (Input.Down(Key.Down))
             offset.Y -= 10;
 
-        if (Input.Down(Key.Q))
+        /*if (Input.Down(Key.Q))
         {
             textbox = "Or(Down(D1), And(Down(LeftControl), Up(D2)))";
             Parse();
@@ -149,22 +150,27 @@ public class Engine : MonodGame
         {
             textbox = "And oh, no, this, is, wrong!";
             Parse();
-        }
+        }*/
 
 
         if (Action?.IsActive(0) ?? false) text = "Active";
         else text = "Inactive";
+
+        Rebind.Update();
     }
 
     /// <inheritdoc/> 
     protected override void DrawM()
     {
-        stopwatch.Stop();
+        //stopwatch.Stop();
         GenericFont? font = GlobalFonts.MenuFont;
         if (font is null) return;
         Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
         Renderer.Clear(Color.Black);
-        Vector2 pos = offset.ToVector2();
+        font.DrawString(Renderer.spriteBatch, Input.GetValue(0, 0).ToString(), new Vector2(10, 10), Color.White);
+        Rebind.Root.PositionOffset = new(0, 100);
+        Rebind.Draw();
+        /*Vector2 pos = offset.ToVector2();
         pos.X += 10;
         font.DrawString(Renderer.spriteBatch, $"ms: {stopwatch.ElapsedMilliseconds}", pos, Color.White);
         pos.Y += 50;
@@ -176,7 +182,7 @@ public class Engine : MonodGame
         pos.Y += 100;
         font.DrawString(Renderer.spriteBatch, errors, pos, Color.Red);
         pos.Y += 100;
-        font.DrawString(Renderer.spriteBatch, $"Loaded: {MainAssetManager.Loader.LoadedAssets}", pos, Color.White);
+        font.DrawString(Renderer.spriteBatch, $"Loaded: {MainAssetManager.Loader.LoadedAssets}", pos, Color.White);*/
         Renderer.End();
     }
 }

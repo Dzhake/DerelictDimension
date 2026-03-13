@@ -59,33 +59,35 @@ public class Engine : MonodGame
         Input.ActionNames.AddValue("Move Left");
         Input.ActionNames.AddValue("Move Right");
 
-        Parse();
-
         Rebind = new(MainUiSystem);
+        Rebind.Root.PositionOffset = new(0, 100);
+
+        Parse();
     }
 
     private void Parse()
     {
         errors = "";
-        Action = InputActionParser.Parse(textbox);
-        textbox += $"\n{Action}";
+        Action = Input.Players[0].Map.Actions[Input.ActionNames.GetValue("Jump")];//InputActionParser.Parse(textbox);
+        textbox += $"\nToString (recreated from parsed object):\n{Action}";
         string errorText = textbox; //string is recreated after the first Insert, so original textbox is unchanged
-        int addedIndex = 0;
-        string underlineStart = "<u #FF0000>";
-        string underlineEnd = "</u>";
-        foreach (var error in InputActionParser.Errors)
+        if (Action is InvalidInputAction invalidInputAction)
         {
+            int addedIndex = 0;
+            string underlineStart = "<u #FF0000>";
+            string underlineEnd = "</u>";
+            ActionParseError error = invalidInputAction.Error;
             errorText = errorText.Insert(error.StartIndex + addedIndex, underlineStart);
             addedIndex += underlineStart.Length;
             errorText = errorText.Insert(error.StartIndex + error.Length + addedIndex, underlineEnd);
             addedIndex += underlineEnd.Length;
-            errors += $"{error}\n";
+            errors += error.ToString();
         }
-
-        Input.Players[0].Map.Actions[Input.ActionNames.GetValue("Jump")] = InputActionParser.Parse("Up(LeftControl)");
-        Input.Players[0].Map.Actions[Input.ActionNames.GetValue("Move Left")] = InputActionParser.Parse("Down(D3)");
-        Input.Players[0].Map.Actions[Input.ActionNames.GetValue("Move Right")] = Action;
         tokenized = new TextFormatter().Tokenize(GlobalFonts.MenuFont, errorText);
+
+        Input.Players[0].Map.Actions[Input.ActionNames.GetValue("Move Left")] = InputActionParser.Parse("Down(D)");
+        Input.Players[0].Map.Actions[Input.ActionNames.GetValue("Move Right")] = InputActionParser.Parse("Down(W)");
+        Rebind.RebuildUi();
     }
 
     ///<inheritdoc/>
@@ -111,46 +113,50 @@ public class Engine : MonodGame
         else if (Input.Down(Key.Down))
             offset.Y -= 10;
 
-        /*if (Input.Down(Key.Q))
+        if (Input.Down(Key.LeftControl))
         {
-            textbox = "Or(Down(D1), And(Down(LeftControl), Up(D2)))";
-            Parse();
+            if (Input.Down(Key.Q))
+            {
+                textbox = "Or(Down(D1), And(Down(LeftControl), Up(D2)))";
+                Parse();
+            }
+            else if (Input.Down(Key.W))
+            {
+                textbox = "Or(Down(D1), And(Down(Mouse99), Up(D2)))";
+                Parse();
+            }
+            else if (Input.Down(Key.E))
+            {
+                textbox = "Or(Down(D1), And(NonExistingAction(LeftControl), Up(D2)))";
+                Parse();
+            }
+            else if (Input.Down(Key.R))
+            {
+                textbox = "Or(Down(D1), And((LeftControl), Up(D2)))";
+                Parse();
+            }
+            else if (Input.Down(Key.T))
+            {
+                textbox = "And(Down(D1), Down(D2))";
+                Parse();
+            }
+            else if (Input.Down(Key.Y))
+            {
+                textbox = "And(oh, no, this, is, wrong!)";
+                Parse();
+            }
+            else if (Input.Down(Key.A))
+            {
+                textbox = "And(oh, no, this, is, wrong!";
+                Parse();
+            }
+            else if (Input.Down(Key.S))
+            {
+                textbox = "And oh, no, this, is, wrong!";
+                Parse();
+            }
         }
-        else if (Input.Down(Key.W))
-        {
-            textbox = "Or(Down(D1), And(Down(Mouse99), Up(D2)))";
-            Parse();
-        }
-        else if (Input.Down(Key.E))
-        {
-            textbox = "Or(Down(D1), And(NonExistingAction(LeftControl), Up(D2)))";
-            Parse();
-        }
-        else if (Input.Down(Key.R))
-        {
-            textbox = "Or(Down(D1), And((LeftControl), Up(D2)))";
-            Parse();
-        }
-        else if (Input.Down(Key.T))
-        {
-            textbox = "And(Down(D1), Down(D2))";
-            Parse();
-        }
-        else if (Input.Down(Key.Y))
-        {
-            textbox = "And(oh, no, this, is, wrong!)";
-            Parse();
-        }
-        else if (Input.Down(Key.A))
-        {
-            textbox = "And(oh, no, this, is, wrong!";
-            Parse();
-        }
-        else if (Input.Down(Key.S))
-        {
-            textbox = "And oh, no, this, is, wrong!";
-            Parse();
-        }*/
+
 
 
         if (Action?.IsActive(0) ?? false) text = "Active";
@@ -167,22 +173,20 @@ public class Engine : MonodGame
         if (font is null) return;
         Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
         Renderer.Clear(Color.Black);
-        font.DrawString(Renderer.spriteBatch, Input.GetValue(0, 0).ToString(), new Vector2(10, 10), Color.White);
-        Rebind.Root.PositionOffset = new(0, 100);
-        Rebind.Draw();
-        /*Vector2 pos = offset.ToVector2();
+        Vector2 pos = offset.ToVector2();
         pos.X += 10;
-        font.DrawString(Renderer.spriteBatch, $"ms: {stopwatch.ElapsedMilliseconds}", pos, Color.White);
+        /*pos.Y += 10;
+        font.DrawString(Renderer.spriteBatch, $"Jump: {Input.GetValue(0, 0)}", pos, Color.White);
         pos.Y += 50;
+        font.DrawString(Renderer.spriteBatch, $"D1: {Input.GetValue(Key.D1)}, LeftControl: {Input.GetValue(Key.LeftControl)}, D2: {Input.GetValue(Key.D2)}", pos, Color.White);*/
+
         font.DrawString(Renderer.spriteBatch, $"D1: {Input.GetValue(Key.D1)}, LeftControl: {Input.GetValue(Key.LeftControl)}, D2: {Input.GetValue(Key.D2)}", pos, Color.White);
         pos.Y += 50;
         font.DrawString(Renderer.spriteBatch, text, pos, Color.White);
         pos.Y += 50;
-        tokenized.Draw(new(), Renderer.spriteBatch, pos, font, Color.White, 1, 0);
+        tokenized?.Draw(new(), Renderer.spriteBatch, pos, font, Color.White, 1, 0);
         pos.Y += 100;
         font.DrawString(Renderer.spriteBatch, errors, pos, Color.Red);
-        pos.Y += 100;
-        font.DrawString(Renderer.spriteBatch, $"Loaded: {MainAssetManager.Loader.LoadedAssets}", pos, Color.White);*/
         Renderer.End();
     }
 }

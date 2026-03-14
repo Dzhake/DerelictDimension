@@ -31,7 +31,7 @@ public class Engine : MonodGame
 
     public Key pressed;
     public Key released;
-    //public RebindMenu Rebind;
+    public RebindMenu Rebind;
 
     /// <summary>
     /// Creates a new <see cref="Engine"/>.
@@ -61,8 +61,8 @@ public class Engine : MonodGame
         };
 
 
-        /*Rebind = new(MainUiSystem);
-        Rebind.Root.PositionOffset = new(0, 100);*/
+        Rebind = new(MainUiSystem);
+        Rebind.Root.PositionOffset = new(0, 100);
     }
 
     ///<inheritdoc/>
@@ -78,20 +78,20 @@ public class Engine : MonodGame
     ///<inheritdoc/>
     protected override void UpdateM()
     {
-        if (Input.Down(Key.Right))
+        if (Input.KeyDown(Key.Right))
             offset.X -= 10;
-        else if (Input.Down(Key.Left))
+        else if (Input.KeyDown(Key.Left))
             offset.X += 10;
 
-        if (Input.Down(Key.Up))
+        if (Input.KeyDown(Key.Up))
             offset.Y += 10;
-        else if (Input.Down(Key.Down))
+        else if (Input.KeyDown(Key.Down))
             offset.Y -= 10;
 
-        if (Input.Down(0)) text = "Active";
+        if (Input.ActionDown(0)) text = "Active";
         else text = "Inactive";
 
-        //Rebind.Update();
+        Rebind.Update();
 
         if (Input.KeyboardKeysPressed.Count > 0) pressed = Input.KeyboardKeysPressed.ElementAt(0);
         if (Input.KeyboardKeysReleased.Count > 0) released = Input.KeyboardKeysReleased.ElementAt(0);
@@ -108,7 +108,7 @@ public class Engine : MonodGame
         Vector2 pos = offset.ToVector2();
         pos.X += 10;
 
-        font.DrawString(Renderer.spriteBatch, $"D1: {Input.Down(Key.D1)}, LeftControl: {Input.Down(Key.LeftControl)}, D2: {Input.Down(Key.D2)}", pos, Color.White);
+        font.DrawString(Renderer.spriteBatch, $"D1: {Input.KeyDown(Key.D1)}, LeftControl: {Input.KeyDown(Key.LeftControl)}, D2: {Input.KeyDown(Key.D2)}", pos, Color.White);
         pos.Y += 50;
         font.DrawString(Renderer.spriteBatch, text, pos, Color.White);
         pos.Y += 50;

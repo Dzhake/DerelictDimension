@@ -10,8 +10,8 @@ public static class CommandLineArgs
     /// <summary>
     /// (Windows only) Create console for the game.
     /// </summary>
-    public static bool Console;
-    
+    public static bool EnableConsole;
+
     /// <summary>
     /// Minimum log level, messages of level less important it will be ignored.
     /// </summary>
@@ -21,4 +21,5 @@ public static class CommandLineArgs
     /// Change language the game uses.
     /// </summary>
     public static string? Language;
+    public static bool ShowHelp;
 }

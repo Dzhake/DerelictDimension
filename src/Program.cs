@@ -7,7 +7,6 @@ using Serilog;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -61,12 +60,14 @@ public static class Program
 
         //DO NOT USE Main(string[]) ! That is different from Environment.GetCommandLineArgs(); because it doesn't include path to process executable as first arg. To prevent confusion and messing up indexes use Environment.GetCommandLineArgs(); instead.
         string[] args = Environment.GetCommandLineArgs();
-        if (args.Contains("--help") && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        CMD.Parse(args); //First arg is path to .exe/.dll, which crashes the parser :^)
+
+        if (CommandLineArgs.EnableConsole && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             WindowsAPI.AllocConsole();
         }
-        CMD.Parse(args.Skip(1).ToArray()); //First arg is path to .exe/.dll, which crashes the parser :^)
-        if (args.Contains("--help"))
+
+        if (CommandLineArgs.ShowHelp)
         {
             Console.WriteLine("['--help' found, exiting the program]");
             Console.WriteLine("\nPress any key to exit..");
@@ -74,6 +75,7 @@ public static class Program
             File.AppendAllText(LogHelper.LogFile, $"Command-line arguments: {args}\n['--help' found, exiting the program]");
             return; //Assume user doesn't want to launch the app, and wants help instead.
         }
+
         InitializeMonod(args);
         InitializeMods();
         RunGame();
@@ -81,7 +83,7 @@ public static class Program
 
     private static void InitializeMonod(string[] args)
     {
-        if (CommandLineArgs.Console && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (CommandLineArgs.EnableConsole && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             WindowsAPI.AllocConsole();
             Log.Information("Allocated console for the game");
@@ -114,7 +116,7 @@ public static class Program
     {
         try
         {
-            Log.Fatal(exception, "An exception was thrown.");
+            Log.Fatal(exception, "");
             File.AppendAllText(errorFile, $"{exception}\n\n\n");
 
             //open log.txt
@@ -128,7 +130,7 @@ public static class Program
         }
         catch (Exception exception2)
         {
-            //If the program exits without writing error file then error is here. I'm not even sure what would you if catch an exception here. Return some very uncommon exit code? 
+            //If the program exits without writing error file then error is here. I'm not even sure what should you if you catch an exception here. Return some very uncommon exit code? 
             File.AppendAllText(errorFile, $"{exception}\n\n\n{exception2}");
 
             Environment.Exit(2);

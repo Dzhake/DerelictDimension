@@ -1,6 +1,6 @@
-using System.CommandLine;
-using Serilog.Events;
 using Monod.Shared.Extensions;
+using Serilog.Events;
+using System.CommandLine;
 
 namespace DerelictDimension.CommandLine;
 
@@ -14,6 +14,11 @@ public static class CMD
         Description = "(Windows only) Create console for the game, which works as input and output",
     };
 
+    private static Option<bool> HelpOp = new("--help")
+    {
+        Description = "Show help message/manual",
+    };
+
     private static Option<LogEventLevel> LogLevelOp = new("--log-level")
     {
         Description = "Minimum log level, messages of level less important it will be ignored",
@@ -24,7 +29,7 @@ public static class CMD
     {
         Description = "Change language the game uses",
     };
-    
+
     /// <summary>
     /// Parses the specified command-line arguments, and sets <see cref="CommandLineArgs"/> based on parse result.
     /// </summary>
@@ -40,9 +45,19 @@ public static class CMD
     /// <param name="result">Parse results to assign.</param>
     private static void AssignResults(ParseResult result)
     {
-        CommandLineArgs.Console = result.GetValue(ConsoleOp);
+        CommandLineArgs.EnableConsole = result.GetValue(ConsoleOp);
         CommandLineArgs.LogLevel = result.GetValue(LogLevelOp);
         CommandLineArgs.Language = result.GetValue(LanguageOp);
+        CommandLineArgs.ShowHelp = result.GetValue(HelpOp);
+    }
+
+    /// <summary>
+    /// Adds all options from <see cref="CMD"/> (e.g. <see cref="ConsoleOp"/>) to <see cref="Command.Options"/>.
+    /// </summary>
+    /// <param name="root">Command, to which add options.</param>
+    private static void AddOptionsToRoot(Command root)
+    {
+        root.Options.AddRange([ConsoleOp, HelpOp, LogLevelOp, LanguageOp]);
     }
 
     /// <summary>
@@ -55,14 +70,5 @@ public static class CMD
         rootCommand.SetAction(AssignResults);
         AddOptionsToRoot(rootCommand);
         return rootCommand;
-    }
-
-    /// <summary>
-    /// Adds all options from <see cref="CMD"/> (e.g. <see cref="ConsoleOp"/>) to <see cref="Command.Options"/>.
-    /// </summary>
-    /// <param name="root">Command, to which add options.</param>
-    private static void AddOptionsToRoot(Command root)
-    {
-        root.Options.AddRange([ConsoleOp, LogLevelOp, LanguageOp]);
     }
 }

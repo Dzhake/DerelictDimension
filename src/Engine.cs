@@ -8,7 +8,7 @@ using Monod.AssetsModule;
 using Monod.Graphics;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
-using System.Diagnostics;
+using Monod.ModsModule;
 using System.Linq;
 
 namespace DerelictDimension;
@@ -26,8 +26,6 @@ public class Engine : MonodGame
     public string errors = "";
 
     public Point offset = Point.Zero;
-
-    public Stopwatch stopwatch;
 
     public Key pressed;
     public Key released;
@@ -61,8 +59,8 @@ public class Engine : MonodGame
         };
 
 
-        Rebind = new(MainUiSystem);
-        Rebind.Root.PositionOffset = new(0, 100);
+        //Rebind = new(MainUiSystem);
+        //Rebind.Root.PositionOffset = new(0, 100);
     }
 
     ///<inheritdoc/>
@@ -91,7 +89,7 @@ public class Engine : MonodGame
         if (Input.ActionDown(0)) text = "Active";
         else text = "Inactive";
 
-        Rebind.Update();
+        Rebind?.Update();
 
         if (Input.KeyboardKeysPressed.Count > 0) pressed = Input.KeyboardKeysPressed.ElementAt(0);
         if (Input.KeyboardKeysReleased.Count > 0) released = Input.KeyboardKeysReleased.ElementAt(0);
@@ -100,7 +98,6 @@ public class Engine : MonodGame
     /// <inheritdoc/> 
     protected override void DrawM()
     {
-        //stopwatch.Stop();
         GenericFont? font = GlobalFonts.MenuFont;
         if (font is null) return;
         Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
@@ -108,7 +105,7 @@ public class Engine : MonodGame
         Vector2 pos = offset.ToVector2();
         pos.X += 10;
 
-        font.DrawString(Renderer.spriteBatch, $"D1: {Input.KeyDown(Key.D1)}, LeftControl: {Input.KeyDown(Key.LeftControl)}, D2: {Input.KeyDown(Key.D2)}", pos, Color.White);
+        /*font.DrawString(Renderer.spriteBatch, $"D1: {Input.KeyDown(Key.D1)}, LeftControl: {Input.KeyDown(Key.LeftControl)}, D2: {Input.KeyDown(Key.D2)}", pos, Color.White);
         pos.Y += 50;
         font.DrawString(Renderer.spriteBatch, text, pos, Color.White);
         pos.Y += 50;
@@ -119,7 +116,22 @@ public class Engine : MonodGame
 
         font.DrawString(Renderer.spriteBatch, "Last released:", pos, Color.White);
         pos.Y += 30;
-        font.DrawString(Renderer.spriteBatch, released.ToString(), pos, Color.White);
+        font.DrawString(Renderer.spriteBatch, released.ToString(), pos, Color.White);*/
+        foreach (var brokenMod in ModManager.BrokenMods)
+        {
+            font.DrawString(Renderer.spriteBatch, brokenMod.ManifestPath, pos, Color.Red);
+            pos.Y += 30;
+            font.DrawString(Renderer.spriteBatch, brokenMod.FailureReason.Message, pos, Color.Orange);
+            pos.Y += 50;
+        }
+
+        pos.Y += 50;
+
+        foreach (var mod in ModManager.Mods.Values)
+        {
+            font.DrawString(Renderer.spriteBatch, mod.GetName(), pos, mod.Status == ModStatus.Enabled ? Color.White : Color.Gray);
+            pos.Y += 50;
+        }
 
 
         Renderer.End();

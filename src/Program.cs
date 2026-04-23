@@ -1,14 +1,15 @@
-﻿using DerelictDimension.CommandLine;
-using Monod;
-using Monod.Localization;
-using Monod.LogModule;
-using Monod.Modding.ModdingOld;
-using Serilog;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using DerelictDimension.CommandLine;
+using Monod.LogModule;
+using Monod.Localization;
+using Monod.ModsModule;
+using Monod;
+using Serilog;
 
 namespace DerelictDimension;
 
@@ -57,17 +58,15 @@ public static class Program
         File.Delete(errorx2File);
         File.WriteAllText(errorFile, $"{DateTime.Now}\n");
         File.WriteAllText(LogHelper.LogFile, $"{DateTime.Now}\n");
-
+        
         //DO NOT USE Main(string[]) ! That is different from Environment.GetCommandLineArgs(); because it doesn't include path to process executable as first arg. To prevent confusion and messing up indexes use Environment.GetCommandLineArgs(); instead.
         string[] args = Environment.GetCommandLineArgs();
-        CMD.Parse(args); //First arg is path to .exe/.dll, which crashes the parser :^)
-
-        if (CommandLineArgs.EnableConsole && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (args.Contains("--help") && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             WindowsAPI.AllocConsole();
         }
-
-        if (CommandLineArgs.ShowHelp)
+        CMD.Parse(args.Skip(1).ToArray()); //First arg is the path to .exe/.dll, which crashes the parser
+        if (args.Contains("--help"))
         {
             Console.WriteLine("['--help' found, exiting the program]");
             Console.WriteLine("\nPress any key to exit..");
@@ -75,9 +74,7 @@ public static class Program
             File.AppendAllText(LogHelper.LogFile, $"Command-line arguments: {args}\n['--help' found, exiting the program]");
             return; //Assume user doesn't want to launch the app, and wants help instead.
         }
-
         InitializeMonod(args);
-        InitializeMods();
         RunGame();
     }
 
@@ -94,18 +91,9 @@ public static class Program
         //DO NOT log anything with level below Information until this is called! Otherwise, those lines will never be logged.
         LogHelper.SetMinimumLogLevel(CommandLineArgs.LogLevel);
         if (CommandLineArgs.Language is not null) Locale.CurrentLanguage = CommandLineArgs.Language;
-
+        
         Log.Information("Command-line arguments: {Args}", string.Join(' ', args));
         LogHelper.WriteStartupInfo();
-    }
-
-    private static void InitializeMods()
-    {
-        if (Directory.Exists(ModManager.ModsDirectory))
-        {
-            ModManager.Initialize();
-            ModManager.LoadMods();
-        }
     }
 
     /// <summary>
@@ -116,7 +104,7 @@ public static class Program
     {
         try
         {
-            Log.Fatal(exception, "");
+            Log.Fatal(exception, "An exception was thrown.");
             File.AppendAllText(errorFile, $"{exception}\n\n\n");
 
             //open log.txt
@@ -130,7 +118,7 @@ public static class Program
         }
         catch (Exception exception2)
         {
-            //If the program exits without writing error file then error is here. I'm not even sure what should you if you catch an exception here. Return some very uncommon exit code? 
+            //If the program exits without writing error file then error is here. I'm not even sure what would you if catch an exception here. Return some very uncommon exit code? 
             File.AppendAllText(errorFile, $"{exception}\n\n\n{exception2}");
 
             Environment.Exit(2);
@@ -142,7 +130,7 @@ public static class Program
     /// </summary>
     public static void RunGame()
     {
-        Engine.Instance.Run();
+        new Engine().Run();
     }
 
     /// <summary>
@@ -161,7 +149,7 @@ public static class Program
                     Environment.Exit(0);
                     break;
             }
-
+            
             DevConsole.CommandsQueue.Enqueue(command);
         }
     }

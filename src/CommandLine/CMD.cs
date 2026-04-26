@@ -1,5 +1,6 @@
 using Monod.Shared.Extensions;
 using Serilog.Events;
+using System.Collections.Generic;
 using System.CommandLine;
 
 namespace DerelictDimension.CommandLine;
@@ -34,7 +35,7 @@ public static class CMD
     /// Parses the specified command-line arguments, and sets <see cref="CommandLineArgs"/> based on parse result.
     /// </summary>
     /// <param name="args">Command-line arguments to parse.</param>
-    public static void Parse(string[] args)
+    public static void Parse(IReadOnlyList<string> args)
     {
         CreateRootCommand().Parse(args).Invoke();
     }

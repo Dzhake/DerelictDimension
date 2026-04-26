@@ -9,6 +9,8 @@ using Monod.Graphics;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.ModsModule;
+using Monod.Utils.Extensions;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DerelictDimension;
@@ -31,6 +33,8 @@ public class Engine : MonodGame
     public Key released;
     public RebindMenu Rebind;
 
+    public HashSet<string> ModsToToggle = new();
+
     /// <summary>
     /// Creates a new <see cref="Engine"/>.
     /// </summary>
@@ -42,8 +46,7 @@ public class Engine : MonodGame
     ///<inheritdoc/>
     protected override void LoadContent()
     {
-        MainAssetManager.LoadAsset("Fonts/monogram-extended.ttf");
-        MainAssetManager.LoadAsset("Fonts/monogram-extended-italic.ttf");
+        MainAssetManager.LoadAsset("Fonts/m6x11plus.ttf");
         LoadFont();
         base.LoadContent();
         Assets.OnReload += LoadFont;
@@ -67,10 +70,8 @@ public class Engine : MonodGame
     protected static void LoadFont()
     {
         FontSystem defaultFontSystem = new();
-        defaultFontSystem.AddFont(Assets.Get<byte[]>("Fonts/monogram-extended.ttf"));
-        FontSystem italicFontSystem = new();
-        italicFontSystem.AddFont(Assets.Get<byte[]>("Fonts/monogram-extended-italic.ttf"));
-        GlobalFonts.MenuFont = new GenericStashFont(defaultFontSystem.GetFont(36), null!, italicFontSystem.GetFont(36));
+        defaultFontSystem.AddFont(Assets.Get<byte[]>("Fonts/m6x11plus.ttf"));
+        GlobalFonts.MenuFont = new GenericStashFont(defaultFontSystem.GetFont(18));
     }
 
     ///<inheritdoc/>
@@ -95,7 +96,7 @@ public class Engine : MonodGame
         if (Input.KeyboardKeysReleased.Count > 0) released = Input.KeyboardKeysReleased.ElementAt(0);
     }
 
-    /// <inheritdoc/> 
+    /// <inheritdoc/>
     protected override void DrawM()
     {
         GenericFont? font = GlobalFonts.MenuFont;
@@ -120,17 +121,49 @@ public class Engine : MonodGame
         foreach (var brokenMod in ModManager.BrokenMods)
         {
             font.DrawString(Renderer.spriteBatch, brokenMod.ManifestPath, pos, Color.Red);
-            pos.Y += 30;
+            pos.Y += 16;
             font.DrawString(Renderer.spriteBatch, brokenMod.FailureReason.Message, pos, Color.Orange);
-            pos.Y += 50;
+            pos.Y += 32;
         }
 
-        pos.Y += 50;
+        pos.Y += 16;
+
+        int i = 0;
 
         foreach (var mod in ModManager.Mods.Values)
         {
-            font.DrawString(Renderer.spriteBatch, mod.GetName(), pos, mod.Status == ModStatus.Enabled ? Color.White : Color.Gray);
-            pos.Y += 50;
+            Color color;
+            switch (mod.Status)
+            {
+                case ModStatus.Enabled:
+                    if (ModsToToggle.Contains(mod.GetName()))
+                    {
+                        color = Color.Green;
+                        break;
+                    }
+                    color = Color.White;
+                    break;
+
+                case ModStatus.Disabled:
+                    if (ModsToToggle.Contains(mod.GetName()))
+                    {
+                        color = Color.DarkSlateBlue;
+                        break;
+                    }
+                    color = Color.Gray;
+                    break;
+
+                default:
+                    color = Color.Orange;
+                    break;
+            }
+            font.DrawString(Renderer.spriteBatch, $"{i}. {mod.GetName()}", pos, color);
+            pos.Y += 16;
+            if (Input.KeyPressed(Key.D0 + i))
+            {
+                ModsToToggle.ToggleValue(mod.GetName());
+            }
+            i++;
         }
 
 

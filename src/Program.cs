@@ -1,15 +1,14 @@
-﻿using System;
+﻿using DerelictDimension.CommandLine;
+using Monod;
+using Monod.Localization;
+using Monod.LogModule;
+using Serilog;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using DerelictDimension.CommandLine;
-using Monod.LogModule;
-using Monod.Localization;
-using Monod.ModsModule;
-using Monod;
-using Serilog;
 
 namespace DerelictDimension;
 
@@ -24,12 +23,12 @@ public static class Program
     public static string AppName = "DerelictDimension";
 
     /// <summary>
-    /// <see cref="File"/> path to file where error should be written.
+    /// File path to file where error message should be written.
     /// </summary>
     public static readonly string errorFile = $"{AppContext.BaseDirectory}error.txt";
 
     /// <summary>
-    /// <see cref="File"/> path to file which is created if the game fails to log an exception.
+    /// File path to file which is created if the game fails to log an exception.
     /// </summary>
     public static readonly string errorx2File = $"{AppContext.BaseDirectory}ERRORX2.txt";
 
@@ -58,16 +57,15 @@ public static class Program
         File.Delete(errorx2File);
         File.WriteAllText(errorFile, $"{DateTime.Now}\n");
         File.WriteAllText(LogHelper.LogFile, $"{DateTime.Now}\n");
-        
+
         //DO NOT USE Main(string[]) ! That is different from Environment.GetCommandLineArgs(); because it doesn't include path to process executable as first arg. To prevent confusion and messing up indexes use Environment.GetCommandLineArgs(); instead.
         string[] args = Environment.GetCommandLineArgs();
-        if (args.Contains("--help") && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            WindowsAPI.AllocConsole();
-        }
+
         CMD.Parse(args.Skip(1).ToArray()); //First arg is the path to .exe/.dll, which crashes the parser
         if (args.Contains("--help"))
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                WindowsAPI.AllocConsoleSafe();
             Console.WriteLine("['--help' found, exiting the program]");
             Console.WriteLine("\nPress any key to exit..");
             Console.ReadKey();
@@ -82,16 +80,23 @@ public static class Program
     {
         if (CommandLineArgs.EnableConsole && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            WindowsAPI.AllocConsole();
-            Log.Information("Allocated console for the game");
-            Task.Run(ReadConsoleInput);
+            bool consoleAllocated = WindowsAPI.AllocConsoleSafe();
+            if (consoleAllocated)
+            {
+                Log.Information("Allocated console for the game");
+                Task.Run(ReadConsoleInput);
+            }
+            else
+            {
+                Log.Error("Failed to allocate console");
+            }
         }
 
         MonodMain.EarlyInitialize();
         //DO NOT log anything with level below Information until this is called! Otherwise, those lines will never be logged.
         LogHelper.SetMinimumLogLevel(CommandLineArgs.LogLevel);
         if (CommandLineArgs.Language is not null) Locale.CurrentLanguage = CommandLineArgs.Language;
-        
+
         Log.Information("Command-line arguments: {Args}", string.Join(' ', args));
         LogHelper.WriteStartupInfo();
     }
@@ -126,7 +131,7 @@ public static class Program
     }
 
     /// <summary>
-    /// Runs <see langword="new"/> <see cref="Engine"/>.
+    /// Run a new <see cref="Engine"/>.
     /// </summary>
     public static void RunGame()
     {
@@ -134,13 +139,13 @@ public static class Program
     }
 
     /// <summary>
-    /// Reads input from <see cref="Console"/> add adds it to <see cref="DevConsole.CommandsQueue"/>.
+    /// Read input from <see cref="Console"/> add adds it to <see cref="DevConsole.CommandsQueue"/>.
     /// </summary>
-    public static void ReadConsoleInput()
+    public static async Task ReadConsoleInput()
     {
         while (true)
         {
-            string? command = Console.ReadLine();
+            string? command = await Console.In.ReadLineAsync();
             switch (command)
             {
                 case null:
@@ -149,7 +154,7 @@ public static class Program
                     Environment.Exit(0);
                     break;
             }
-            
+
             DevConsole.CommandsQueue.Enqueue(command);
         }
     }

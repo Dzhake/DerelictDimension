@@ -51,14 +51,14 @@ public class Engine : MonodGame
         base.LoadContent();
         Assets.OnReload += LoadFont;
 
-        Input.ActionNames.AddOrGetValue("Jump");
-        Input.ActionNames.AddOrGetValue("Move Left");
-        Input.ActionNames.AddOrGetValue("Move Right");
+        var jumpIndex = InputActionIndex.Info.AddOrGetValue("Jump");
+        var moveLeftIndex = InputActionIndex.Info.AddOrGetValue("Move Left");
+        var moveRightIndex = InputActionIndex.Info.AddOrGetValue("Move Right");
         Input.DefaultMap = new()
         {
-            {0, new([new(Key.D1, KeyModifiers.None)]) },
-            {1, new([new(Key.D2, KeyModifiers.Ctrl), new(Key.D3, KeyModifiers.Ctrl | KeyModifiers.Alt)]) },
-            {2, new([]) }
+            {jumpIndex, new([new(Key.D1, KeyModifiers.None)]) },
+            {moveLeftIndex, new([new(Key.D2, KeyModifiers.Ctrl), new(Key.D3, KeyModifiers.Ctrl | KeyModifiers.Alt)]) },
+            {moveRightIndex, new([]) }
         };
 
 
@@ -87,7 +87,7 @@ public class Engine : MonodGame
         else if (Input.KeyDown(Key.Down))
             offset.Y -= 10;
 
-        if (Input.ActionDown(0)) text = "Active";
+        if (Input.ActionDown((InputActionIndex)0)) text = "Active";
         else text = "Inactive";
 
         Rebind?.Update();
@@ -138,7 +138,7 @@ public class Engine : MonodGame
                 case ModStatus.Enabled:
                     if (ModsToToggle.Contains(mod.GetName()))
                     {
-                        color = Color.Green;
+                        color = Color.DarkSlateBlue;
                         break;
                     }
                     color = Color.White;
@@ -147,7 +147,7 @@ public class Engine : MonodGame
                 case ModStatus.Disabled:
                     if (ModsToToggle.Contains(mod.GetName()))
                     {
-                        color = Color.DarkSlateBlue;
+                        color = Color.Green;
                         break;
                     }
                     color = Color.Gray;

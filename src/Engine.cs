@@ -9,6 +9,7 @@ using Monod.Graphics;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.ModsModule;
+using Monod.SaveModule;
 using Monod.Utils.Extensions;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,6 +42,7 @@ public class Engine : MonodGame
     public Engine()
     {
         IsMouseVisible = true;
+        Exiting += OnExit;
     }
 
     ///<inheritdoc/>
@@ -118,6 +120,9 @@ public class Engine : MonodGame
         font.DrawString(Renderer.spriteBatch, "Last released:", pos, Color.White);
         pos.Y += 30;
         font.DrawString(Renderer.spriteBatch, released.ToString(), pos, Color.White);*/
+        font.DrawString(Renderer.spriteBatch, $"Found all mods: {ModManager.ModsFound}", pos, Color.White);
+        pos.Y += 16;
+
         foreach (var brokenMod in ModManager.BrokenMods)
         {
             font.DrawString(Renderer.spriteBatch, brokenMod.ManifestPath, pos, Color.Red);
@@ -168,5 +173,11 @@ public class Engine : MonodGame
 
 
         Renderer.End();
+    }
+
+
+    private void OnExit(object? sender, ExitingEventArgs e)
+    {
+        SaveManager.Save(SaveType.Settings, SaveManager.SavesLocation);
     }
 }

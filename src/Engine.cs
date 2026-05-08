@@ -9,7 +9,6 @@ using Monod.Graphics;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.ModsModule;
-using Monod.SaveModule;
 using Monod.Utils.Extensions;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +41,6 @@ public class Engine : MonodGame
     public Engine()
     {
         IsMouseVisible = true;
-        Exiting += OnExit;
     }
 
     ///<inheritdoc/>
@@ -173,11 +171,5 @@ public class Engine : MonodGame
 
 
         Renderer.End();
-    }
-
-
-    private void OnExit(object? sender, ExitingEventArgs e)
-    {
-        SaveManager.Save(SaveType.Settings, SaveManager.SavesLocation);
     }
 }

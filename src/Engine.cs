@@ -34,6 +34,7 @@ public class Engine : MonodGame
     public RebindMenu Rebind;
 
     public HashSet<string> ModsToToggle = new();
+    public int Page = 0;
 
     /// <summary>
     /// Creates a new <see cref="Engine"/>.
@@ -90,6 +91,26 @@ public class Engine : MonodGame
         if (Input.ActionDown((InputActionIndex)0)) text = "Active";
         else text = "Inactive";
 
+        int i = 0;
+
+        if (Input.KeyPressed(Key.D)) Page++;
+        else if (Input.KeyPressed(Key.A)) Page--;
+
+        if (Input.KeyPressed(Key.R)) ModManager.EnqueueLoadAllMods();
+
+        foreach (var mod in ModManager.Mods.Values.Skip(Page * 10).Take(10))
+        {
+            if (Input.KeyPressed(Key.D0 + i))
+                ModsToToggle.ToggleValue(mod.GetName());
+            i++;
+        }
+
+        if (Input.KeyPressed(Key.Enter) && ModsToToggle.Count != 0)
+        {
+            ModManager.EnqueueToggleMods(ModsToToggle);
+            ModsToToggle.Clear();
+        }
+
         Rebind?.Update();
 
         if (Input.KeyboardKeysPressed.Count > 0) pressed = Input.KeyboardKeysPressed.ElementAt(0);
@@ -131,9 +152,12 @@ public class Engine : MonodGame
 
         pos.Y += 16;
 
+        font.DrawString(Renderer.spriteBatch, $"Page: {Page}", pos, Color.White);
+        pos.Y += 16;
+
         int i = 0;
 
-        foreach (var mod in ModManager.Mods.Values)
+        foreach (var mod in ModManager.Mods.Values.Skip(Page * 10).Take(10))
         {
             Color color;
             switch (mod.Status)
@@ -162,10 +186,6 @@ public class Engine : MonodGame
             }
             font.DrawString(Renderer.spriteBatch, $"{i}. {mod.GetName()}", pos, color);
             pos.Y += 16;
-            if (Input.KeyPressed(Key.D0 + i))
-            {
-                ModsToToggle.ToggleValue(mod.GetName());
-            }
             i++;
         }
 

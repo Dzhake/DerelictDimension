@@ -152,8 +152,8 @@ public class Engine : MonodGame
 
         pos.Y += 16;
 
-        font.DrawString(Renderer.spriteBatch, $"Page: {Page}", pos, Color.White);
-        pos.Y += 16;
+        //font.DrawString(Renderer.spriteBatch, $"Page: {Page}", pos, Color.White);
+        //pos.Y += 16;
 
         int i = 0;
 

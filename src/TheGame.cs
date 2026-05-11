@@ -1,11 +1,14 @@
 ﻿using FontStashSharp;
+using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MLEM.Extended.Font;
 using MLEM.Font;
 using Monod;
 using Monod.AssetsModule;
+using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
+using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.ModsModule;
@@ -15,13 +18,13 @@ using System.Linq;
 
 namespace DerelictDimension;
 
-/// <inheritdoc/> 
-public class Engine : MonodGame
+/// <inheritdoc/>
+public class TheGame : MonodGame
 {
     /// <summary>
-    /// Static singleton instance of the <see cref="Engine"/>.
+    /// Static singleton instance of the <see cref="TheGame"/>.
     /// </summary>
-    public static readonly Engine Instance = new();
+    public static readonly TheGame Instance = new();
 
     public string text = "None";
 
@@ -37,9 +40,9 @@ public class Engine : MonodGame
     public int Page = 0;
 
     /// <summary>
-    /// Creates a new <see cref="Engine"/>.
+    /// Creates a new <see cref="TheGame"/>.
     /// </summary>
-    public Engine()
+    public TheGame()
     {
         IsMouseVisible = true;
     }
@@ -62,9 +65,20 @@ public class Engine : MonodGame
             {moveRightIndex, new([]) }
         };
 
+        Entity ent = Store.CreateEntity();
+        ent.Add(new Sprite2D("Player.png"), new Scale2D(4, 4));
+
+
+        InitializeSystems();
 
         //Rebind = new(MainUiSystem);
         //Rebind.Root.PositionOffset = new(0, 100);
+    }
+
+    public static void InitializeSystems()
+    {
+        LogicSystemRoot.Add(new UpdateSpriteSystem());
+        DrawSystemRoot.Add(new DrawSpriteSystem());
     }
 
     ///<inheritdoc/>
@@ -115,6 +129,8 @@ public class Engine : MonodGame
 
         if (Input.KeyboardKeysPressed.Count > 0) pressed = Input.KeyboardKeysPressed.ElementAt(0);
         if (Input.KeyboardKeysReleased.Count > 0) released = Input.KeyboardKeysReleased.ElementAt(0);
+
+        UpdateLogicSystems();
     }
 
     /// <inheritdoc/>
@@ -189,6 +205,7 @@ public class Engine : MonodGame
             i++;
         }
 
+        UpdateRenderSystems();
 
         Renderer.End();
     }

@@ -131,11 +131,11 @@ public static class Program
     }
 
     /// <summary>
-    /// Run a new <see cref="Engine"/>.
+    /// Run a new <see cref="TheGame"/>.
     /// </summary>
     public static void RunGame()
     {
-        new Engine().Run();
+        new TheGame().Run();
     }
 
     /// <summary>

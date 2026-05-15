@@ -1,4 +1,5 @@
-﻿using FontStashSharp;
+﻿using DerelictDimension.ECS.Card;
+using FontStashSharp;
 using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -55,18 +56,17 @@ public class TheGame : MonodGame
         base.LoadContent();
         Assets.OnReload += LoadFont;
 
-        var jumpIndex = InputActionIndex.Info.AddOrGetValue("Jump");
-        var moveLeftIndex = InputActionIndex.Info.AddOrGetValue("Move Left");
-        var moveRightIndex = InputActionIndex.Info.AddOrGetValue("Move Right");
+        Monod.Utils.Enums.ExtEnumInfo<InputActionIndex> actionsInfo = InputActionIndex.Info;
+        CardSystem.LeanLeft = actionsInfo.AddOrGetValue("Lean left");
+        CardSystem.LeanRight = actionsInfo.AddOrGetValue("Lean right");
         Input.DefaultMap = new()
         {
-            {jumpIndex, new([new(Key.D1, KeyModifiers.None)]) },
-            {moveLeftIndex, new([new(Key.D2, KeyModifiers.Ctrl), new(Key.D3, KeyModifiers.Ctrl | KeyModifiers.Alt)]) },
-            {moveRightIndex, new([]) }
+            {CardSystem.LeanLeft, new([new(Key.A), new(Key.Left)]) },
+            {CardSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
         };
 
         Entity ent = Store.CreateEntity();
-        ent.Add(new Sprite2D("Player.png"), new Scale2D(4, 4));
+        ent.Add(new Sprite2D("Card.png"), new Scale2D(8, 8), new Rotation2D(1), new Position2D(0, 500), new CardComponent());
 
 
         InitializeSystems();
@@ -78,6 +78,8 @@ public class TheGame : MonodGame
     public static void InitializeSystems()
     {
         LogicSystemRoot.Add(new UpdateSpriteSystem());
+        LogicSystemRoot.Add(new CardSystem());
+
         DrawSystemRoot.Add(new DrawSpriteSystem());
     }
 
@@ -143,18 +145,15 @@ public class TheGame : MonodGame
         Vector2 pos = offset.ToVector2();
         pos.X += 10;
 
-        /*font.DrawString(Renderer.spriteBatch, $"D1: {Input.KeyDown(Key.D1)}, LeftControl: {Input.KeyDown(Key.LeftControl)}, D2: {Input.KeyDown(Key.D2)}", pos, Color.White);
-        pos.Y += 50;
-        font.DrawString(Renderer.spriteBatch, text, pos, Color.White);
-        pos.Y += 50;
-        font.DrawString(Renderer.spriteBatch, "Last pressed:", pos, Color.White);
-        pos.Y += 30;
-        font.DrawString(Renderer.spriteBatch, pressed.ToString(), pos, Color.White);
-        pos.Y += 50;
+        //DrawModMenu(font, ref pos);
 
-        font.DrawString(Renderer.spriteBatch, "Last released:", pos, Color.White);
-        pos.Y += 30;
-        font.DrawString(Renderer.spriteBatch, released.ToString(), pos, Color.White);*/
+        UpdateRenderSystems();
+
+        Renderer.End();
+    }
+
+    private void DrawModMenu(GenericFont font, ref Vector2 pos)
+    {
         font.DrawString(Renderer.spriteBatch, $"Found all mods: {ModManager.ModsFound}", pos, Color.White);
         pos.Y += 16;
 
@@ -204,9 +203,5 @@ public class TheGame : MonodGame
             pos.Y += 16;
             i++;
         }
-
-        UpdateRenderSystems();
-
-        Renderer.End();
     }
 }

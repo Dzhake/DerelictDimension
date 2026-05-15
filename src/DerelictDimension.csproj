@@ -24,6 +24,8 @@
         
         <!--  Removes lotsa dirs with localization files for System.CommandLine from output dir (on build)  -->
         <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
+
+        <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     </PropertyGroup>
     
     

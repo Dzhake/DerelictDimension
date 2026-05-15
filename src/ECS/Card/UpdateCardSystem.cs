@@ -9,7 +9,7 @@ using System;
 
 namespace DerelictDimension.ECS.Card;
 
-public class CardSystem : QuerySystem<CardComponent, Position2D, Rotation2D>
+public class UpdateCardSystem : QuerySystem<CardComponent, Position2D, Rotation2D>
 {
     public static InputActionIndex LeanLeft;
     public static InputActionIndex LeanRight;
@@ -49,10 +49,15 @@ public class CardSystem : QuerySystem<CardComponent, Position2D, Rotation2D>
             if (card.Lean <= target) card.Lean = target;
         }
 
-        float lean = (float)Math.Pow(card.Lean, 3) * CardLeanLimit;
+        float lean = GetActualLean(card.Lean);
 
         pos.X = defaultPos.X + (lean * window.Width * 0.25f);
         rotation.Angle = lean;
+    }
+
+    public static float GetActualLean(float lean)
+    {
+        return (float)Math.Pow(lean, 3) * CardLeanLimit;
     }
 
     private Vector2 CalcDefaultPos()

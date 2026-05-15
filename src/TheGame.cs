@@ -2,7 +2,6 @@
 using FontStashSharp;
 using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MLEM.Extended.Font;
 using MLEM.Font;
 using Monod;
@@ -57,12 +56,12 @@ public class TheGame : MonodGame
         Assets.OnReload += LoadFont;
 
         Monod.Utils.Enums.ExtEnumInfo<InputActionIndex> actionsInfo = InputActionIndex.Info;
-        CardSystem.LeanLeft = actionsInfo.AddOrGetValue("Lean left");
-        CardSystem.LeanRight = actionsInfo.AddOrGetValue("Lean right");
+        UpdateCardSystem.LeanLeft = actionsInfo.AddOrGetValue("Lean left");
+        UpdateCardSystem.LeanRight = actionsInfo.AddOrGetValue("Lean right");
         Input.DefaultMap = new()
         {
-            {CardSystem.LeanLeft, new([new(Key.A), new(Key.Left)]) },
-            {CardSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
+            {UpdateCardSystem.LeanLeft, new([new(Key.A), new(Key.Left)]) },
+            {UpdateCardSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
         };
 
         Entity ent = Store.CreateEntity();
@@ -78,9 +77,10 @@ public class TheGame : MonodGame
     public static void InitializeSystems()
     {
         LogicSystemRoot.Add(new UpdateSpriteSystem());
-        LogicSystemRoot.Add(new CardSystem());
+        LogicSystemRoot.Add(new UpdateCardSystem());
 
-        DrawSystemRoot.Add(new DrawSpriteSystem());
+        DrawSystemRoot.Add(new DrawSystem());
+        //DrawSystemRoot.Add(new DrawSpriteSystem());
     }
 
     ///<inheritdoc/>
@@ -140,7 +140,7 @@ public class TheGame : MonodGame
     {
         GenericFont? font = GlobalFonts.MenuFont;
         if (font is null) return;
-        Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
+        //Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
         Renderer.Clear(Color.Black);
         Vector2 pos = offset.ToVector2();
         pos.X += 10;
@@ -149,7 +149,7 @@ public class TheGame : MonodGame
 
         UpdateRenderSystems();
 
-        Renderer.End();
+        //Renderer.End();
     }
 
     private void DrawModMenu(GenericFont font, ref Vector2 pos)

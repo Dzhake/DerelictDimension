@@ -6,7 +6,6 @@ using Monod.AssetsModule;
 using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
 using Monod.Graphics.ECS.Sprite;
-using System;
 
 namespace DerelictDimension.ECS.Card;
 
@@ -42,7 +41,9 @@ public class DrawSystem : QuerySystem<CardComponent, Position2D, Rotation2D, Spr
             depth = 0;
 
         Vector2 origin = new(sprite.Texture.Width / 2f, sprite.Texture.Height / 2f);
-        CardEffect.Parameters["Lean"].SetValue(Math.Abs(UpdateCardSystem.GetActualLean(card.Lean)));
+        float lean = UpdateCardSystem.GetActualLean(card.Lean);
+        CardEffect.Parameters["Lean"].SetValue(lean);
+        CardEffect.Parameters["LinePoint"].SetValue(new Vector2(lean < 0 ? 1 : 0, 0));
         Renderer.DrawTexture(sprite.Texture, pos.Value, null, sprite.color, rotation.Angle, origin, scale, SpriteEffects.None, depth);
 
         Renderer.End();

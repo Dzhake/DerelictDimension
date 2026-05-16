@@ -14,7 +14,7 @@ public class UpdateCardSystem : QuerySystem<CardComponent, Position2D, Rotation2
     public static InputActionIndex LeanLeft;
     public static InputActionIndex LeanRight;
     public static readonly float LeanSpeed = 8f;
-    public static readonly float CardLeanLimit = 0.5f;
+    public static readonly float CardLeanLimit = 0.25f;
 
     protected override void OnUpdate()
     {

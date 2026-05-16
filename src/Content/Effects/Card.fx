@@ -10,6 +10,7 @@
 Texture2D SpriteTexture;
 sampler s0;
 float Lean = 1;
+float2 LinePoint;
 
 sampler2D SpriteTextureSampler = sampler_state
 {
@@ -23,10 +24,23 @@ struct VertexShaderOutput
     float2 TextureCoordinates : TEXCOORD0;
 };
 
+float DistanceFromPointToLine(float2 coords, float2 linePoint, float angle)
+{
+    // Vector perpendicular to the line
+    float2 perpendicular = float2(-sin(angle), cos(angle));
+    
+    // Vector from point on the line to 'coords'
+    float2 toPoint = coords - linePoint;
+    
+    // Result
+    return dot(toPoint, perpendicular);
+}
+
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float4 color = tex2D(s0, input.TextureCoordinates);
-    if (input.TextureCoordinates.y < Lean && color.a != 0) {
+    if (color.a != 0 && DistanceFromPointToLine(input.TextureCoordinates, LinePoint, -Lean) < abs(Lean) * 2.5)
+    {
         color *= 0.5;
     }
     return color;

@@ -65,7 +65,7 @@ public class TheGame : MonodGame
         };
 
         Entity ent = Store.CreateEntity();
-        ent.Add(new Sprite2D("Card.png"), new Scale2D(8, 8), new Rotation2D(1), new Position2D(0, 500), new CardComponent());
+        ent.Add(new Sprite2D("Window.png"), new Scale2D(8, 8), new Rotation2D(1), new Position2D(0, 500), new CardComponent());
 
 
         InitializeSystems();

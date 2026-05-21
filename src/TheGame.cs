@@ -1,4 +1,4 @@
-﻿using DerelictDimension.ECS.Card;
+﻿using DerelictDimension.ECS;
 using FontStashSharp;
 using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
@@ -12,9 +12,7 @@ using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.ModsModule;
-using Monod.TimeModule;
 using Monod.Utils.Extensions;
-using Serilog;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -59,6 +57,7 @@ public class TheGame : MonodGame
         MainAssetManager.LoadAsset("Fonts/m6x11plus.ttf");
         LoadFont();
         base.LoadContent();
+        Renderer.deviceManager.PreferMultiSampling = false;
         Assets.OnReload += LoadFont;
 
         Monod.Utils.Enums.ExtEnumInfo<InputActionIndex> actionsInfo = InputActionIndex.Info;
@@ -71,7 +70,7 @@ public class TheGame : MonodGame
         };
 
         Entity ent = Store.CreateEntity();
-        ent.Add(new Sprite2D("Spaceship.png"), new Rotation2D(0), new Position2D(GameSize.X / 2, 0), new CardComponent());
+        ent.Add(new Sprite2D("Spaceship.png"), new Rotation2D(0), new Position2D(GameSize.X / 2, 0), Tags.Get<GameLayerTag>());
 
 
         InitializeSystems();
@@ -100,8 +99,6 @@ public class TheGame : MonodGame
     ///<inheritdoc/>
     protected override void UpdateM()
     {
-        if (Time.RawTotalTime < 10)
-            Log.Information("'A' down: {Value}", Input.CurState.Keyboard.IsKeyDown(Key.A));
         if (Input.KeyDown(Key.Right))
             offset.X -= 10;
         else if (Input.KeyDown(Key.Left))

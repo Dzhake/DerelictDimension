@@ -3,7 +3,7 @@ using Monod.InputModule;
 using Monod.TimeModule;
 using System;
 
-namespace DerelictDimension.ECS.Card;
+namespace DerelictDimension.ECS;
 
 public class UpdateLeanSystem : BaseSystem
 {

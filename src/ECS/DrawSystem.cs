@@ -9,7 +9,7 @@ using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 
-namespace DerelictDimension.ECS.Card;
+namespace DerelictDimension.ECS;
 
 public class DrawSystem : BaseSystem
 {
@@ -17,12 +17,12 @@ public class DrawSystem : BaseSystem
     public RenderTarget2D ScreenRT;
     public RenderTarget2D PostCardRT;
     public Texture2D Bg;
-    public ArchetypeQuery<CardComponent> ShipsQuery;
+    public ArchetypeQuery<Sprite2D> GameLayerQuery;
 
     protected override void OnAddStore(EntityStore store)
     {
         base.OnAddStore(store);
-        ShipsQuery = store.Query<CardComponent>();
+        GameLayerQuery = store.Query<Sprite2D>().AllTags(Tags.Get<GameLayerTag>());
     }
 
     protected override void OnUpdateGroup()
@@ -31,13 +31,13 @@ public class DrawSystem : BaseSystem
         if (ScreenRT is null)
         {
             ScreenRT?.Dispose();
-            ScreenRT = new(Renderer.device, (int)TheGame.GameSize.X, (int)TheGame.GameSize.Y, false, SurfaceFormat.Color, DepthFormat.None, 4, RenderTargetUsage.PreserveContents);
+            ScreenRT = new(Renderer.device, (int)TheGame.GameSize.X, (int)TheGame.GameSize.Y, false, SurfaceFormat.Color, DepthFormat.None, 2, RenderTargetUsage.PreserveContents);
         }
 
         if (PostCardRT is null || PostCardRT.Bounds.Size != clientBounds.Size)
         {
             PostCardRT?.Dispose();
-            PostCardRT = new(Renderer.device, clientBounds.Width, clientBounds.Height, false, SurfaceFormat.Color, DepthFormat.None, 4, RenderTargetUsage.PreserveContents);
+            PostCardRT = new(Renderer.device, clientBounds.Width, clientBounds.Height, false, SurfaceFormat.Color, DepthFormat.None, 2, RenderTargetUsage.PreserveContents);
         }
 
         if (CardEffect?.IsDisposed != false || Assets.ReloadThisFrame)
@@ -50,8 +50,8 @@ public class DrawSystem : BaseSystem
         Renderer.SetRenderTarget(ScreenRT);
         Renderer.Clear(new(0, 0, 0, 0));
 
-        Renderer.Begin(samplerState: SamplerState.PointClamp, effect: CardEffect);
-        ShipsQuery.ForEachEntity(DrawShip);
+        Renderer.Begin(samplerState: SamplerState.PointClamp);
+        GameLayerQuery.ForEachEntity(DrawShip);
         Renderer.End();
 
         Vector2 upscale = new(clientBounds.Width / 320f);
@@ -63,7 +63,7 @@ public class DrawSystem : BaseSystem
         CardEffect.Parameters["HalfSideX"].SetValue(cardSide / clientBounds.Width / 2);
         CardEffect.Parameters["HalfSideY"].SetValue(cardSide / clientBounds.Height / 2);
         CardEffect.Parameters["Lean"].SetValue(lean);
-        CardEffect.Parameters["CardRadius"].SetValue(0.35f);
+        CardEffect.Parameters["CardRadius"].SetValue(0.25f);
         Renderer.Begin(samplerState: SamplerState.PointClamp, effect: CardEffect);
         Renderer.DrawTexture(ScreenRT, Vector2.Zero, scale: upscale);
         Renderer.End();
@@ -73,14 +73,13 @@ public class DrawSystem : BaseSystem
         Renderer.Begin(samplerState: SamplerState.PointClamp);
         Renderer.DrawTexture(Bg, Vector2.Zero, Color.White);
         Renderer.DrawTexture(PostCardRT, Vector2.Zero, Color.White);
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Lean: {lean}\nTarget:{UpdateLeanSystem.Target}\n'A' down:{Input.KeyDown(Key.A)}\nLeft down:{Input.ActionDown(UpdateLeanSystem.LeanLeft)}\nScreenWidth:{clientBounds.Width}\nScreenHeight:{clientBounds.Height}\nCardSide:{cardSide}", Vector2.Zero, Color.White);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Lean: {lean}\nTarget:{UpdateLeanSystem.Target}\nScreenWidth:{clientBounds.Width}\nScreenHeight:{clientBounds.Height}\nCardSide:{cardSide}", Vector2.Zero, Color.White);
         Renderer.End();
     }
 
-    private void DrawShip(ref CardComponent cardComponent, Entity entity)
+    private void DrawShip(ref Sprite2D sprite, Entity entity)
     {
         var data = entity.Data;
-        Sprite2D sprite = data.Get<Sprite2D>();
         if (sprite.Texture is null) return;
 
         Vector2 scale;
@@ -109,10 +108,5 @@ public class DrawSystem : BaseSystem
         Vector2 gameSize = TheGame.GameSize;
         Vector2 pos = new(mousePos.X / windowSize.X * gameSize.X, mousePos.Y / windowSize.Y * gameSize.Y);
         Renderer.DrawTexture(sprite.Texture, pos, null, sprite.color, rotation, origin, scale, SpriteEffects.None, depth);
-    }
-
-    public void DrawBattle()
-    {
-
     }
 }

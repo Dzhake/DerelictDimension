@@ -26,7 +26,7 @@ public class TheGame : MonodGame
     /// <summary>
     /// Static singleton instance of the <see cref="TheGame"/>.
     /// </summary>
-    public static readonly TheGame Instance = new();
+    public static TheGame Instance;
 
     public string text = "None";
 
@@ -41,7 +41,7 @@ public class TheGame : MonodGame
     public HashSet<string> ModsToToggle = new();
     public int Page = 0;
 
-    public static readonly Vector2 GAME_SIZE = new(320, 180);
+    public static Vector2 GameSize;
 
     /// <summary>
     /// Creates a new <see cref="TheGame"/>.
@@ -49,6 +49,8 @@ public class TheGame : MonodGame
     public TheGame()
     {
         IsMouseVisible = true;
+        Instance = this;
+        GameSize = new(320, 180);
     }
 
     ///<inheritdoc/>
@@ -69,7 +71,7 @@ public class TheGame : MonodGame
         };
 
         Entity ent = Store.CreateEntity();
-        ent.Add(new Sprite2D("Spaceship.png"), new Rotation2D(0), new Position2D(GAME_SIZE.X / 2, 0), new CardComponent());
+        ent.Add(new Sprite2D("Spaceship.png"), new Rotation2D(0), new Position2D(GameSize.X / 2, 0), new CardComponent());
 
 
         InitializeSystems();
@@ -99,7 +101,7 @@ public class TheGame : MonodGame
     protected override void UpdateM()
     {
         if (Time.RawTotalTime < 10)
-            Log.Information("'A' down: {Value}, {Value2}", Input.CurState.Keyboard.IsKeyDown(Key.A), Input.GetValue(Input.CurState, Key.A));
+            Log.Information("'A' down: {Value}", Input.CurState.Keyboard.IsKeyDown(Key.A));
         if (Input.KeyDown(Key.Right))
             offset.X -= 10;
         else if (Input.KeyDown(Key.Left))
@@ -110,7 +112,7 @@ public class TheGame : MonodGame
         else if (Input.KeyDown(Key.Down))
             offset.Y -= 10;
 
-        if (Input.ActionDown((InputActionIndex)0)) text = "Active";
+        //if (Input.ActionDown((InputActionIndex)0)) text = "Active";
         else text = "Inactive";
 
         int i = 0;

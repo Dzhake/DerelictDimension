@@ -31,7 +31,7 @@ public class DrawSystem : BaseSystem
         if (ScreenRT is null)
         {
             ScreenRT?.Dispose();
-            ScreenRT = new(Renderer.device, (int)TheGame.GAME_SIZE.X, (int)TheGame.GAME_SIZE.Y, false, SurfaceFormat.Color, DepthFormat.None, 4, RenderTargetUsage.PreserveContents);
+            ScreenRT = new(Renderer.device, (int)TheGame.GameSize.X, (int)TheGame.GameSize.Y, false, SurfaceFormat.Color, DepthFormat.None, 4, RenderTargetUsage.PreserveContents);
         }
 
         if (PostCardRT is null || PostCardRT.Bounds.Size != clientBounds.Size)
@@ -106,13 +106,9 @@ public class DrawSystem : BaseSystem
 
         Vector2 mousePos = Input.MousePos();
         Vector2 windowSize = Renderer.Window.ClientBounds.Size.ToVector2();
-        Vector2 gameSize = TheGame.GAME_SIZE;
+        Vector2 gameSize = TheGame.GameSize;
         Vector2 pos = new(mousePos.X / windowSize.X * gameSize.X, mousePos.Y / windowSize.Y * gameSize.Y);
         Renderer.DrawTexture(sprite.Texture, pos, null, sprite.color, rotation, origin, scale, SpriteEffects.None, depth);
-        Renderer.DrawTexture(sprite.Texture, pos + new Vector2(20, 0), null, sprite.color, rotation, origin, scale, SpriteEffects.None, depth);
-        Renderer.DrawTexture(sprite.Texture, pos + new Vector2(-20, 0), null, sprite.color, rotation, origin, scale, SpriteEffects.None, depth);
-        Renderer.DrawTexture(sprite.Texture, pos + new Vector2(0, 20), null, sprite.color, rotation, origin, scale, SpriteEffects.None, depth);
-        Renderer.DrawTexture(sprite.Texture, pos + new Vector2(0, -20), null, sprite.color, rotation, origin, scale, SpriteEffects.None, depth);
     }
 
     public void DrawBattle()

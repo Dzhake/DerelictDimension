@@ -12,7 +12,9 @@ using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.ModsModule;
+using Monod.TimeModule;
 using Monod.Utils.Extensions;
+using Serilog;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -39,6 +41,8 @@ public class TheGame : MonodGame
     public HashSet<string> ModsToToggle = new();
     public int Page = 0;
 
+    public static readonly Vector2 GAME_SIZE = new(320, 180);
+
     /// <summary>
     /// Creates a new <see cref="TheGame"/>.
     /// </summary>
@@ -56,28 +60,28 @@ public class TheGame : MonodGame
         Assets.OnReload += LoadFont;
 
         Monod.Utils.Enums.ExtEnumInfo<InputActionIndex> actionsInfo = InputActionIndex.Info;
-        UpdateCardSystem.LeanLeft = actionsInfo.AddOrGetValue("Lean left");
-        UpdateCardSystem.LeanRight = actionsInfo.AddOrGetValue("Lean right");
+        UpdateLeanSystem.LeanLeft = actionsInfo.AddOrGetValue("Lean left");
+        UpdateLeanSystem.LeanRight = actionsInfo.AddOrGetValue("Lean right");
         Input.DefaultMap = new()
         {
-            {UpdateCardSystem.LeanLeft, new([new(Key.A), new(Key.Left)]) },
-            {UpdateCardSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
+            {UpdateLeanSystem.LeanLeft, new([new(Key.A), new(Key.Left)]) },
+            {UpdateLeanSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
         };
 
         Entity ent = Store.CreateEntity();
-        ent.Add(new Sprite2D("Window.png"), new Scale2D(8, 8), new Rotation2D(1), new Position2D(0, 500), new CardComponent());
+        ent.Add(new Sprite2D("Spaceship.png"), new Rotation2D(0), new Position2D(GAME_SIZE.X / 2, 0), new CardComponent());
 
 
         InitializeSystems();
 
         //Rebind = new(MainUiSystem);
-        //Rebind.Root.PositionOffset = new(0, 100);
+        //Rebind.Root.PositionOffset = new(0, 100);aaaaaaaaaaaaaaa
     }
 
     public static void InitializeSystems()
     {
         LogicSystemRoot.Add(new UpdateSpriteSystem());
-        LogicSystemRoot.Add(new UpdateCardSystem());
+        LogicSystemRoot.Add(new UpdateLeanSystem());
 
         DrawSystemRoot.Add(new DrawSystem());
         //DrawSystemRoot.Add(new DrawSpriteSystem());
@@ -94,6 +98,8 @@ public class TheGame : MonodGame
     ///<inheritdoc/>
     protected override void UpdateM()
     {
+        if (Time.RawTotalTime < 10)
+            Log.Information("'A' down: {Value}, {Value2}", Input.CurState.Keyboard.IsKeyDown(Key.A), Input.GetValue(Input.CurState, Key.A));
         if (Input.KeyDown(Key.Right))
             offset.X -= 10;
         else if (Input.KeyDown(Key.Left))
@@ -141,7 +147,7 @@ public class TheGame : MonodGame
         GenericFont? font = GlobalFonts.MenuFont;
         if (font is null) return;
         //Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
-        Renderer.Clear(Color.Black);
+        Renderer.Clear(new(0, 20, 0));
         Vector2 pos = offset.ToVector2();
         pos.X += 10;
 

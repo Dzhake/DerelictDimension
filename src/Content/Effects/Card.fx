@@ -9,8 +9,10 @@
 
 Texture2D SpriteTexture;
 sampler s0;
-float Lean = 1;
-float2 LinePoint;
+float Lean;
+float HalfSideX;
+float HalfSideY;
+float CardRadius;
 
 sampler2D SpriteTextureSampler = sampler_state
 {
@@ -24,25 +26,36 @@ struct VertexShaderOutput
     float2 TextureCoordinates : TEXCOORD0;
 };
 
-float DistanceFromPointToLine(float2 coords, float2 linePoint, float angle)
+bool InOriginalShape(float2 coords)
 {
-    // Vector perpendicular to the line
-    float2 perpendicular = float2(-sin(angle), cos(angle));
+    float2 center = float2(0.5, 0.5);
+    float distX = abs(coords.x - center.x);
+    float distY = abs(coords.y - center.y);
+    return distX + distY < CardRadius && distX < HalfSideX && distY < HalfSideY;
+}
+
+float2 DeModifyCoords(float2 coords)
+{
     
-    // Vector from point on the line to 'coords'
-    float2 toPoint = coords - linePoint;
-    
-    // Result
-    return dot(toPoint, perpendicular);
+    return float2(coords.x - Lean * 0.25, coords.y);
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
-    float4 color = tex2D(s0, input.TextureCoordinates);
-    if (color.a != 0 && DistanceFromPointToLine(input.TextureCoordinates, LinePoint, -Lean) < abs(Lean) * 2.5)
+    float4 color = float4(0, 0, 0, 1);
+    float2 coords = input.TextureCoordinates;
+    
+    float2 demodifiedCoords = DeModifyCoords(coords);
+    if (InOriginalShape(demodifiedCoords))
     {
-        color *= 0.5;
+        coords = demodifiedCoords;
     }
+    else if (InOriginalShape(coords))
+    {
+        return float4(0, 0, 0, 0);
+    }
+        
+    color = tex2D(s0, coords);
     return color;
 }
 

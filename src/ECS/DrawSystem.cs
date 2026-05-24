@@ -23,6 +23,7 @@ public class DrawSystem : BaseSystem
     public RenderTarget2D? InCardRT;
     public RenderTarget2D? PostCardRT;
     public Texture2D Bg;
+    public Texture2D CardBg;
 
     public ArchetypeQuery<Sprite2D> GameLayerQuery;
     public ArchetypeQuery<FighterComponent, Sprite2D> FightersQuery;
@@ -33,6 +34,36 @@ public class DrawSystem : BaseSystem
         base.OnAddStore(store);
         GameLayerQuery = store.Query<Sprite2D>().AllTags(Tags.Get<GameLayerTag>());
         FightersQuery = store.Query<FighterComponent, Sprite2D>();
+    }
+
+    private void VerifyOrGetAssets(Point windowSizeP)
+    {
+        if (GameRT is null)
+        {
+            GameRT?.Dispose();
+            GameRT = new(Renderer.device, (int)TheGame.GameSize.X, (int)TheGame.GameSize.Y, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+        }
+
+        if (InCardRT is null || InCardRT.Bounds.Size != windowSizeP)
+        {
+            InCardRT?.Dispose();
+            InCardRT = new(Renderer.device, windowSizeP.X, windowSizeP.Y, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+        }
+
+        if (PostCardRT is null || PostCardRT.Bounds.Size != windowSizeP)
+        {
+            PostCardRT?.Dispose();
+            PostCardRT = new(Renderer.device, windowSizeP.X, windowSizeP.Y, false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+        }
+
+        if (CardModifyEffect?.IsDisposed != false || Assets.ReloadThisFrame)
+            CardModifyEffect = Assets.Get<Effect>("Effects/CardModify.mgfx");
+
+        if (InCardEffect?.IsDisposed != false || Assets.ReloadThisFrame)
+            InCardEffect = Assets.Get<Effect>("Effects/InCard.mgfx");
+
+        if (Bg?.IsDisposed != false || Assets.ReloadThisFrame)
+            Bg = Assets.Get<Texture2D>("Bg.png");
     }
 
     protected override void OnUpdateGroup()
@@ -54,7 +85,7 @@ public class DrawSystem : BaseSystem
         Renderer.Clear(Renderer.EmptyColor);
 
         Vector2 upscale = new(windowSizeP.X / TheGame.GameSize.X);
-        float cardSide = 64 * upscale.X;
+        float cardSide = 128 * upscale.X;
         float lean = UpdateLeanSystem.GetActualLean();
         float halfSideX = cardSide / windowSizeP.X / 2;
         CardModifyEffect!.Parameters["HalfSideX"].SetValue(halfSideX);
@@ -86,9 +117,9 @@ public class DrawSystem : BaseSystem
 
         Renderer.SetRenderTarget(currentRT);
 
-        Renderer.Begin(samplerState: SamplerState.PointClamp);
+        /*Renderer.Begin(samplerState: SamplerState.PointClamp);
         Renderer.DrawTexture(Bg, Vector2.Zero, Color.White);
-        Renderer.End();
+        Renderer.End();*/
 
         Renderer.Begin(samplerState: SamplerState.PointClamp, effect: CardModifyEffect);
         Renderer.DrawTexture(PostCardRT!, Vector2.Zero, Color.White);
@@ -99,77 +130,54 @@ public class DrawSystem : BaseSystem
         Renderer.End();
     }
 
-    private void VerifyOrGetAssets(Point windowSizeP)
-    {
-        if (GameRT is null)
-        {
-            GameRT?.Dispose();
-            GameRT = new(Renderer.device, (int)TheGame.GameSize.X, (int)TheGame.GameSize.Y, false, SurfaceFormat.Color, DepthFormat.None, 2, RenderTargetUsage.PreserveContents);
-        }
-
-        if (InCardRT is null || InCardRT.Bounds.Size != windowSizeP)
-        {
-            InCardRT?.Dispose();
-            InCardRT = new(Renderer.device, windowSizeP.X, windowSizeP.Y, false, SurfaceFormat.Color, DepthFormat.None, 2, RenderTargetUsage.PreserveContents);
-        }
-
-        if (PostCardRT is null || PostCardRT.Bounds.Size != windowSizeP)
-        {
-            PostCardRT?.Dispose();
-            PostCardRT = new(Renderer.device, windowSizeP.X, windowSizeP.Y, false, SurfaceFormat.Color, DepthFormat.None, 2, RenderTargetUsage.PreserveContents);
-        }
-
-        if (CardModifyEffect?.IsDisposed != false || Assets.ReloadThisFrame)
-            CardModifyEffect = Assets.Get<Effect>("Effects/CardModify.mgfx");
-
-        if (InCardEffect?.IsDisposed != false || Assets.ReloadThisFrame)
-            InCardEffect = Assets.Get<Effect>("Effects/InCard.mgfx");
-
-        if (Bg?.IsDisposed != false || Assets.ReloadThisFrame)
-            Bg = Assets.Get<Texture2D>("Bg.png");
-    }
-
     private void DrawFighter(ref FighterComponent fighter, ref Sprite2D sprite, Entity entity)
     {
         var data = entity.Data;
         if (sprite.Texture is null) return;
-        GetDrawInfo(sprite, data, out var scale, out var depth, out var rotation, out var origin);
+        GetDrawInfo(sprite, data, out var _, out var scale, out var depth, out var rotation, out var origin);
 
         Vector2 pos = UpdateBattleSystem.GridPosToWorldPos(fighter.Position);
         SpriteEffects spriteEffects = sprite.spriteEffects;
         if (fighter.LooksLeft) spriteEffects |= SpriteEffects.FlipHorizontally;
-        Renderer.DrawTexture(sprite.Texture, pos, null, sprite.color, rotation, origin, scale, spriteEffects, depth);
+        Renderer.DrawTexture(sprite.Texture, pos, sprite.color, null, rotation ?? 0f, origin, scale, spriteEffects, depth ?? 0f);
     }
 
     private void DrawGameLayerSprite(ref Sprite2D sprite, Entity entity)
     {
         var data = entity.Data;
         if (sprite.Texture is null) return;
-        GetDrawInfo(sprite, data, out var scale, out var depth, out var rotation, out var origin);
+        GetDrawInfo(sprite, data, out var pos, out var scale, out var depth, out var rotation, out var origin);
 
         Vector2 mousePos = Input.MousePos();
         Vector2 windowSize = Renderer.WindowSize;
         Vector2 gameSize = TheGame.GameSize;
-        Vector2 pos = new(mousePos.X / windowSize.X * gameSize.X, mousePos.Y / windowSize.Y * gameSize.Y);
-        Renderer.DrawTexture(sprite.Texture, pos, null, sprite.color, rotation, origin, scale, sprite.spriteEffects, depth);
+        Vector2 p = pos ?? new(mousePos.X / windowSize.X * gameSize.X, mousePos.Y / windowSize.Y * gameSize.Y);
+        Renderer.DrawTexture(sprite.Texture, p, sprite.color, null, rotation ?? 0, origin, scale, sprite.spriteEffects, depth ?? 0);
     }
 
-    private static void GetDrawInfo(Sprite2D sprite, EntityData data, out Vector2 scale, out float depth, out float rotation, out Vector2 origin)
+    private static void GetDrawInfo(Sprite2D sprite, EntityData data, out Vector2? pos, out Vector2? scale, out float? depth, out float? rotation, out Vector2? origin)
     {
+        if (data.TryGet<Position2D>(out var position2D))
+            pos = position2D.Value;
+        else
+            pos = null;
+
         if (data.TryGet<Scale2D>(out var scale2D))
             scale = scale2D.Value;
         else
-            scale = Vector2.One;
+            scale = null;
+
         if (data.TryGet<RenderDepth>(out var renderDepth))
             depth = renderDepth.Depth;
         else
-            depth = 0;
+            depth = null;
+
         if (data.TryGet<Rotation2D>(out var rotation2d))
             rotation = rotation2d.Angle;
         else
-            rotation = 0;
+            rotation = null;
 
-        if (sprite.Texture is null) origin = Vector2.Zero;
+        if (sprite.Texture is null) origin = null;
         else origin = new(sprite.Texture.Width / 2f, sprite.Texture.Height / 2f);
     }
 }

@@ -70,8 +70,8 @@ public class TheGame : MonodGame
             {UpdateLeanSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
         };
 
-        Entity ent = Store.CreateEntity();
-        ent.Add(new Sprite2D("Spaceship.png"), new Position2D(200, 0), new Rotation2D(0), new Position2D(GameSize.X / 2, 0), Tags.Get<GameLayerTag>());
+        Store.CreateEntity(new Sprite2D("CardBg.png"), new Position2D(GameSize.X / 2, GameSize.Y / 2), Tags.Get<GameLayerTag>());
+        Store.CreateEntity(new Sprite2D("Spaceship.png"), Tags.Get<GameLayerTag>());
 
 
         InitializeSystems();
@@ -148,10 +148,13 @@ public class TheGame : MonodGame
         GenericFont? font = GlobalFonts.MenuFont;
         if (font is null) return;
         //Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
-        Renderer.Clear(new(0, 20, 0));
-        Vector2 pos = offset.ToVector2();
-        pos.X += 10;
+        Renderer.Clear(new(0, 0, 0));
 
+        /*Renderer.Begin(samplerState: SamplerState.PointClamp);
+        Vector2 pos = new(20.5f, 20.5f);
+        //pos.Round();
+        Renderer.DrawTexture(Assets.Get<Texture2D>("MantisShip.png"), pos, null, scale: new(4));
+        Renderer.End();*/
         //DrawModMenu(font, ref pos);
 
         UpdateRenderSystems();

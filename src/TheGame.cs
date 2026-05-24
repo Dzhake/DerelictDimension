@@ -1,4 +1,5 @@
 ﻿using DerelictDimension.ECS;
+using DerelictDimension.ECS.Battle;
 using FontStashSharp;
 using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
@@ -48,7 +49,7 @@ public class TheGame : MonodGame
     {
         IsMouseVisible = true;
         Instance = this;
-        GameSize = new(320, 180);
+        GameSize = new(640, 360);
     }
 
     ///<inheritdoc/>
@@ -70,7 +71,7 @@ public class TheGame : MonodGame
         };
 
         Entity ent = Store.CreateEntity();
-        ent.Add(new Sprite2D("Spaceship.png"), new Rotation2D(0), new Position2D(GameSize.X / 2, 0), Tags.Get<GameLayerTag>());
+        ent.Add(new Sprite2D("Spaceship.png"), new Position2D(200, 0), new Rotation2D(0), new Position2D(GameSize.X / 2, 0), Tags.Get<GameLayerTag>());
 
 
         InitializeSystems();
@@ -83,6 +84,7 @@ public class TheGame : MonodGame
     {
         LogicSystemRoot.Add(new UpdateSpriteSystem());
         LogicSystemRoot.Add(new UpdateLeanSystem());
+        LogicSystemRoot.Add(new UpdateBattleSystem());
 
         DrawSystemRoot.Add(new DrawSystem());
         //DrawSystemRoot.Add(new DrawSpriteSystem());

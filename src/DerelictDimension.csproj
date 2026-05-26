@@ -29,9 +29,6 @@
     </PropertyGroup>
     
     
-    
-    
-    
     <!--  Import tasks -->
     <!--  Compile effects task  -->
     <!--  Import task from Monod repo - MSBuildTasks project -->
@@ -46,6 +43,7 @@
 
         <!--  Nuget packages  -->
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />
+        
 
         <!--  Special Item for content effects files  -->
         <Effects Include="$(ContentDir)/**/*.fx" />

@@ -14,6 +14,7 @@ public struct FighterComponent : IComponent
     public int IndexInTeam;
     public bool PlayerControlled;
     public ActionsArray Actions;
+    //public ref ActionsArray Actions => ref actions;
     public bool LooksLeft;
 
     public FighterComponent()

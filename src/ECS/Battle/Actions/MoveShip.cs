@@ -1,5 +1,8 @@
-﻿using Friflo.Engine.ECS;
+﻿using DerelictDimension.ECS.Battle.Animations;
+using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
+using MLEM.Maths;
+using Monod.ECS.Tweening;
 
 namespace DerelictDimension.ECS.Battle.Actions;
 
@@ -24,7 +27,9 @@ public class MoveShip : IShipAction
 
     public void OnNewTurn(ref FighterComponent fighter, Entity entity, UpdateBattleSystem system)
     {
-        Vector2 newPos = fighter.Position + (PosDiff / TotalTurns * (TurnsSpent + 1));
-        system.Animations.Enqueue(new TweenAnimation(ref fighter, ref fighter.Position, entity, newPos));
+        Vector2 newPos = fighter.Position + (PosDiff / TotalTurns);
+        system.Animations.Enqueue(new TweenAnimation<FighterComponent, Vector2, Vector2Lerper>(ref fighter, ref fighter.Position, entity, newPos, 0.4f, Easings.InCubic, new Vector2Lerper()));
+
+        turnsLeft--;
     }
 }

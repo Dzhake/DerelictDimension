@@ -63,7 +63,7 @@ public class DrawSystem : BaseSystem
             InCardEffect = Assets.Get<Effect>("Effects/InCard.mgfx");
 
         if (Bg?.IsDisposed != false || Assets.ReloadThisFrame)
-            Bg = Assets.Get<Texture2D>("Bg.png");
+            Bg = Assets.Get<Texture2D>("Sprites/Bg.png");
     }
 
     protected override void OnUpdateGroup()

@@ -8,6 +8,7 @@ using Monod.ECS.DefaultComponents;
 using Monod.Graphics.ECS.Sprite;
 using Monod.InputModule;
 using System.Collections.Generic;
+using Serilog;
 
 namespace DerelictDimension.ECS.Battle;
 
@@ -27,22 +28,20 @@ public class UpdateBattleSystem : BaseSystem
 
     public int CurrentlySelectedShip;
 
-    public ArchetypeQuery<FighterComponent> FighterQuery;
-
     ///<inheritdoc/>
     protected override void OnAddStore(EntityStore store)
     {
         base.OnAddStore(store);
         FightersByInitiative = new();
-        FighterQuery = store.Query<FighterComponent>();
+        Animations = new();
         Test();
     }
 
     public void Test()
     {
         InBattle = true;
-        var player = MonodGame.Store.CreateEntity(new Position2D(), new FighterComponent() { Health = 2, MaxHealth = 2, PlayerControlled = true, Position = Vector2.Zero, IndexInTeam = 0, Team = 0 }, new Sprite2D("GreenShip.png"));
-        var enemy = MonodGame.Store.CreateEntity(new Position2D(200, 160), new FighterComponent() { Health = 2, MaxHealth = 2, PlayerControlled = false, Position = new(1, 1), IndexInTeam = 0, Team = 1, LooksLeft = true }, new Sprite2D("MantisShip.png"));
+        var player = MonodGame.Store.CreateEntity(new Position2D(), new FighterComponent { Health = 2, MaxHealth = 2, PlayerControlled = true, Position = Vector2.Zero, IndexInTeam = 0, Team = 0 }, new Sprite2D("Sprites/GreenShip.png"));
+        var enemy = MonodGame.Store.CreateEntity(new Position2D(200, 160), new FighterComponent { Health = 2, MaxHealth = 2, PlayerControlled = false, Position = new(1, 1), IndexInTeam = 0, Team = 1, LooksLeft = true }, new Sprite2D("Sprites/MantisShip.png"));
         FightersByInitiative = [player, enemy];
     }
 
@@ -97,16 +96,15 @@ public class UpdateBattleSystem : BaseSystem
         {
             while (CurrentExecutionTurn < MaxExecutionTurn)
             {
-                while (Animations.Peek().Update())
+                while (Animations.Count > 0 && Animations.Peek().Update())
                     Animations.Dequeue();
+                if (Animations.Count > 0) return;
                 ExecuteNextAction();
                 CurrentFighter++;
 
-                if (CurrentFighter >= FightersByInitiative.Count)
-                {
-                    CurrentFighter = 0;
-                    CurrentExecutionTurn++;
-                }
+                if (CurrentFighter < FightersByInitiative.Count) continue;
+                CurrentFighter = 0;
+                CurrentExecutionTurn++;
             }
 
             Executing = false;
@@ -118,12 +116,12 @@ public class UpdateBattleSystem : BaseSystem
     {
         if (Input.KeyPressed(Key.W))
         {
-            var fighter = FightersByInitiative[CurrentlySelectedShip].GetComponent<FighterComponent>();
+            ref var fighter = ref FightersByInitiative[CurrentlySelectedShip].GetComponent<FighterComponent>();
             fighter.Actions.Add(new MoveShip(new Vector2(0, -1), 2));
         }
         if (Input.KeyPressed(Key.S))
         {
-            var fighter = FightersByInitiative[CurrentlySelectedShip].GetComponent<FighterComponent>();
+            ref var fighter = ref FightersByInitiative[CurrentlySelectedShip].GetComponent<FighterComponent>();
             fighter.Actions.Add(new MoveShip(new Vector2(0, 1), 2));
         }
         if (Input.KeyPressed(Key.Space))

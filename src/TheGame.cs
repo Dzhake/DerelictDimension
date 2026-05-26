@@ -16,6 +16,9 @@ using Monod.ModsModule;
 using Monod.Utils.Extensions;
 using System.Collections.Generic;
 using System.Linq;
+using ImGuiNET;
+using ImGuiNET.SampleProgram.XNA;
+using Monod.TimeModule;
 
 namespace DerelictDimension;
 
@@ -41,6 +44,7 @@ public class TheGame : MonodGame
     public int Page = 0;
 
     public static Vector2 GameSize;
+    public ImGuiRenderer imGuiRenderer;
 
     /// <summary>
     /// Creates a new <see cref="TheGame"/>.
@@ -51,7 +55,7 @@ public class TheGame : MonodGame
         Instance = this;
         GameSize = new(640, 360);
     }
-
+    
     ///<inheritdoc/>
     protected override void LoadContent()
     {
@@ -70,8 +74,8 @@ public class TheGame : MonodGame
             {UpdateLeanSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
         };
 
-        Store.CreateEntity(new Sprite2D("CardBg.png"), new Position2D(GameSize.X / 2, GameSize.Y / 2), Tags.Get<GameLayerTag>());
-        Store.CreateEntity(new Sprite2D("Spaceship.png"), Tags.Get<GameLayerTag>());
+        Store.CreateEntity(new Sprite2D("Sprites/CardBg.png"), new Position2D(GameSize.X / 2, GameSize.Y / 2), Tags.Get<GameLayerTag>());
+        //Store.CreateEntity(new Sprite2D("Sprites/Spaceship.png"), Tags.Get<GameLayerTag>());
 
 
         InitializeSystems();
@@ -112,7 +116,7 @@ public class TheGame : MonodGame
             offset.Y -= 10;
 
         //if (Input.ActionDown((InputActionIndex)0)) text = "Active";
-        else text = "Inactive";
+        //else text = "Inactive";
 
         int i = 0;
 
@@ -146,20 +150,17 @@ public class TheGame : MonodGame
     protected override void DrawM()
     {
         GenericFont? font = GlobalFonts.MenuFont;
-        if (font is null) return;
         //Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
         Renderer.Clear(new(0, 0, 0));
-
-        /*Renderer.Begin(samplerState: SamplerState.PointClamp);
-        Vector2 pos = new(20.5f, 20.5f);
-        //pos.Round();
-        Renderer.DrawTexture(Assets.Get<Texture2D>("MantisShip.png"), pos, null, scale: new(4));
-        Renderer.End();*/
-        //DrawModMenu(font, ref pos);
-
         UpdateRenderSystems();
+        //DrawModMenu(font, ref pos);
+    }
 
-        //Renderer.End();
+    public override void DrawImGui()
+    {
+        base.DrawImGui();
+        Settings.Draw();
+        ImGui.ShowDemoWindow();
     }
 
     private void DrawModMenu(GenericFont font, ref Vector2 pos)

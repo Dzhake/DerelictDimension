@@ -1,9 +1,10 @@
 ﻿using Friflo.Engine.ECS;
 using MLEM.Maths;
+using Monod.ECS.Tweening;
 
 namespace DerelictDimension.ECS.Battle.Animations;
 
-public class TweenAnimation<TComponent, TField, TLerper> where TComponent : struct, IComponent where TLerper : ILerper<TField>, new()
+public class TweenAnimation<TComponent, TField, TLerper> : IAnimation where TComponent : struct, IComponent where TLerper : ILerper<TField>, new()
 {
     public Tween<TComponent, TField, TLerper> tween;
 

@@ -117,9 +117,9 @@ public class DrawSystem : BaseSystem
 
         Renderer.SetRenderTarget(currentRT);
 
-        /*Renderer.Begin(samplerState: SamplerState.PointClamp);
+        Renderer.Begin(samplerState: SamplerState.PointClamp);
         Renderer.DrawTexture(Bg, Vector2.Zero, Color.White);
-        Renderer.End();*/
+        Renderer.End();
 
         Renderer.Begin(samplerState: SamplerState.PointClamp, effect: CardModifyEffect);
         Renderer.DrawTexture(PostCardRT!, Vector2.Zero, Color.White);

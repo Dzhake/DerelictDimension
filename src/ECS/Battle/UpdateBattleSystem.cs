@@ -1,4 +1,5 @@
 ﻿using DerelictDimension.ECS.Battle.Actions;
+using DerelictDimension.ECS.Battle.Animations;
 using Friflo.Engine.ECS;
 using Friflo.Engine.ECS.Systems;
 using Microsoft.Xna.Framework;
@@ -22,7 +23,7 @@ public class UpdateBattleSystem : BaseSystem
     public int CurrentExecutionTurn;
     public int MaxExecutionTurn = 3;
     public int CurrentFighter;
-    public bool CalledExecuteForLastAction;
+    public Queue<IAnimation> Animations;
 
     public int CurrentlySelectedShip;
 
@@ -52,32 +53,34 @@ public class UpdateBattleSystem : BaseSystem
     }
 
     /// <summary>
-    /// Update current action, and return whether it's finished/invalid.
+    /// Update current element, and return whether it's finished/invalid.
     /// </summary>
-    /// <returns>Whether action is finished/invalid.</returns>
-    public bool UpdateCurrentAction()
+    /// <returns>Whether element is finished/invalid.</returns>
+    public void ExecuteNextAction()
     {
-        if (CurrentFighter > FightersByInitiative.Count) return true;
+        if (CurrentFighter > FightersByInitiative.Count) return;
         var entity = FightersByInitiative[CurrentFighter];
         var data = entity.Data;
-        if (!data.Has<FighterComponent>()) return true;
+        if (!data.Has<FighterComponent>()) return;
         ref FighterComponent fighter = ref data.Get<FighterComponent>();
-        int i = 0;
-        IShipAction action;
-        do
+        ref IShipAction? action = ref fighter.Actions[0];
+        while (true)
         {
-            if (fighter.Actions.Count <= i) return true;
-            action = fighter.Actions[i];
-            i++;
-        }
-        while (action.Finished || action is null);
+            if (action == null) return;
 
-        if (!CalledExecuteForLastAction)
-        {
-            CalledExecuteForLastAction = true;
-            action.OnNewTurn(ref fighter, data, this);
+            if (action?.Finished != false)
+            {
+                fighter.Actions.RemoveAt(0);
+                action = ref fighter.Actions[0];
+            }
+            else
+            {
+                break;
+            }
+
         }
-        return action.Update(ref fighter, data, this);
+
+        action.OnNewTurn(ref fighter, entity, this);
     }
 
     protected override void OnUpdateGroup()
@@ -87,28 +90,16 @@ public class UpdateBattleSystem : BaseSystem
 
         if (!Executing)
         {
-            if (Input.KeyPressed(Key.W))
-            {
-                var fighter = FightersByInitiative[CurrentlySelectedShip].GetComponent<FighterComponent>();
-                fighter.Actions.Add(new MoveShip(new Vector2(0, -1), 1));
-            }
-            if (Input.KeyPressed(Key.S))
-            {
-                var fighter = FightersByInitiative[CurrentlySelectedShip].GetComponent<FighterComponent>();
-                fighter.Actions.Add(new MoveShip(new Vector2(0, 1), 1));
-            }
-            if (Input.KeyPressed(Key.Space))
-            {
-                Executing = true;
-            }
+            ProcessPlanningInput();
         }
 
         while (Executing)
         {
             while (CurrentExecutionTurn < MaxExecutionTurn)
             {
-                if (!UpdateCurrentAction()) return;
-                CalledExecuteForLastAction = false;
+                while (Animations.Peek().Update())
+                    Animations.Dequeue();
+                ExecuteNextAction();
                 CurrentFighter++;
 
                 if (CurrentFighter >= FightersByInitiative.Count)
@@ -120,12 +111,24 @@ public class UpdateBattleSystem : BaseSystem
 
             Executing = false;
             CurrentExecutionTurn = 0;
-            FighterQuery.ForEachEntity(ErasePlan);
         }
     }
 
-    private void ErasePlan(ref FighterComponent fighter, Entity entity)
+    private void ProcessPlanningInput()
     {
-        fighter.Actions.Clear();
+        if (Input.KeyPressed(Key.W))
+        {
+            var fighter = FightersByInitiative[CurrentlySelectedShip].GetComponent<FighterComponent>();
+            fighter.Actions.Add(new MoveShip(new Vector2(0, -1), 2));
+        }
+        if (Input.KeyPressed(Key.S))
+        {
+            var fighter = FightersByInitiative[CurrentlySelectedShip].GetComponent<FighterComponent>();
+            fighter.Actions.Add(new MoveShip(new Vector2(0, 1), 2));
+        }
+        if (Input.KeyPressed(Key.Space))
+        {
+            Executing = true;
+        }
     }
 }

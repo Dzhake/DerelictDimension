@@ -1,7 +1,6 @@
 ﻿using DerelictDimension.ECS.Battle.Actions;
 using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
-using System.Collections.Generic;
 
 namespace DerelictDimension.ECS.Battle;
 
@@ -14,11 +13,11 @@ public struct FighterComponent : IComponent
     public int Team;
     public int IndexInTeam;
     public bool PlayerControlled;
-    public List<IShipAction> Actions;
+    public ActionsArray Actions;
     public bool LooksLeft;
 
     public FighterComponent()
     {
-        Actions = new(3);
+        Actions = new();
     }
 }

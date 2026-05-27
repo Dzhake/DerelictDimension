@@ -92,8 +92,6 @@ public static class Settings
         ImGui.SeparatorText("Common window sizes");
         ImGui.Text("16x9: "u8);
         WindowSizeSelector(GraphicsSettings.CommonResolutions16x9);
-        ImGui.Text("4x3: "u8);
-        WindowSizeSelector(GraphicsSettings.CommonResolutions4x3);
         ImGui.SeparatorText("Window settings"u8);
         if (ImGui.InputInt2("Window Size"u8, ref GraphicsSettings.WindowSize.X))
             GraphicsSettings.ApplyWindowSizeChanges();

@@ -21,6 +21,7 @@
         <!--  Custom, for ItemGroup and tasks  -->
         <ContentDir>Content/</ContentDir>
         <LocalizationDir>Localization/</LocalizationDir>
+        <NativeLibsDir>native/</NativeLibsDir>
         
         <!--  Removes lotsa dirs with localization files for System.CommandLine from output dir (on build)  -->
         <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
@@ -47,9 +48,10 @@
 
         <!--  Special Item for content effects files  -->
         <Effects Include="$(ContentDir)/**/*.fx" />
+
+        <!-- Native libraries -->
+        <Content Include="$(NativeLibsDir)**" CopyToOutputDirectory="PreserveNewest" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
-    
-    
     
     
 
@@ -81,7 +83,4 @@
     <Target Name="CompileEffects" AfterTargets="Build">
         <CompileEffectsTask Effects="@(Effects)" PathToContent="$(ProjectDir)" OutputPath="@(EffectOutputDir)" />
     </Target>
-    
-    
-
 </Project>

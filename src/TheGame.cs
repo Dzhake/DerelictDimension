@@ -16,9 +16,6 @@ using Monod.ModsModule;
 using Monod.Utils.Extensions;
 using System.Collections.Generic;
 using System.Linq;
-using ImGuiNET;
-using ImGuiNET.SampleProgram.XNA;
-using Monod.TimeModule;
 
 namespace DerelictDimension;
 
@@ -44,7 +41,6 @@ public class TheGame : MonodGame
     public int Page = 0;
 
     public static Vector2 GameSize;
-    public ImGuiRenderer imGuiRenderer;
 
     /// <summary>
     /// Creates a new <see cref="TheGame"/>.
@@ -55,7 +51,7 @@ public class TheGame : MonodGame
         Instance = this;
         GameSize = new(640, 360);
     }
-    
+
     ///<inheritdoc/>
     protected override void LoadContent()
     {
@@ -138,6 +134,10 @@ public class TheGame : MonodGame
             ModsToToggle.Clear();
         }
 
+        if (Input.KeyPressed(Key.F1)) Settings.ShowDemoWindow = !Settings.ShowDemoWindow;
+        if (Input.KeyPressed(Key.F2)) Settings.ShowSettingsWindow = !Settings.ShowSettingsWindow;
+        if (Input.KeyPressed(Key.F5)) Settings.ShowReloadWindow = !Settings.ShowReloadWindow;
+
         Rebind?.Update();
 
         if (Input.KeyboardKeysPressed.Count > 0) pressed = Input.KeyboardKeysPressed.ElementAt(0);
@@ -160,7 +160,6 @@ public class TheGame : MonodGame
     {
         base.DrawImGui();
         Settings.Draw();
-        ImGui.ShowDemoWindow();
     }
 
     private void DrawModMenu(GenericFont font, ref Vector2 pos)

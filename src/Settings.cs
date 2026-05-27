@@ -1,4 +1,5 @@
 using Hexa.NET.ImGui;
+using Microsoft.Xna.Framework;
 using Monod.AssetsModule;
 using Monod.Graphics;
 using Monod.Graphics.Settings;
@@ -25,15 +26,25 @@ public static class Settings
         ImGui.BeginTabBar("Tab"u8);
         ImGui.BeginTabItem("Graphics"u8);
         ImGui.EndTabItem();
-        DrawGraphicsMenu();
+        GraphicsMenu();
         ImGui.EndTabBar();
 
         ImGui.End();
     }
 
-    private static void DrawGraphicsMenu()
+    private static void GraphicsMenu()
     {
-        ImGui.Text("Window mode"u8);
+        WindowModeSelect();
+        ImGui.SeparatorText("Display"u8);
+        DisplaySelect();
+        ImGui.Separator();
+        WindowSettings();
+    }
+
+
+    private static void WindowModeSelect()
+    {
+        ImGui.SeparatorText("Window mode"u8);
         if (ImGui.RadioButton("Fullscreen"u8, GraphicsSettings.windowMode == WindowMode.Fullscreen))
         {
             GraphicsSettings.windowMode = WindowMode.Fullscreen;
@@ -54,15 +65,56 @@ public static class Settings
             GraphicsSettings.windowMode = WindowMode.Maximized;
             GraphicsSettings.ApplyWindowModeChanges();
         }
+    }
 
-        ImGui.Separator();
+    private static void DisplaySelect()
+    {
+        DisplayInfo[] displays = GraphicsSettings.Displays;
+        float listboxHeight = ImGui.GetFrameHeightWithSpacing() * displays.Length;
+        if (ImGui.BeginListBox("", new System.Numerics.Vector2(0, listboxHeight)))
+        {
+            for (int i = 0; i < displays.Length; i++)
+            {
+                DisplayInfo display = displays[i];
+                if (ImGui.Selectable(display.FancyName, i == GraphicsSettings.SelectedDisplay))
+                {
+                    GraphicsSettings.SelectedDisplay = i;
+                    GraphicsSettings.ApplyWindowModeChanges();
+                }
+            }
 
+            ImGui.EndListBox();
+        }
+    }
+
+    private static void WindowSettings()
+    {
+        ImGui.SeparatorText("Common window sizes");
+        ImGui.Text("16x9: "u8);
+        WindowSizeSelector(GraphicsSettings.CommonResolutions16x9);
+        ImGui.Text("4x3: "u8);
+        WindowSizeSelector(GraphicsSettings.CommonResolutions4x3);
+        ImGui.SeparatorText("Window settings"u8);
         if (ImGui.InputInt2("Window Size"u8, ref GraphicsSettings.WindowSize.X))
             GraphicsSettings.ApplyWindowSizeChanges();
         if (ImGui.InputInt2("Window Position"u8, ref GraphicsSettings.WindowPosition.X))
             GraphicsSettings.ApplyWindowPositionChanges();
         if (ImGui.Checkbox("Center window"u8, ref GraphicsSettings.CenterWindow))
             GraphicsSettings.ApplyWindowPositionChanges();
+    }
+
+    private static void WindowSizeSelector(Point[] sizes)
+    {
+        for (int i = 0; i < sizes.Length; i++)
+        {
+            ImGui.SameLine();
+            Point size = sizes[i];
+            if (ImGui.Button($"{size.X}x{size.Y}"))
+            {
+                GraphicsSettings.WindowSize = size;
+                GraphicsSettings.ApplyWindowSizeChanges();
+            }
+        }
     }
 
     private static void DrawReloadWindow(ImGuiIOPtr io)

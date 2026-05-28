@@ -37,7 +37,7 @@ public class DrawSystem : BaseSystem
         FightersQuery = store.Query<FighterComponent, Sprite2D>();
     }
 
-    private void VerifyOrGetAssets(Point windowSizeP)
+    private void LoadMissingAssets(Point windowSizeP)
     {
         if (InCardRT is null || InCardRT.Bounds.Size != windowSizeP)
         {
@@ -64,7 +64,8 @@ public class DrawSystem : BaseSystem
     protected override void OnUpdateGroup()
     {
         Point windowSizeP = Renderer.WindowSizeP;
-        VerifyOrGetAssets(windowSizeP);
+        LoadMissingAssets(windowSizeP);
+        Upscale = new(windowSizeP.X / TheGame.GameSize.X, windowSizeP.Y / TheGame.GameSize.Y);
 
         RenderTarget2D? currentRT = Renderer.RenderTarget;
 
@@ -76,7 +77,6 @@ public class DrawSystem : BaseSystem
         FightersQuery.ForEachEntity(DrawFighter);
         Renderer.End();
 
-        Upscale = new(windowSizeP.X / TheGame.GameSize.X, windowSizeP.Y / TheGame.GameSize.Y);
         float cardSide = 128 * Upscale.X;
         float lean = UpdateLeanSystem.GetActualLean();
         float halfSideX = cardSide / windowSizeP.X / 2;

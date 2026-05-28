@@ -49,7 +49,7 @@ public class TheGame : MonodGame
     {
         IsMouseVisible = true;
         Instance = this;
-        GameSize = new(640, 360);
+        GameSize = new(1280, 720);
     }
 
     ///<inheritdoc/>

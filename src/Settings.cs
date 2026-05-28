@@ -41,29 +41,28 @@ public static class Settings
         WindowSettings();
     }
 
-
     private static void WindowModeSelect()
     {
         ImGui.SeparatorText("Window mode"u8);
         if (ImGui.RadioButton("Fullscreen"u8, GraphicsSettings.windowMode == WindowMode.Fullscreen))
         {
             GraphicsSettings.windowMode = WindowMode.Fullscreen;
-            GraphicsSettings.ApplyWindowModeChanges();
+            GraphicsSettings.ApplyWindowMode();
         }
         if (ImGui.RadioButton("Windowed"u8, GraphicsSettings.windowMode == WindowMode.Windowed))
         {
             GraphicsSettings.windowMode = WindowMode.Windowed;
-            GraphicsSettings.ApplyWindowModeChanges();
+            GraphicsSettings.ApplyWindowMode();
         }
         if (ImGui.RadioButton("Borderless"u8, GraphicsSettings.windowMode == WindowMode.Borderless))
         {
             GraphicsSettings.windowMode = WindowMode.Borderless;
-            GraphicsSettings.ApplyWindowModeChanges();
+            GraphicsSettings.ApplyWindowMode();
         }
         if (ImGui.RadioButton("Maximized"u8, GraphicsSettings.windowMode == WindowMode.Maximized))
         {
             GraphicsSettings.windowMode = WindowMode.Maximized;
-            GraphicsSettings.ApplyWindowModeChanges();
+            GraphicsSettings.ApplyWindowMode();
         }
     }
 
@@ -79,7 +78,7 @@ public static class Settings
                 if (ImGui.Selectable(display.FancyName, i == GraphicsSettings.SelectedDisplay))
                 {
                     GraphicsSettings.SelectedDisplay = i;
-                    GraphicsSettings.ApplyWindowModeChanges();
+                    GraphicsSettings.ApplyWindowMode();
                 }
             }
 
@@ -89,16 +88,28 @@ public static class Settings
 
     private static void WindowSettings()
     {
+        bool windowed = GraphicsSettings.windowMode == WindowMode.Windowed;
+        if (!windowed)
+        {
+            ImGui.BeginDisabled();
+            ImGui.Text("Available only in windowed mode"u8);
+            ImGui.Spacing();
+        }
         ImGui.SeparatorText("Common window sizes");
         ImGui.Text("16x9: "u8);
         WindowSizeSelector(GraphicsSettings.CommonResolutions16x9);
         ImGui.SeparatorText("Window settings"u8);
         if (ImGui.InputInt2("Window Size"u8, ref GraphicsSettings.WindowSize.X))
-            GraphicsSettings.ApplyWindowSizeChanges();
+            GraphicsSettings.ApplyWindowSize();
         if (ImGui.InputInt2("Window Position"u8, ref GraphicsSettings.WindowPosition.X))
-            GraphicsSettings.ApplyWindowPositionChanges();
+            GraphicsSettings.ApplyWindowPosition();
         if (ImGui.Checkbox("Center window"u8, ref GraphicsSettings.CenterWindow))
-            GraphicsSettings.ApplyWindowPositionChanges();
+            GraphicsSettings.ApplyWindowPosition();
+
+        if (ImGui.Checkbox("Lock mouse inside window"u8, ref GraphicsSettings.MouseLock))
+            GraphicsSettings.ApplyMouseLock();
+
+        if (!windowed) ImGui.EndDisabled();
     }
 
     private static void WindowSizeSelector(Point[] sizes)
@@ -110,7 +121,7 @@ public static class Settings
             if (ImGui.Button($"{size.X}x{size.Y}"))
             {
                 GraphicsSettings.WindowSize = size;
-                GraphicsSettings.ApplyWindowSizeChanges();
+                GraphicsSettings.ApplyWindowSize();
             }
         }
     }

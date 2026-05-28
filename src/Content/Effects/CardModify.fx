@@ -15,6 +15,7 @@ float Lean;
 float HalfSideX;
 float HalfSideY;
 float CardRadius;
+//double TotalTime;
 
 sampler2D SpriteTextureSampler = sampler_state
 {
@@ -48,7 +49,10 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     //if demodified coordinates are in the original shape, that means that after modification they'll be right in our current pixel! so we need to take original pixel (from the original shape) and use it as current pixel. That way the original pixel moves to current pixel.
     if (InOriginalShape(demodifiedCoords))
     {
-        coords = demodifiedCoords;
+        float4 color = tex2D(s0, demodifiedCoords);
+        color.g = (color.r + color.g + color.b) / 3;
+        color.rb = 0;
+        return color;
     }
     //if demodified coords are not in the original shape, but normal coords are, that means that our pixel was moved. Current pixel's value [was already/will be] taken by some other pixel. This means current pixel should be empty.
     else if (InOriginalShape(coords))

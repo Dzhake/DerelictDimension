@@ -58,7 +58,7 @@ public class TheGame : MonodGame
         MainAssetManager.LoadAsset("Fonts/m6x11plus.ttf");
         LoadFont();
         base.LoadContent();
-        Renderer.deviceManager.PreferMultiSampling = false;
+        Renderer.deviceManager.PreferMultiSampling = true;
         Assets.OnReload += LoadFont;
 
         Monod.Utils.Enums.ExtEnumInfo<InputActionIndex> actionsInfo = InputActionIndex.Info;
@@ -71,7 +71,7 @@ public class TheGame : MonodGame
         };
 
         Store.CreateEntity(new Sprite2D("Sprites/CardBg.png"), new Position2D(GameSize.X / 2, GameSize.Y / 2), Tags.Get<GameLayerTag>());
-        //Store.CreateEntity(new Sprite2D("Sprites/Spaceship.png"), Tags.Get<GameLayerTag>());
+        Store.CreateEntity(new Sprite2D("Sprites/Spaceship.png"), Tags.Get<GameLayerTag>());
 
 
         InitializeSystems();

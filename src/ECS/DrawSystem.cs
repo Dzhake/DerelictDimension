@@ -11,6 +11,7 @@ using Monod.Graphics.Extensions;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.TimeModule;
+using Serilog;
 using System;
 
 namespace DerelictDimension.ECS;
@@ -77,7 +78,7 @@ public class DrawSystem : BaseSystem
         FightersQuery.ForEachEntity(DrawFighter);
         Renderer.End();
 
-        float cardSide = 128 * Upscale.X;
+        float cardSide = 320 * Upscale.X;
         float lean = UpdateLeanSystem.GetActualLean();
         float halfSideX = cardSide / windowSizeP.X / 2;
         CardModifyEffect!.Parameters["HalfSideX"].SetValue(halfSideX);
@@ -129,6 +130,7 @@ public class DrawSystem : BaseSystem
         SpriteEffects spriteEffects = sprite.spriteEffects;
         if (fighter.LooksLeft) spriteEffects |= SpriteEffects.FlipHorizontally;
         Renderer.DrawTexture(sprite.Texture, pos, sprite.color, null, rotation ?? 0f, origin, scale * Upscale, spriteEffects, depth ?? 0f);
+        Log.Information("Upscale: {Upscale}", Upscale);
     }
 
     private void DrawGameLayerSprite(ref Sprite2D sprite, Entity entity)
@@ -140,7 +142,7 @@ public class DrawSystem : BaseSystem
         Vector2 mousePos = Input.MousePos();
         Vector2 windowSize = Renderer.WindowSize;
         Vector2 gameSize = TheGame.GameSize;
-        Vector2 p = pos ?? new(mousePos.X / windowSize.X * gameSize.X, mousePos.Y / windowSize.Y * gameSize.Y);
+        Vector2 p = pos ?? new(mousePos.X, mousePos.Y);
         Renderer.DrawTexture(sprite.Texture, p, sprite.color, null, rotation ?? 0, origin, scale * Upscale, sprite.spriteEffects, depth ?? 0);
     }
 

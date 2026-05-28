@@ -88,6 +88,9 @@ public static class Settings
 
     private static void WindowSettings()
     {
+        if (ImGui.Checkbox("VSync"u8, ref GraphicsSettings.VSync))
+            GraphicsSettings.ApplyVSync();
+
         bool windowed = GraphicsSettings.windowMode == WindowMode.Windowed;
         if (!windowed)
         {
@@ -95,7 +98,7 @@ public static class Settings
             ImGui.Text("Available only in windowed mode"u8);
             ImGui.Spacing();
         }
-        ImGui.SeparatorText("Common window sizes");
+        ImGui.SeparatorText("Common window sizes"u8);
         ImGui.Text("16x9: "u8);
         WindowSizeSelector(GraphicsSettings.CommonResolutions16x9);
         ImGui.SeparatorText("Window settings"u8);

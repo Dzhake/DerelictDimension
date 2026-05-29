@@ -54,6 +54,11 @@ public class TheGame : MonodGame
         GameSize = new(1280, 720);
     }
 
+    protected override void Initialize()
+    {
+        base.Initialize();
+    }
+
     ///<inheritdoc/>
     protected override void LoadContent()
     {

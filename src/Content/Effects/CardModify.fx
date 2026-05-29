@@ -15,7 +15,7 @@ float Lean;
 float HalfSideX;
 float HalfSideY;
 float CardRadius;
-//double TotalTime;
+float TotalTime;
 
 sampler2D SpriteTextureSampler = sampler_state
 {
@@ -34,31 +34,27 @@ float2 DeModifyCoords(float2 coords)
     return float2(coords.x - Lean * 0.25, coords.y);
 }
 
-bool InOriginalShape(float2 coords)
+float Distance(float2 coords)
 {
-    return InCard(coords, CardRadius, HalfSideX, HalfSideY);
+    return sdBevelBox(coords, float2(HalfSideX, HalfSideY), CardRadius);
+    //return InCard(coords, CardRadius, HalfSideX, HalfSideY);
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float2 coords = input.TextureCoordinates;
-    
     //move coordinates in the way, opposite to transformation. E.g., instead of moving right by 0.1 move left by 0.1
-    float2 demodifiedCoords = DeModifyCoords(coords);
-    
+    float2 mod_coords = DeModifyCoords(coords);
+    float d = Distance(mod_coords);
+    float distance = Distance(coords);
     //if demodified coordinates are in the original shape, that means that after modification they'll be right in our current pixel! so we need to take original pixel (from the original shape) and use it as current pixel. That way the original pixel moves to current pixel.
-    if (InOriginalShape(demodifiedCoords))
+    if (d <= 0)
     {
-        float4 color = tex2D(s0, demodifiedCoords);
-        float2 center = float2(.5, .5);
-        float2 distance = abs(demodifiedCoords - center);
-        float2 antiEffectStrength = (distance.x + distance.y) / CardRadius;
-        float2 effectStrength = 1 - antiEffectStrength;
-        color.rgb *= effectStrength;
-        return color;
+        float4 color = tex2D(s0, mod_coords);
+        return float4(1+d, 1+d, 1+d, 0);
     }
     //if demodified coords are not in the original shape, but normal coords are, that means that our pixel was moved. Current pixel's value [was already/will be] taken by some other pixel. This means current pixel should be empty.
-    else if (InOriginalShape(coords))
+    else if (distance < 0)
     {
         return float4(0, 0, 0, 0);
     }

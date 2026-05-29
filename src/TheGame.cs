@@ -66,6 +66,7 @@ public class TheGame : MonodGame
         LoadFont();
         base.LoadContent();
         Renderer.deviceManager.PreferMultiSampling = true;
+        Renderer.DefaultBlendState = Renderer.NonPremultipliedBlend;
         Assets.OnReload += LoadFont;
 
         Monod.Utils.Enums.ExtEnumInfo<InputActionIndex> actionsInfo = InputActionIndex.Info;

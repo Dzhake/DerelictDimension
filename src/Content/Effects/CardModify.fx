@@ -50,8 +50,11 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     if (InOriginalShape(demodifiedCoords))
     {
         float4 color = tex2D(s0, demodifiedCoords);
-        color.g = (color.r + color.g + color.b) / 3;
-        color.rb = 0;
+        float2 center = float2(.5, .5);
+        float2 distance = abs(demodifiedCoords - center);
+        float2 antiEffectStrength = (distance.x + distance.y) / CardRadius;
+        float2 effectStrength = 1 - antiEffectStrength;
+        color.rgb *= effectStrength;
         return color;
     }
     //if demodified coords are not in the original shape, but normal coords are, that means that our pixel was moved. Current pixel's value [was already/will be] taken by some other pixel. This means current pixel should be empty.

@@ -15,6 +15,7 @@ using Monod.InputModule;
 using Monod.ModsModule;
 using Monod.Utils.Extensions;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace DerelictDimension;
@@ -45,6 +46,7 @@ public class TheGame : MonodGame
     /// <summary>
     /// Creates a new <see cref="TheGame"/>.
     /// </summary>
+    [SetsRequiredMembers]
     public TheGame()
     {
         IsMouseVisible = true;
@@ -62,12 +64,12 @@ public class TheGame : MonodGame
         Assets.OnReload += LoadFont;
 
         Monod.Utils.Enums.ExtEnumInfo<InputActionIndex> actionsInfo = InputActionIndex.Info;
-        UpdateLeanSystem.LeanLeft = actionsInfo.AddOrGetValue("Lean left");
-        UpdateLeanSystem.LeanRight = actionsInfo.AddOrGetValue("Lean right");
+        UpdateCardSystem.LeanLeft = actionsInfo.AddOrGetValue("Lean left");
+        UpdateCardSystem.LeanRight = actionsInfo.AddOrGetValue("Lean right");
         Input.DefaultMap = new()
         {
-            {UpdateLeanSystem.LeanLeft, new([new(Key.A), new(Key.Left)]) },
-            {UpdateLeanSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
+            {UpdateCardSystem.LeanLeft, new([new(Key.A), new(Key.Left)]) },
+            {UpdateCardSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
         };
 
         Store.CreateEntity(new Sprite2D("Sprites/CardBg.png"), new Position2D(GameSize.X / 2, GameSize.Y / 2), Tags.Get<GameLayerTag>());
@@ -80,10 +82,10 @@ public class TheGame : MonodGame
         //Rebind.Root.PositionOffset = new(0, 100);aaaaaaaaaaaaaaa
     }
 
-    public static void InitializeSystems()
+    public void InitializeSystems()
     {
         LogicSystemRoot.Add(new UpdateSpriteSystem());
-        LogicSystemRoot.Add(new UpdateLeanSystem());
+        LogicSystemRoot.Add(new UpdateCardSystem());
         LogicSystemRoot.Add(new UpdateBattleSystem());
 
         DrawSystemRoot.Add(new DrawSystem());
@@ -152,7 +154,7 @@ public class TheGame : MonodGame
         GenericFont? font = GlobalFonts.MenuFont;
         //Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
         Renderer.Clear(new(0, 0, 0));
-        UpdateRenderSystems();
+        UpdateDrawSystems();
         //DrawModMenu(font, ref pos);
     }
 

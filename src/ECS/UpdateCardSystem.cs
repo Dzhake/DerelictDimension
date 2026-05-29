@@ -5,7 +5,7 @@ using System;
 
 namespace DerelictDimension.ECS;
 
-public class UpdateLeanSystem : BaseSystem
+public class UpdateCardSystem : BaseSystem
 {
     public static InputActionIndex LeanLeft;
     public static InputActionIndex LeanRight;
@@ -14,6 +14,12 @@ public class UpdateLeanSystem : BaseSystem
     public static float Target;
 
     protected override void OnUpdateGroup()
+    {
+        UpdateLean();
+
+    }
+
+    private static void UpdateLean()
     {
         float target = 0;
 

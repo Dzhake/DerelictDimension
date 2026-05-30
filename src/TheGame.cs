@@ -7,7 +7,6 @@ using MLEM.Extended.Font;
 using MLEM.Font;
 using Monod;
 using Monod.AssetsModule;
-using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
 using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
@@ -78,7 +77,7 @@ public class TheGame : MonodGame
             {UpdateCardSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
         };
 
-        Store.CreateEntity(new Sprite2D("Sprites/CardBg.png"), new Position2D(GameSize.X / 2, GameSize.Y / 2), Tags.Get<GameLayerTag>());
+        //Store.CreateEntity(new Sprite2D("Sprites/CardBg.png"), new Position2D(GameSize.X / 2, GameSize.Y / 2), Tags.Get<GameLayerTag>());
         Store.CreateEntity(new Sprite2D("Sprites/Spaceship.png"), Tags.Get<GameLayerTag>());
 
 

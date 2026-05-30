@@ -43,18 +43,25 @@ float Distance(float2 coords)
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float2 coords = input.TextureCoordinates;
-    //move coordinates in the way, opposite to transformation. E.g., instead of moving right by 0.1 move left by 0.1
+    //move coordinates in the way opposite to transformation. E.g., instead of moving right by 0.1 move left by 0.1
     float2 mod_coords = DeModifyCoords(coords);
     float d = Distance(mod_coords);
     float distance = Distance(coords);
     //if demodified coordinates are in the original shape, that means that after modification they'll be right in our current pixel! so we need to take original pixel (from the original shape) and use it as current pixel. That way the original pixel moves to current pixel.
+    float borderSize = 0.005;
+    if (abs(d) < borderSize)
+    {
+        return float4(0, 1, 0, smoothstep(borderSize, -borderSize, d));
+    }
     if (d <= 0)
     {
         float4 color = tex2D(s0, mod_coords);
-        return float4(1+d, 1+d, 1+d, 0);
+        color.a = 1;
+        color.g += 0.2;
+        return color;
     }
     //if demodified coords are not in the original shape, but normal coords are, that means that our pixel was moved. Current pixel's value [was already/will be] taken by some other pixel. This means current pixel should be empty.
-    else if (distance < 0)
+    else if (distance <= 0)
     {
         return float4(0, 0, 0, 0);
     }

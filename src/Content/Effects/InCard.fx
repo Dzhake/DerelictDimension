@@ -33,15 +33,15 @@ float2 DeModifyCoords(float2 coords)
     return float2(coords.x - Lean * 0.25, coords.y);
 }
 
-bool InOriginalShape(float2 coords)
+float Distance(float2 coords)
 {
-    return InCard(coords, CardRadius, HalfSideX, HalfSideY);
+    return sdBevelBox(coords, float2(HalfSideX, HalfSideY), CardRadius);
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float2 coords = input.TextureCoordinates;
-    if (InOriginalShape(coords))
+    if (Distance(coords) <= 0)
     {
         return tex2D(s0, coords);
     }

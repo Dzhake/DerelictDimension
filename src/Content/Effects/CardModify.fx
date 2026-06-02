@@ -37,7 +37,6 @@ float2 DeModifyCoords(float2 coords)
 float Distance(float2 coords)
 {
     return sdBevelBox(coords, float2(HalfSideX, HalfSideY), CardRadius);
-    //return InCard(coords, CardRadius, HalfSideX, HalfSideY);
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
@@ -57,7 +56,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     {
         float4 color = tex2D(s0, mod_coords);
         color.a = 1;
-        color.g += 0.2;
+        color.g += 0.5;
         return color;
     }
     //if demodified coords are not in the original shape, but normal coords are, that means that our pixel was moved. Current pixel's value [was already/will be] taken by some other pixel. This means current pixel should be empty.

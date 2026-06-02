@@ -75,7 +75,7 @@
     
     <Target Name="DebugActions" Condition="'$(Configuration)' == 'Debug'" BeforeTargets="CompileEffects">
         <ItemGroup>
-            <EffectOutputDir Include="$(ProjectDir)/" />
+            <EffectOutputDir Include="$(ProjectDir)$(ContenDir)" />
         </ItemGroup>
 
         <CreateSymlink Source="$(ProjectDir)$(ContentDir)" Destination="$(ProjectDir)$(OutputPath)$(ContentDir)" />
@@ -83,6 +83,6 @@
     </Target>
     
     <Target Name="CompileEffects" AfterTargets="Build">
-        <CompileEffectsTask Effects="@(Effects)" PathToContent="$(ProjectDir)" OutputPath="@(EffectOutputDir)" />
+        <CompileEffectsTask PathToContent="$(ProjectDir)$(ContentDir)" OutputPath="@(EffectOutputDir)" />
     </Target>
 </Project>

@@ -56,7 +56,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     {
         float4 color = tex2D(s0, mod_coords);
         color.a = 1;
-        color.g += 0.5;
+        color.g += 1;
         return color;
     }
     //if demodified coords are not in the original shape, but normal coords are, that means that our pixel was moved. Current pixel's value [was already/will be] taken by some other pixel. This means current pixel should be empty.

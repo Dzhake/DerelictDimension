@@ -157,9 +157,11 @@ public class TheGame : MonodGame
     protected override void DrawM()
     {
         GenericFont? font = GlobalFonts.MenuFont;
-        //Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
         Renderer.Clear(new(0, 0, 0));
         UpdateDrawSystems();
+
+        /*Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
+        Renderer.End();*/
         //DrawModMenu(font, ref pos);
     }
 

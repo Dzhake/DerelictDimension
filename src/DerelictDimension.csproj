@@ -30,25 +30,27 @@
 
         <!-- Disale 'fast up to date check' that prevents action from executing when running the game project -->
         <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
-        <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+
+        <BuildProjectReferences>true</BuildProjectReferences>
     </PropertyGroup>
-    
-    
+
+
     <!--  Import tasks -->
     <!--  Compile effects task  -->
     <!--  Import task from Monod repo - MSBuildTasks project -->
     <UsingTask AssemblyFile="..\..\Monod\src\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="Monod.MSBuild.CompileEffectsTask" />
     <UsingTask AssemblyFile="..\..\Monod\src\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="Monod.MSBuild.CreateSymlink" />
 
+
     <ItemGroup>
         <!--  Monod repo clone next to DerelictDimension repo  -->
         <!-- Build tasks project before this one -->
-        <ProjectReference Include="../../Monod/src/MSBuildTasks/MSBuildTasks.csproj" />
+        <ProjectReference Include="../../Monod/src/MSBuildTasks/MSBuildTasks.csproj"/>
         <ProjectReference Include="../../Monod/src/Main/Monod.csproj" />
 
         <!--  Nuget packages  -->
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />
-        
+
 
         <!--  Special Item for content effects files  -->
         <Effects Include="$(ContentDir)/**/*.fx" />
@@ -56,9 +58,8 @@
         <!-- Native libraries -->
         <Content Include="$(NativeLibsDir)**" CopyToOutputDirectory="PreserveNewest" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
-    
-    
 
+    
     <!--  Release only actions  -->
     <Target Name="ReleaseActions" Condition="'$(Configuration)' == 'Release'" BeforeTargets="CompileEffects">
         <ItemGroup>
@@ -75,6 +76,7 @@
         <Delete Files="@(CompiledShadersToDelete)" />
     </Target>
     
+    <!-- Debug only actions -->
     <Target Name="DebugActions" Condition="'$(Configuration)' == 'Debug'" BeforeTargets="CompileEffects">
         <ItemGroup>
             <EffectOutputDir Include="$(ProjectDir)$(ContenDir)" />
@@ -84,6 +86,7 @@
         <CreateSymlink Source="$(ProjectDir)$(LocalizationDir)" Destination="$(ProjectDir)$(OutputPath)$(LocalizationDir)" />
     </Target>
     
+    <!-- Compile effects -->
     <Target Name="CompileEffects" AfterTargets="Build">
         <CompileEffectsTask PathToContent="$(ProjectDir)$(ContentDir)" OutputPath="@(EffectOutputDir)" />
     </Target>

@@ -1,5 +1,6 @@
 ﻿using DerelictDimension.ECS;
-using DerelictDimension.ECS.Battle;
+using DerelictDimension.ECS.Physics;
+using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
 using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
@@ -7,12 +8,13 @@ using MLEM.Extended.Font;
 using MLEM.Font;
 using Monod;
 using Monod.AssetsModule;
+using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
-using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.ModsModule;
 using Monod.Utils.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -41,6 +43,8 @@ public class TheGame : MonodGame
     public int Page = 0;
 
     public static Vector2 GameSize;
+    public static Entity entity;
+    public static int WantedFPS = 60;
 
     /// <summary>
     /// Creates a new <see cref="TheGame"/>.
@@ -51,6 +55,8 @@ public class TheGame : MonodGame
         IsMouseVisible = true;
         Instance = this;
         GameSize = new(1280, 720);
+        IsFixedTimeStep = true;
+        TargetElapsedTime = TimeSpan.FromMilliseconds(1000f / WantedFPS);
     }
 
     protected override void Initialize()
@@ -78,7 +84,10 @@ public class TheGame : MonodGame
         };
 
         //Store.CreateEntity(new Sprite2D("Sprites/CardBg.png"), new Position2D(GameSize.X / 2, GameSize.Y / 2), Tags.Get<GameLayerTag>());
-        Store.CreateEntity(new Sprite2D("Sprites/Spaceship.png"), Tags.Get<GameLayerTag>());
+        //Store.CreateEntity(new Sprite2D("Sprites/Spaceship.png"), Tags.Get<GameLayerTag>());
+        Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100) }, new Position2D(100, 500));
+        Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100) }, new Position2D(610, 500.5f));
+        entity = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100) }, new Position2D(300, 100), new PlayerControlledComponent());
 
 
         InitializeSystems();
@@ -89,9 +98,9 @@ public class TheGame : MonodGame
 
     public void InitializeSystems()
     {
-        LogicSystemRoot.Add(new UpdateSpriteSystem());
-        LogicSystemRoot.Add(new UpdateCardSystem());
-        LogicSystemRoot.Add(new UpdateBattleSystem());
+        LogicSystemRoot.Add(new RewindPreUpdateSystem());
+        LogicSystemRoot.Add(new PhysicsSystem());
+        LogicSystemRoot.Add(new RewindPostUpdateSystem());
 
         DrawSystemRoot.Add(new DrawSystem());
         //DrawSystemRoot.Add(new DrawSpriteSystem());
@@ -126,8 +135,6 @@ public class TheGame : MonodGame
         if (Input.KeyPressed(Key.D)) Page++;
         else if (Input.KeyPressed(Key.A)) Page--;
 
-        if (Input.KeyPressed(Key.R)) ModManager.EnqueueLoadAllMods();
-
         foreach (var mod in ModManager.Mods.Values.Skip(Page * 10).Take(10))
         {
             if (Input.KeyPressed(Key.D0 + i))
@@ -149,6 +156,20 @@ public class TheGame : MonodGame
 
         if (Input.KeyboardKeysPressed.Count > 0) pressed = Input.KeyboardKeysPressed.ElementAt(0);
         if (Input.KeyboardKeysReleased.Count > 0) released = Input.KeyboardKeysReleased.ElementAt(0);
+        if (Input.KeyDown(Key.Mouse1))
+        {
+            var data = entity.Data;
+            ref var pos = ref data.Get<Position2D>();
+            pos.Value = Input.MousePos();
+            ref var actor = ref data.Get<ActorComponent>();
+            actor.Velocity = Vector2.Zero;
+        }
+        else if (Input.KeyPressed(Key.Mouse2))
+        {
+            Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100) }, new Position2D(Input.MousePos()));
+        }
+
+
 
         UpdateLogicSystems();
     }

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="$(ProjectDir)../../Monod/src/Analyzers.props"/>
+    <Import Project="$(ProjectDir)../../Monod/src/Analyzers.props" />
     
     <PropertyGroup>
         <!--  Compilation settings  -->
@@ -45,7 +45,7 @@
     <ItemGroup>
         <!--  Monod repo clone next to DerelictDimension repo  -->
         <!-- Build tasks project before this one -->
-        <ProjectReference Include="../../Monod/src/MSBuildTasks/MSBuildTasks.csproj"/>
+        <ProjectReference Include="../../Monod/src/MSBuildTasks/MSBuildTasks.csproj" />
         <ProjectReference Include="../../Monod/src/Main/Monod.csproj" />
 
         <!--  Nuget packages  -->

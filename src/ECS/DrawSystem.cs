@@ -1,8 +1,11 @@
 ﻿using DerelictDimension.ECS.Battle;
+using DerelictDimension.ECS.Physics;
+using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS;
 using Friflo.Engine.ECS.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MLEM.Maths;
 using Monod.AssetsModule;
 using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
@@ -26,15 +29,15 @@ public class DrawSystem : BaseSystem
     public Texture2D CardBg;
     public Vector2 Upscale = Vector2.One;
 
-    public ArchetypeQuery<Sprite2D> GameLayerQuery;
-    public ArchetypeQuery<FighterComponent, Sprite2D> FightersQuery;
+    public ArchetypeQuery<ActorComponent> ActorsQuery;
+    public ArchetypeQuery<SolidComponent> SolidsQuery;
 
 
     protected override void OnAddStore(EntityStore store)
     {
         base.OnAddStore(store);
-        GameLayerQuery = store.Query<Sprite2D>().AllTags(Tags.Get<GameLayerTag>());
-        FightersQuery = store.Query<FighterComponent, Sprite2D>();
+        ActorsQuery = store.Query<ActorComponent>();
+        SolidsQuery = store.Query<SolidComponent>();
     }
 
     protected override void OnUpdateGroup()
@@ -48,7 +51,7 @@ public class DrawSystem : BaseSystem
         Renderer.SetRenderTarget(MainRT);
         Renderer.Clear(Renderer.EmptyColor);
         DrawGame();
-        DrawInCard(renderSize, cardSide, lean);
+        //DrawInCard(renderSize, cardSide, lean);
         Renderer.SetRenderTarget(currentRT);
         DrawFinal(renderSize, cardSide, lean);
     }
@@ -56,9 +59,54 @@ public class DrawSystem : BaseSystem
     private void DrawGame()
     {
         Renderer.Begin(samplerState: SamplerState.PointClamp);
-        GameLayerQuery.ForEachEntity(DrawGameLayerSprite);
-        FightersQuery.ForEachEntity(DrawFighter);
+        ActorsQuery.ForEachEntity(DrawActor);
+        SolidsQuery.ForEachEntity(DrawSolid);
         Renderer.End();
+    }
+
+    private void DrawActor(ref ActorComponent actor, Entity entity)
+    {
+        var data = entity.Data;
+        Vector2 pos;
+        if (data.Has<Position2D>())
+            pos = data.Get<Position2D>().Value;
+        else
+            pos = Vector2.Zero;
+        RectangleF rect = actor.Hitbox;
+        rect.Location += pos;
+        rect.X *= Upscale.X;
+        rect.Y *= Upscale.Y;
+        rect.Width *= Upscale.X;
+        rect.Height *= Upscale.Y;
+        Color color = Color.Lerp(Color.Yellow, Color.LightGray, Rewind.Active ? 0.5f : 0);
+        Renderer.DrawRect((Rectangle)rect, color);
+        Renderer.DrawLine(rect.Center, rect.Center + (actor.Velocity * Time.DeltaTime), Color.Red, 5);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{actor.Velocity.X}\n{actor.Velocity.Y}\n{actor.RidingEntityId}", rect.Location, Color.Black);
+    }
+
+    private void DrawSolid(ref SolidComponent solid, Entity entity)
+    {
+        var data = entity.Data;
+        Vector2 pos;
+        if (data.Has<Position2D>())
+            pos = data.Get<Position2D>().Value;
+        else
+            pos = Vector2.Zero;
+        RectangleF rect = solid.Hitbox;
+        rect.Location += pos;
+        rect.X *= Upscale.X;
+        rect.Y *= Upscale.Y;
+        rect.Width *= Upscale.X;
+        rect.Height *= Upscale.Y;
+
+        Color color = Color.Lerp(Color.Blue, Color.LightGray, Rewind.Active ? 0.5f : 0);
+        Renderer.DrawRect((Rectangle)rect, color);
+        bool dynamic = data.Has<MovingSolidComponent>();
+        if (dynamic)
+        {
+            ref var dyn = ref data.Get<MovingSolidComponent>();
+            GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{dyn.Velocity.X}\n{dyn.Velocity.Y}", rect.Location, Color.White);
+        }
     }
 
     private void DrawInCard(Point renderSize, float cardSide, float lean)
@@ -82,16 +130,16 @@ public class DrawSystem : BaseSystem
     private void DrawFinal(Point renderSize, float cardSide, float lean)
     {
         Vector2 renderOffset = Renderer.RenderOffset;
-        Renderer.Begin(samplerState: SamplerState.PointClamp);
+        /*Renderer.Begin(samplerState: SamplerState.PointClamp);
         Renderer.DrawTexture(Bg, renderOffset, scale: Upscale);
-        Renderer.End();
+        Renderer.End();*/
 
-        Renderer.Begin(samplerState: SamplerState.PointClamp, effect: CardModifyEffect);
+        Renderer.Begin(samplerState: SamplerState.PointClamp);
         Renderer.DrawTexture(MainRT!, renderOffset, Color.White);
         Renderer.End();
 
         Renderer.Begin(samplerState: SamplerState.PointClamp);
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Lean: {lean}\nTarget:{UpdateCardSystem.Target}\nWindowSize:{Renderer.WindowSizeP}\nRenderSize:{Renderer.RenderSize}\nRenderOffset:{Renderer.RenderOffset}\nCardSide:{cardSide}\nTime:{Time.TotalTimeSpan}", renderOffset, Color.White);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Lean: {lean}\nTarget:{UpdateCardSystem.Target}\nWindowSize:{Renderer.WindowSizeP}\nRenderSize:{Renderer.RenderSize}\nRenderOffset:{Renderer.RenderOffset}\nCardSide:{cardSide}\nTime:{Time.TotalTimeSpan}\nRewinding:{Rewind.Active}\nCurrentIndex:{RewindPostUpdateSystem.CurrentIndex}", renderOffset, Color.White);
         Renderer.End();
     }
 

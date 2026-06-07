@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Monod.AssetsModule;
 using Monod.Graphics;
 using Monod.Graphics.Settings;
+using Monod.ModsModule;
 
 namespace DerelictDimension;
 
@@ -137,6 +138,10 @@ public static class Settings
         if (ImGui.Button("Reload assets"u8))
             foreach (var assetManager in Assets.Managers.Values)
                 assetManager.LoadAssets();
+        if (ImGui.Button("Reload all mods"u8))
+            ModManager.EnqueueLoadAllMods();
+        if (ImGui.Button("Reload enabled mods"u8))
+            ModManager.EnqueueLoadEnabledMods();
 
         ImGui.End();
     }

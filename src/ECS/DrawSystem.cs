@@ -72,13 +72,16 @@ public class DrawSystem : BaseSystem
             pos = data.Get<Position2D>().Value;
         else
             pos = Vector2.Zero;
+        bool isTimeless = data.Has<TimelessComponent>();
+
         RectangleF rect = actor.Hitbox;
         rect.Location += pos;
         rect.X *= Upscale.X;
         rect.Y *= Upscale.Y;
         rect.Width *= Upscale.X;
         rect.Height *= Upscale.Y;
-        Color color = Color.Lerp(Color.Yellow, Color.LightGray, Rewind.Active ? 0.5f : 0);
+        Color color = Color.Lerp(Color.Yellow, Color.LightGray, Rewind.Active ? 0.8f : 0);
+        if (isTimeless) color = Color.Lime;
         Renderer.DrawRect((Rectangle)rect, color);
         Renderer.DrawLine(rect.Center, rect.Center + (actor.Velocity * Time.DeltaTime), Color.Red, 5);
         GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{actor.Velocity.X}\n{actor.Velocity.Y}\n{actor.RidingEntityId}", rect.Location, Color.Black);
@@ -99,7 +102,7 @@ public class DrawSystem : BaseSystem
         rect.Width *= Upscale.X;
         rect.Height *= Upscale.Y;
 
-        Color color = Color.Lerp(Color.Blue, Color.LightGray, Rewind.Active ? 0.5f : 0);
+        Color color = Color.Lerp(Color.Blue, Color.LightGray, Rewind.Active ? 0.8f : 0);
         Renderer.DrawRect((Rectangle)rect, color);
         bool dynamic = data.Has<MovingSolidComponent>();
         if (dynamic)

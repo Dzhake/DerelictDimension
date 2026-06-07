@@ -1,6 +1,5 @@
 ﻿using Friflo.Engine.ECS;
 using Friflo.Engine.ECS.Systems;
-using Serilog;
 using System.Collections.Generic;
 
 namespace DerelictDimension.ECS.Rewinding;
@@ -34,6 +33,7 @@ public class RewindPostUpdateSystem : BaseSystem
         {
             foreach (var (componentRef, component) in Rewind.StoredComponents)
             {
+                if (componentRef.Get(Store).Equals(component)) continue;
                 StoredComponent storedComponent = new(componentRef.EntityId, component);
 
                 StoreComponent(storedComponent);
@@ -48,16 +48,9 @@ public class RewindPostUpdateSystem : BaseSystem
     private void StoreComponent(StoredComponent storedComponent)
     {
         if (CurrentIndex >= StoredComponents.Count - 1)
-        {
             StoredComponents.Add(storedComponent);
-            Log.Information("Storing: {StoredComponent} via Add", storedComponent);
-        }
-
         else
-        {
             StoredComponents[CurrentIndex] = storedComponent;
-            Log.Information("Storing: {StoredComponent} via Set", storedComponent);
-        }
         CurrentIndex++;
     }
 }

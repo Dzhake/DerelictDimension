@@ -7,6 +7,7 @@ using MLEM.Maths;
 using Monod.ECS.DefaultComponents;
 using Monod.InputModule;
 using Monod.TimeModule;
+using System;
 
 public class PhysicsSystem : BaseSystem
 {
@@ -33,11 +34,16 @@ public class PhysicsSystem : BaseSystem
             if (!actorData.Has<Position2D>()) continue;
             ref var actor = ref actorData.Get<ActorComponent>();
             ref var actorPos = ref actorData.Get<Position2D>();
+            bool isTimeless = actorData.Has<TimelessComponent>();
 
-            if (!Rewind.Active)
+            if (!Rewind.Active || isTimeless)
             {
-                Rewind.Keep(actorEnt, ref actor);
-                Rewind.Keep(actorEnt, ref actorPos);
+                if (!isTimeless)
+                {
+                    Rewind.Keep(actorEnt, ref actor);
+                    Rewind.Keep(actorEnt, ref actorPos);
+                }
+
                 actor.Velocity += GravityAccel * dt;
                 HandlePlayerInput(actorData, ref actor);
 
@@ -114,6 +120,7 @@ public class PhysicsSystem : BaseSystem
                 if (!actor.InAir)
                 {
                     actor.Velocity.X *= 0.95f;
+                    if (Math.Abs(actor.Velocity.X) < 0.1f) actor.Velocity.X = 0;
                 }
             }
 

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Friflo.Engine.ECS;
+using Monod.Shared.Exceptions;
+using System;
 
 namespace DerelictDimension.ECS.Rewinding;
 
@@ -12,4 +14,15 @@ public record struct ComponentRef
         EntityId = entityId;
         ComponentType = componentType;
     }
+
+    public IComponent Get(EntityStore store)
+    {
+        if (EntityId == -1 || ComponentType == null) Guard.Exception($"Tried to get invalid ComponentRef: {this}");
+        Entity entity = store.GetEntityById(EntityId);
+        EntitySchema schema = EntityStore.GetEntitySchema();
+        var componentType = schema.ComponentTypeByType[ComponentType];
+        return EntityUtils.GetEntityComponent(entity, componentType);
+    }
+
+    public override string ToString() => $"{{ EntityId: {EntityId}, ComponentType: {(ComponentType != null ? ComponentType : "<null>")} }}";
 }

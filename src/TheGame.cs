@@ -87,7 +87,7 @@ public class TheGame : MonodGame
         //Store.CreateEntity(new Sprite2D("Sprites/Spaceship.png"), Tags.Get<GameLayerTag>());
         Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100) }, new Position2D(100, 500));
         Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100) }, new Position2D(610, 500.5f));
-        entity = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100) }, new Position2D(300, 100), new PlayerControlledComponent());
+        entity = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100) }, new Position2D(300, 100), new PlayerControlledComponent(), new TimelessComponent());
 
 
         InitializeSystems();

@@ -80,7 +80,7 @@ public class DrawSystem : BaseSystem
         rect.Y *= Upscale.Y;
         rect.Width *= Upscale.X;
         rect.Height *= Upscale.Y;
-        Color color = Color.Lerp(Color.Yellow, Color.LightGray, Rewind.Active ? 0.8f : 0);
+        Color color = Color.Lerp(Color.Yellow, Color.LightGray, Rewind.Active ? 1f : 0);
         if (isTimeless) color = Color.Lime;
         Renderer.DrawRect((Rectangle)rect, color);
         Renderer.DrawLine(rect.Center, rect.Center + (actor.Velocity * Time.DeltaTime), Color.Red, 5);

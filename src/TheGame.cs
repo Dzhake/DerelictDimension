@@ -166,7 +166,8 @@ public class TheGame : MonodGame
         }
         else if (Input.KeyPressed(Key.Mouse2))
         {
-            Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100) }, new Position2D(Input.MousePos()));
+            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100) }, new Position2D(Input.MousePos()));
+            Rewind.Keep(ent);
         }
 
 

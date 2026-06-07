@@ -16,8 +16,13 @@ public record struct StoredComponent
 
     public void Set(EntityStore store)
     {
-        if (EntityId == -1 || Component == null) Guard.Exception($"Tried to apply invalid StoredComponent: {this}");
+        if (EntityId == -1) Guard.Exception($"Tried to apply invalid StoredComponent: {this}");
         Entity entity = store.GetEntityById(EntityId);
+        if (Component is null)
+        {
+            entity.Enabled = !entity.Enabled;
+            return;
+        }
         EntitySchema schema = EntityStore.GetEntitySchema();
         var componentType = schema.ComponentTypeByType[Component.GetType()];
         EntityUtils.AddEntityComponentValue(entity, componentType, Component);

@@ -33,20 +33,19 @@ public class RewindPostUpdateSystem : BaseSystem
         {
             foreach (var (componentRef, component) in Rewind.StoredComponents)
             {
-                if (componentRef.Get(Store).Equals(component)) continue;
-                StoredComponent storedComponent = new(componentRef.EntityId, component);
-
-                StoreComponent(storedComponent);
+                if (component?.Equals(componentRef.Get(Store)) == true) continue;
+                StoreComponent(componentRef.EntityId, component);
             }
 
-            StoreComponent(new(-1, null));
+            StoreComponent(-1, null);
             Rewind.StoredComponents.Clear();
         }
         base.OnUpdateGroup();
     }
 
-    private void StoreComponent(StoredComponent storedComponent)
+    private void StoreComponent(int entityId, IComponent? component)
     {
+        StoredComponent storedComponent = new(entityId, component);
         if (CurrentIndex >= StoredComponents.Count - 1)
             StoredComponents.Add(storedComponent);
         else

@@ -2,6 +2,7 @@
 global using Friflo.Engine.ECS;
 global using Microsoft.Xna.Framework;
 global using Serilog;
+global using Math = System.Math;
 global using RectangleF = MLEM.Maths.RectangleF;
 using DerelictDimension.CommandLine;
 using Monod;

@@ -7,7 +7,9 @@ public class RewindPostUpdateSystem : BaseSystem
 {
     public List<StoredComponent> StoredComponents;
     public EntityStore Store;
+    public static int LastValidIndex;
     public static int CurrentIndex = -1;
+    public static int RewindSpeed = -1;
 
     protected override void OnAddStore(EntityStore store)
     {
@@ -20,11 +22,17 @@ public class RewindPostUpdateSystem : BaseSystem
     {
         if (Rewind.Active)
         {
-            while (CurrentIndex > 0)
+            int framesToRewind = RewindSpeed;
+            int framesSign = Math.Sign(framesToRewind);
+            while (framesToRewind != 0 && (CurrentIndex > 0 || RewindSpeed > 0) && (CurrentIndex < LastValidIndex || RewindSpeed <= 0))
             {
-                CurrentIndex--;
+                CurrentIndex += framesSign;
                 StoredComponent stored = StoredComponents[CurrentIndex];
-                if (stored.EntityId == -1) break;
+                if (stored.EntityId == -1)
+                {
+                    framesToRewind -= framesSign;
+                    continue;
+                }
                 stored.Set(Store);
             }
         }

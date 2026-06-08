@@ -11,7 +11,6 @@ using Monod.Graphics.Extensions;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.TimeModule;
-using System;
 
 namespace DerelictDimension.ECS;
 
@@ -146,7 +145,7 @@ public class DrawSystem : BaseSystem
         Renderer.End();
 
         Renderer.Begin(samplerState: SamplerState.PointClamp);
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Lean: {lean}\nTarget:{UpdateCardSystem.Target}\nWindowSize:{Renderer.WindowSizeP}\nRenderSize:{Renderer.RenderSize}\nRenderOffset:{Renderer.RenderOffset}\nCardSide:{cardSide}\nTime:{Time.TotalTimeSpan}\nRewinding:{Rewind.Active}\nCurrentIndex:{RewindPostUpdateSystem.CurrentIndex}", renderOffset, Color.White);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Lean: {lean}\nTarget:{UpdateCardSystem.Target}\nWindowSize:{Renderer.WindowSizeP}\nRenderSize:{Renderer.RenderSize}\nRenderOffset:{Renderer.RenderOffset}\nCardSide:{cardSide}\nTime:{Time.TotalTimeSpan}\nRewinding:{Rewind.Active}\nCurrentIndex:{RewindPostUpdateSystem.CurrentIndex}\nRewind Speed:{RewindPostUpdateSystem.RewindSpeed}\nLast Valid Index: {RewindPostUpdateSystem.LastValidIndex}", renderOffset, Color.White);
         Renderer.End();
     }
 

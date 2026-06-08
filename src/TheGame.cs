@@ -83,27 +83,45 @@ public class TheGame : MonodGame
             {UpdateCardSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
         };
 
-        //Store.CreateEntity(new Sprite2D("Sprites/CardBg.png"), new Position2D(GameSize.X / 2, GameSize.Y / 2), Tags.Get<GameLayerTag>());
-        //Store.CreateEntity(new Sprite2D("Sprites/Spaceship.png"), Tags.Get<GameLayerTag>());
-        Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100) }, new Position2D(100, 500));
-        Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100) }, new Position2D(610, 500.5f));
-        entity = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100) }, new Position2D(300, 100), new PlayerControlledComponent(), new TimelessComponent());
+        InitWorld();
+    }
 
+    public void InitWorld()
+    {
+        ClearStore();
+
+        Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100, (float)Math.PI / 6) }, new Position2D(300, 550));
+        Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100, (float)Math.PI / 6) }, new Position2D(810, 550.5f));
+        entity = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100, 0) }, new Position2D(300, 100), new PlayerControlledComponent());
 
         InitializeSystems();
+    }
 
-        //Rebind = new(MainUiSystem);
-        //Rebind.Root.PositionOffset = new(0, 100);aaaaaaaaaaaaaaa
+    private static void ClearStore()
+    {
+        var commandBuffer = Store.GetCommandBuffer();
+        foreach (var entity in Store.Entities)
+            commandBuffer.DeleteEntity(entity.Id);
+        commandBuffer.Playback();
     }
 
     public void InitializeSystems()
     {
+        LogicSystemRoot.RemoveAllSystems();
+        DrawSystemRoot.RemoveAllSystems();
+
         LogicSystemRoot.Add(new RewindPreUpdateSystem());
         LogicSystemRoot.Add(new PhysicsSystem());
         LogicSystemRoot.Add(new RewindPostUpdateSystem());
 
         DrawSystemRoot.Add(new DrawSystem());
         //DrawSystemRoot.Add(new DrawSpriteSystem());
+    }
+
+    public void Reload()
+    {
+        InitWorld();
+        Rewind.StoredComponents.Clear();
     }
 
     ///<inheritdoc/>
@@ -126,6 +144,8 @@ public class TheGame : MonodGame
             offset.Y += 10;
         else if (Input.KeyDown(Key.Down))
             offset.Y -= 10;
+
+        if (Input.KeyPressed(Key.R)) Reload();
 
         //if (Input.ActionDown((InputActionIndex)0)) text = "Active";
         //else text = "Inactive";
@@ -166,7 +186,7 @@ public class TheGame : MonodGame
         }
         else if (Input.KeyPressed(Key.Mouse2))
         {
-            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100) }, new Position2D(Input.MousePos()));
+            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(new(0, 0), 100, 100, 30) }, new Position2D(Input.MousePos()));
             Rewind.Keep(ent);
         }
 

@@ -5,7 +5,6 @@ using Friflo.Engine.ECS;
 using Friflo.Engine.ECS.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MLEM.Maths;
 using Monod.AssetsModule;
 using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
@@ -31,6 +30,11 @@ public class DrawSystem : BaseSystem
 
     public ArchetypeQuery<ActorComponent> ActorsQuery;
     public ArchetypeQuery<SolidComponent> SolidsQuery;
+    public static float X;
+    public static float Y;
+    public static float width;
+    public static float height;
+    public static float angle;
 
 
     protected override void OnAddStore(EntityStore store)
@@ -59,8 +63,10 @@ public class DrawSystem : BaseSystem
     private void DrawGame()
     {
         Renderer.Begin(samplerState: SamplerState.PointClamp);
+
         ActorsQuery.ForEachEntity(DrawActor);
         SolidsQuery.ForEachEntity(DrawSolid);
+        Renderer.DrawRotRect(X, Y, width, height, angle, Color.White);
         Renderer.End();
     }
 
@@ -74,17 +80,17 @@ public class DrawSystem : BaseSystem
             pos = Vector2.Zero;
         bool isTimeless = data.Has<TimelessComponent>();
 
-        RectangleF rect = actor.Hitbox;
-        rect.Location += pos;
-        rect.X *= Upscale.X;
-        rect.Y *= Upscale.Y;
+        RotatedRectangle rect = actor.Hitbox;
+        rect.Center += pos;
+        rect.Center.X *= Upscale.X;
+        rect.Center.Y *= Upscale.Y;
         rect.Width *= Upscale.X;
         rect.Height *= Upscale.Y;
         Color color = Color.Lerp(Color.Yellow, Color.LightGray, Rewind.Active ? 1f : 0);
         if (isTimeless) color = Color.Lime;
-        Renderer.DrawRect((Rectangle)rect, color);
+        Renderer.DrawRotRect(rect.Center.X, rect.Center.Y, rect.Width, rect.Height, rect.Angle, color);
         Renderer.DrawLine(rect.Center, rect.Center + (actor.Velocity * Time.DeltaTime), Color.Red, 5);
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{actor.Velocity.X}\n{actor.Velocity.Y}\n{actor.RidingEntityId}", rect.Location, Color.Black);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{actor.Velocity.X}\n{actor.Velocity.Y}\n{actor.RidingEntityId}", rect.Center, Color.Black);
     }
 
     private void DrawSolid(ref SolidComponent solid, Entity entity)
@@ -95,20 +101,20 @@ public class DrawSystem : BaseSystem
             pos = data.Get<Position2D>().Value;
         else
             pos = Vector2.Zero;
-        RectangleF rect = solid.Hitbox;
-        rect.Location += pos;
-        rect.X *= Upscale.X;
-        rect.Y *= Upscale.Y;
+        RotatedRectangle rect = solid.Hitbox;
+        rect.Center += pos;
+        rect.Center.X *= Upscale.X;
+        rect.Center.Y *= Upscale.Y;
         rect.Width *= Upscale.X;
         rect.Height *= Upscale.Y;
 
         Color color = Color.Lerp(Color.Blue, Color.LightGray, Rewind.Active ? 0.8f : 0);
-        Renderer.DrawRect((Rectangle)rect, color);
+        Renderer.DrawRotRect(rect.Center.X, rect.Center.Y, rect.Width, rect.Height, rect.Angle, color);
         bool dynamic = data.Has<MovingSolidComponent>();
         if (dynamic)
         {
             ref var dyn = ref data.Get<MovingSolidComponent>();
-            GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{dyn.Velocity.X}\n{dyn.Velocity.Y}", rect.Location, Color.White);
+            GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{dyn.Velocity.X}\n{dyn.Velocity.Y}", rect.Center, Color.White);
         }
     }
 

@@ -1,18 +1,18 @@
 ﻿using Friflo.Engine.ECS;
 using Microsoft.Xna.Framework;
-using MLEM.Maths;
 
 namespace DerelictDimension.ECS.Physics;
 
 public struct ActorComponent : IComponent
 {
     public Vector2 Velocity;
-    public RectangleF Hitbox;
+    public RotatedRectangle Hitbox;
     public int RidingEntityId = -1;
     public readonly bool InAir => RidingEntityId < 0;
 
     public ActorComponent()
     {
+
     }
 }
 
@@ -30,7 +30,7 @@ public struct PlayerControlledComponent : IComponent
 
 public struct SolidComponent : IComponent
 {
-    public RectangleF Hitbox;
+    public RotatedRectangle Hitbox;
 }
 
 public struct MovingSolidComponent : IComponent

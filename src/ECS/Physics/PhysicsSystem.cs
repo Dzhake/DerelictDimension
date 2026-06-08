@@ -3,7 +3,6 @@ using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS;
 using Friflo.Engine.ECS.Systems;
 using Microsoft.Xna.Framework;
-using MLEM.Maths;
 using Monod.ECS.DefaultComponents;
 using Monod.InputModule;
 using Monod.TimeModule;
@@ -47,9 +46,10 @@ public class PhysicsSystem : BaseSystem
                 actor.Velocity += GravityAccel * dt;
                 HandlePlayerInput(actorData, ref actor);
 
+                // --- ПРОХОД ПО ОСИ X ---
                 actorPos.X += actor.Velocity.X * dt;
-                RectangleF actorHitbox = actor.Hitbox;
-                actorHitbox.Location += actorPos;
+                RotatedRectangle actorHitbox = actor.Hitbox;
+                actorHitbox.Center += actorPos; // Смещение центра хитбокса
 
                 foreach (Entity solidEnt in SolidsQuery.Entities)
                 {
@@ -58,39 +58,30 @@ public class PhysicsSystem : BaseSystem
                     ref var solid = ref solidData.Get<SolidComponent>();
                     ref var solidPos = ref solidData.Get<Position2D>();
 
-                    RectangleF solidHitbox = solid.Hitbox;
-                    solidHitbox.Location += solidPos;
+                    RotatedRectangle solidHitbox = solid.Hitbox;
+                    solidHitbox.Center += solidPos;
 
-                    if (actorHitbox.Intersects(solidHitbox))
+                    if (actorHitbox.Intersects(solidHitbox, out Vector2 mtv))
                     {
-                        float stepHeight = actorHitbox.Bottom - solidHitbox.Top;
-
-                        if (stepHeight > 0 && stepHeight <= StepThreshold)
+                        // Проверка ступеньки (Step Height): mtv направлен вверх и глубина по Y небольшая
+                        if (mtv.Y < 0 && Math.Abs(mtv.Y) <= StepThreshold)
                         {
-                            RectangleF stepUpHitbox = actorHitbox;
-                            stepUpHitbox.Y -= stepHeight;
-
-                            actorPos.Y -= stepHeight;
-                            actorHitbox.Location = actorPos + actor.Hitbox.Location;
+                            actorPos.Y += mtv.Y; // Шаг вверх
+                            actorHitbox.Center = actor.Hitbox.Center + actorPos;
                             continue;
                         }
 
-                        if (actor.Velocity.X > 0)
-                        {
-                            actorPos.X = solidHitbox.Left - actorHitbox.Width - actor.Hitbox.X;
-                        }
-                        else if (actor.Velocity.X < 0)
-                        {
-                            actorPos.X = solidHitbox.Right - actor.Hitbox.X;
-                        }
+                        // Иначе выталкиваем по горизонтали
+                        actorPos.X += mtv.X;
                         actor.Velocity.X = 0;
-                        actorHitbox.Location = actorPos + actor.Hitbox.Location;
+                        actorHitbox.Center = actor.Hitbox.Center + actorPos;
                     }
                 }
 
+                // --- ПРОХОД ПО ОСИ Y ---
                 actorPos.Y += actor.Velocity.Y * dt;
                 actorHitbox = actor.Hitbox;
-                actorHitbox.Location += actorPos;
+                actorHitbox.Center += actorPos;
 
                 foreach (Entity solidEnt in SolidsQuery.Entities)
                 {
@@ -99,21 +90,15 @@ public class PhysicsSystem : BaseSystem
                     ref var solid = ref solidData.Get<SolidComponent>();
                     ref var solidPos = ref solidData.Get<Position2D>();
 
-                    RectangleF solidHitbox = solid.Hitbox;
-                    solidHitbox.Location += solidPos;
+                    RotatedRectangle solidHitbox = solid.Hitbox;
+                    solidHitbox.Center += solidPos;
 
-                    if (actorHitbox.Intersects(solidHitbox))
+                    if (actorHitbox.Intersects(solidHitbox, out Vector2 mtv))
                     {
-                        if (actor.Velocity.Y > 0)
-                        {
-                            actorPos.Y = solidHitbox.Top - actorHitbox.Height - actor.Hitbox.Y;
-                        }
-                        else if (actor.Velocity.Y < 0)
-                        {
-                            actorPos.Y = solidHitbox.Bottom - actor.Hitbox.Y;
-                        }
+                        // Выталкивание по вертикали
+                        actorPos.Y += mtv.Y;
                         actor.Velocity.Y = 0;
-                        actorHitbox.Location = actorPos + actor.Hitbox.Location;
+                        actorHitbox.Center = actor.Hitbox.Center + actorPos;
                     }
                 }
 
@@ -124,11 +109,11 @@ public class PhysicsSystem : BaseSystem
                 }
             }
 
-
-            RectangleF raycastHitbox = actor.Hitbox;
-            raycastHitbox.Location += actorPos;
-            raycastHitbox.Y += raycastHitbox.Height;
-            raycastHitbox.Height = 1f;
+            // --- ПРОВЕРКА ЗЕМЛИ (Riding Check) ---
+            // Сдвигаем хитбокс вниз на 1 пиксель, чтобы проверить, стоим ли мы на объекте
+            RotatedRectangle raycastHitbox = actor.Hitbox;
+            raycastHitbox.Center += actorPos;
+            raycastHitbox.Center.Y += 1f;
 
             float minY = float.MaxValue;
             actor.RidingEntityId = -1;
@@ -141,10 +126,10 @@ public class PhysicsSystem : BaseSystem
                 if (minY < solidPos.Y) continue;
                 ref var solid = ref solidData.Get<SolidComponent>();
 
-                RectangleF solidHitbox = solid.Hitbox;
-                solidHitbox.Location += solidPos;
+                RotatedRectangle solidHitbox = solid.Hitbox;
+                solidHitbox.Center += solidPos;
 
-                if (raycastHitbox.Intersects(solidHitbox))
+                if (raycastHitbox.Intersects(solidHitbox, out _))
                 {
                     minY = solidPos.Y;
                     actor.RidingEntityId = solidEnt.Id;

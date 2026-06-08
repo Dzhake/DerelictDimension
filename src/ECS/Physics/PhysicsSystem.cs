@@ -49,12 +49,7 @@ public class PhysicsSystem : BaseSystem
                 actorPos.X += actor.Velocity.X * dt;
 
                 // Создаем мировой хитбокс AABB на основе локального смещения центра и позиции
-                AABB worldActorHitbox = new AABB(
-                    actor.Hitbox.CenterX + actorPos.X,
-                    actor.Hitbox.CenterY + actorPos.Y,
-                    actor.Hitbox.HalfWidth,
-                    actor.Hitbox.HalfHeight
-                );
+                AABB worldActorHitbox = GetWorldHitbox(actor, actorPos);
 
                 foreach (Entity solidEnt in SolidsQuery.Entities)
                 {
@@ -71,35 +66,20 @@ public class PhysicsSystem : BaseSystem
                         if (mtv.Y < 0 && Math.Abs(mtv.Y) <= StepThreshold && Math.Abs(mtv.Y) > Math.Abs(mtv.X))
                         {
                             actorPos.Y += mtv.Y;
-                            worldActorHitbox = new AABB(
-                                actor.Hitbox.CenterX + actorPos.X,
-                                actor.Hitbox.CenterY + actorPos.Y,
-                                actor.Hitbox.HalfWidth,
-                                actor.Hitbox.HalfHeight
-                            );
+                            worldActorHitbox = GetWorldHitbox(actor, actorPos);
                             continue;
                         }
 
                         // Иначе выталкиваем по горизонтали
                         actorPos.X += mtv.X;
                         actor.Velocity.X = 0;
-                        worldActorHitbox = new AABB(
-                            actor.Hitbox.CenterX + actorPos.X,
-                            actor.Hitbox.CenterY + actorPos.Y,
-                            actor.Hitbox.HalfWidth,
-                            actor.Hitbox.HalfHeight
-                        );
+                        worldActorHitbox = GetWorldHitbox(actor, actorPos);
                     }
                 }
 
                 // --- ПРОХОД ПО ОСИ Y ---
                 actorPos.Y += actor.Velocity.Y * dt;
-                worldActorHitbox = new AABB(
-                    actor.Hitbox.CenterX + actorPos.X,
-                    actor.Hitbox.CenterY + actorPos.Y,
-                    actor.Hitbox.HalfWidth,
-                    actor.Hitbox.HalfHeight
-                );
+                worldActorHitbox = GetWorldHitbox(actor, actorPos);
 
                 foreach (Entity solidEnt in SolidsQuery.Entities)
                 {
@@ -119,12 +99,7 @@ public class PhysicsSystem : BaseSystem
                         Vector2 mtvNormal = mtv / mtvLength;
                         if (mtvNormal.Y < -SlopeThreshold)
                             actor.Velocity.Y = 0;
-                        worldActorHitbox = new AABB(
-                            actor.Hitbox.CenterX + actorPos.X,
-                            actor.Hitbox.CenterY + actorPos.Y,
-                            actor.Hitbox.HalfWidth,
-                            actor.Hitbox.HalfHeight
-                        );
+                        worldActorHitbox = GetWorldHitbox(actor, actorPos);
                     }
                 }
 
@@ -136,12 +111,7 @@ public class PhysicsSystem : BaseSystem
             }
 
 
-            AABB raycastHitbox = new(
-                actor.Hitbox.CenterX + actorPos.X,
-                actor.Hitbox.CenterY + actorPos.Y + actor.Hitbox.HalfHeight + 0.5f,
-                actor.Hitbox.HalfWidth - 1f,
-                0.5f
-            );
+            AABB raycastHitbox = GetWorldHitbox(actor, actorPos);
 
             float minY = float.MaxValue;
             actor.RidingEntityId = -1;
@@ -165,6 +135,8 @@ public class PhysicsSystem : BaseSystem
             }
         }
     }
+
+    private static AABB GetWorldHitbox(ActorComponent actor, Position2D actorPos) => new(actor.Hitbox.CenterX + actorPos.X, actor.Hitbox.CenterY + actorPos.Y, actor.Hitbox.HalfWidth, actor.Hitbox.HalfHeight);
 
     private static void HandlePlayerInput(EntityData actorData, ref ActorComponent actor)
     {

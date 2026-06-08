@@ -3,7 +3,7 @@
 public struct ActorComponent : IComponent
 {
     public Vector2 Velocity;
-    public RectangleF Hitbox;
+    public AABB Hitbox;
     public int RidingEntityId = -1;
     public readonly bool InAir => RidingEntityId < 0;
 

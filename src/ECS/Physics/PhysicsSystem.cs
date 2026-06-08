@@ -47,12 +47,12 @@ public class PhysicsSystem : BaseSystem
                 // --- ПРОХОД ПО ОСИ X ---
                 actorPos.X += actor.Velocity.X * dt;
 
-                // Создаем мировой хитбокс на основе локального смещения и позиции сущности
-                RectangleF worldActorHitbox = new RectangleF(
-                    actor.Hitbox.X + actorPos.X,
-                    actor.Hitbox.Y + actorPos.Y,
-                    actor.Hitbox.Width,
-                    actor.Hitbox.Height
+                // Создаем мировой хитбокс AABB на основе локального смещения центра и позиции
+                AABB worldActorHitbox = new AABB(
+                    actor.Hitbox.CenterX + actorPos.X,
+                    actor.Hitbox.CenterY + actorPos.Y,
+                    actor.Hitbox.HalfWidth,
+                    actor.Hitbox.HalfHeight
                 );
 
                 foreach (Entity solidEnt in SolidsQuery.Entities)
@@ -67,40 +67,38 @@ public class PhysicsSystem : BaseSystem
 
                     if (Collisions.Intersects(worldActorHitbox, solidHitbox, out Vector2 mtv))
                     {
-                        // Проверка ступеньки (Step Height)
-                        if (mtv.Y < 0 && Math.Abs(mtv.Y) <= StepThreshold)
+                        // Проверка ступеньки (с учетом нашего предыдущего фикса крутых стен!)
+                        if (mtv.Y < 0 && Math.Abs(mtv.Y) <= StepThreshold && Math.Abs(mtv.Y) > Math.Abs(mtv.X))
                         {
                             actorPos.Y += mtv.Y;
-                            // Пересчитываем хитбокс после изменения позиции Y
-                            worldActorHitbox = new RectangleF(
-                                actor.Hitbox.X + actorPos.X,
-                                actor.Hitbox.Y + actorPos.Y,
-                                actor.Hitbox.Width,
-                                actor.Hitbox.Height
+                            worldActorHitbox = new AABB(
+                                actor.Hitbox.CenterX + actorPos.X,
+                                actor.Hitbox.CenterY + actorPos.Y,
+                                actor.Hitbox.HalfWidth,
+                                actor.Hitbox.HalfHeight
                             );
                             continue;
                         }
 
                         // Иначе выталкиваем по горизонтали
                         actorPos.X += mtv.X;
-                        if (Math.Abs(mtv.X) > 1)
-                            actor.Velocity.X = 0;
-                        worldActorHitbox = new RectangleF(
-                            actor.Hitbox.X + actorPos.X,
-                            actor.Hitbox.Y + actorPos.Y,
-                            actor.Hitbox.Width,
-                            actor.Hitbox.Height
+                        actor.Velocity.X = 0;
+                        worldActorHitbox = new AABB(
+                            actor.Hitbox.CenterX + actorPos.X,
+                            actor.Hitbox.CenterY + actorPos.Y,
+                            actor.Hitbox.HalfWidth,
+                            actor.Hitbox.HalfHeight
                         );
                     }
                 }
 
                 // --- ПРОХОД ПО ОСИ Y ---
                 actorPos.Y += actor.Velocity.Y * dt;
-                worldActorHitbox = new RectangleF(
-                    actor.Hitbox.X + actorPos.X,
-                    actor.Hitbox.Y + actorPos.Y,
-                    actor.Hitbox.Width,
-                    actor.Hitbox.Height
+                worldActorHitbox = new AABB(
+                    actor.Hitbox.CenterX + actorPos.X,
+                    actor.Hitbox.CenterY + actorPos.Y,
+                    actor.Hitbox.HalfWidth,
+                    actor.Hitbox.HalfHeight
                 );
 
                 foreach (Entity solidEnt in SolidsQuery.Entities)
@@ -117,13 +115,12 @@ public class PhysicsSystem : BaseSystem
                     {
                         // Выталкивание по вертикали
                         actorPos.Y += mtv.Y;
-                        if (Math.Abs(mtv.Y) > 1)
-                            actor.Velocity.Y = 0;
-                        worldActorHitbox = new RectangleF(
-                            actor.Hitbox.X + actorPos.X,
-                            actor.Hitbox.Y + actorPos.Y,
-                            actor.Hitbox.Width,
-                            actor.Hitbox.Height
+                        actor.Velocity.Y = 0;
+                        worldActorHitbox = new AABB(
+                            actor.Hitbox.CenterX + actorPos.X,
+                            actor.Hitbox.CenterY + actorPos.Y,
+                            actor.Hitbox.HalfWidth,
+                            actor.Hitbox.HalfHeight
                         );
                     }
                 }
@@ -135,12 +132,13 @@ public class PhysicsSystem : BaseSystem
                 }
             }
 
-            RectangleF raycastHitbox = actor.Hitbox;
-            raycastHitbox.Location += actorPos;
-            raycastHitbox.Y += raycastHitbox.Height;
-            raycastHitbox.Height = 1f;
-            raycastHitbox.Width -= 2f;
-            raycastHitbox.X += 1f;
+
+            AABB raycastHitbox = new(
+                actor.Hitbox.CenterX + actorPos.X,
+                actor.Hitbox.CenterY + actorPos.Y + actor.Hitbox.HalfHeight + 0.5f,
+                actor.Hitbox.HalfWidth - 1f,
+                0.5f
+            );
 
             float minY = float.MaxValue;
             actor.RidingEntityId = -1;

@@ -78,10 +78,10 @@ public class DrawSystem : BaseSystem
             pos = Vector2.Zero;
         bool isTimeless = data.Has<TimelessComponent>();
 
-        RectangleF rect = actor.Hitbox;
-        rect.Location += pos;
-        rect.X *= Upscale.X;
-        rect.Y *= Upscale.Y;
+        AABB rect = actor.Hitbox;
+        rect.Center += pos;
+        rect.CenterX *= Upscale.X;
+        rect.CenterY *= Upscale.Y;
         rect.Width *= Upscale.X;
         rect.Height *= Upscale.Y;
         Color color = Color.Lerp(Color.Yellow, Color.LightGray, Rewind.Active ? 1f : 0);

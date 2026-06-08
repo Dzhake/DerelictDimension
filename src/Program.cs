@@ -1,12 +1,12 @@
 ﻿// 'global using' solves intellicode suggesting system.numerics and stuff like that
 global using Friflo.Engine.ECS;
 global using Microsoft.Xna.Framework;
+global using Serilog;
 global using RectangleF = MLEM.Maths.RectangleF;
 using DerelictDimension.CommandLine;
 using Monod;
 using Monod.Localization;
 using Monod.LogModule;
-using Serilog;
 using System;
 using System.Diagnostics;
 using System.IO;

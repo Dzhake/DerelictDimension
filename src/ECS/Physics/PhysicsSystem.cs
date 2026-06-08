@@ -13,6 +13,7 @@ public class PhysicsSystem : BaseSystem
     public ArchetypeQuery<ActorComponent> ActorsQuery;
     public ArchetypeQuery<SolidComponent> SolidsQuery;
     public float StepThreshold = 10f;
+    public float SlopeThreshold = (float)(Math.Sqrt(2) / 2);
 
     protected override void OnAddStore(EntityStore store)
     {
@@ -67,7 +68,6 @@ public class PhysicsSystem : BaseSystem
 
                     if (Collisions.Intersects(worldActorHitbox, solidHitbox, out Vector2 mtv))
                     {
-                        // Проверка ступеньки (с учетом нашего предыдущего фикса крутых стен!)
                         if (mtv.Y < 0 && Math.Abs(mtv.Y) <= StepThreshold && Math.Abs(mtv.Y) > Math.Abs(mtv.X))
                         {
                             actorPos.Y += mtv.Y;
@@ -115,7 +115,10 @@ public class PhysicsSystem : BaseSystem
                     {
                         // Выталкивание по вертикали
                         actorPos.Y += mtv.Y;
-                        actor.Velocity.Y = 0;
+                        float mtvLength = mtv.Length();
+                        Vector2 mtvNormal = mtv / mtvLength;
+                        if (mtvNormal.Y < -SlopeThreshold)
+                            actor.Velocity.Y = 0;
                         worldActorHitbox = new AABB(
                             actor.Hitbox.CenterX + actorPos.X,
                             actor.Hitbox.CenterY + actorPos.Y,

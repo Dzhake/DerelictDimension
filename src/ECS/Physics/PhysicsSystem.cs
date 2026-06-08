@@ -83,7 +83,8 @@ public class PhysicsSystem : BaseSystem
 
                         // Иначе выталкиваем по горизонтали
                         actorPos.X += mtv.X;
-                        actor.Velocity.X = 0;
+                        if (Math.Abs(mtv.X) > 1)
+                            actor.Velocity.X = 0;
                         worldActorHitbox = new RectangleF(
                             actor.Hitbox.X + actorPos.X,
                             actor.Hitbox.Y + actorPos.Y,
@@ -116,7 +117,8 @@ public class PhysicsSystem : BaseSystem
                     {
                         // Выталкивание по вертикали
                         actorPos.Y += mtv.Y;
-                        actor.Velocity.Y = 0;
+                        if (Math.Abs(mtv.Y) > 1)
+                            actor.Velocity.Y = 0;
                         worldActorHitbox = new RectangleF(
                             actor.Hitbox.X + actorPos.X,
                             actor.Hitbox.Y + actorPos.Y,

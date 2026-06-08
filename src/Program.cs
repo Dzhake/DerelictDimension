@@ -1,4 +1,5 @@
-﻿global using Friflo.Engine.ECS;
+﻿// 'global using' solves intellicode suggesting system.numerics and stuff like that
+global using Friflo.Engine.ECS;
 global using Microsoft.Xna.Framework;
 global using RectangleF = MLEM.Maths.RectangleF;
 using DerelictDimension.CommandLine;

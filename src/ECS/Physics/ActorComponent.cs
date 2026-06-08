@@ -1,6 +1,4 @@
-﻿using Friflo.Engine.ECS;
-
-namespace DerelictDimension.ECS.Physics;
+﻿namespace DerelictDimension.ECS.Physics;
 
 public struct ActorComponent : IComponent
 {

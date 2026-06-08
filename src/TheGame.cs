@@ -89,7 +89,7 @@ public class TheGame : MonodGame
         ClearStore();
 
         Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100, (float)Math.PI / 6) }, new Position2D(300, 550));
-        Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100, (float)Math.PI / 2) }, new Position2D(810, 550.5f));
+        Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100, (float)Math.PI / 2 * 1.05f) }, new Position2D(810, 550.5f));
         entity = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100) }, new Position2D(300, 100), new PlayerControlledComponent());
 
         InitializeSystems();

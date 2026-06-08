@@ -90,7 +90,7 @@ public class TheGame : MonodGame
 
         Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100, (float)Math.PI / 6) }, new Position2D(300, 550));
         Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100, (float)Math.PI / 2 * 1.05f) }, new Position2D(810, 550.5f));
-        entity = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100) }, new Position2D(300, 100), new PlayerControlledComponent());
+        entity = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(300, 100), new PlayerControlledComponent());
 
         InitializeSystems();
     }
@@ -184,8 +184,12 @@ public class TheGame : MonodGame
         }
         else if (Input.KeyPressed(Key.Mouse2))
         {
-            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 100, 100) }, new Position2D(Input.MousePos()));
+            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(Input.MousePos()));
             Rewind.Keep(ent);
+        }
+        else if (Input.KeyPressed(Key.Mouse3))
+        {
+            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(Input.MousePos()), new TimelessComponent());
         }
 
 

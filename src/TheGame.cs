@@ -68,6 +68,7 @@ public class TheGame : MonodGame
         MainAssetManager.LoadAsset("Fonts/m6x11plus.ttf");
         LoadFont();
         base.LoadContent();
+
         Renderer.deviceManager.PreferMultiSampling = true;
         Renderer.DefaultBlendState = Renderer.NonPremultipliedBlend;
         Assets.OnReload += LoadFont;

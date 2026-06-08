@@ -17,7 +17,7 @@ namespace DerelictDimension.ECS;
 public class DrawSystem : BaseSystem
 {
     private const float CardRadius = 0.3f;
-    public Effect? CardModifyEffect;
+    public Effect? RewindEffect;
     public Effect? InCardEffect;
     public RenderTarget2D? InCardRT;
     public RenderTarget2D? MainRT;
@@ -59,10 +59,9 @@ public class DrawSystem : BaseSystem
 
     private void DrawGame()
     {
-        Renderer.Begin(samplerState: SamplerState.PointClamp);
-
         ActorsQuery.ForEachEntity(DrawActor);
         SolidsQuery.ForEachEntity(DrawSolid);
+        Renderer.Begin();
         Renderer.DrawRotRect(X, Y, width, height, angle, Color.White);
         Renderer.End();
     }
@@ -83,11 +82,13 @@ public class DrawSystem : BaseSystem
         rect.CenterY *= Upscale.Y;
         rect.Width *= Upscale.X;
         rect.Height *= Upscale.Y;
-        Color color = Color.Lerp(Color.Yellow, Color.LightGray, Rewind.Active ? 1f : 0);
+        Color color = new(176 / 255f, 176 / 255f, 39 / 255f);
         if (isTimeless) color = Color.Lime;
+        Renderer.Begin(effect: isTimeless || !Rewind.Active ? null : RewindEffect);
         Renderer.DrawRect((Rectangle)rect, color);
         Renderer.DrawLine(rect.Center, rect.Center + (actor.Velocity * Time.DeltaTime), Color.Red, 5);
         GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{actor.Velocity.X}\n{actor.Velocity.Y}\n{actor.RidingEntityId}", rect.Center, Color.Black);
+        Renderer.End();
     }
 
     private void DrawSolid(ref SolidComponent solid, Entity entity)
@@ -105,7 +106,8 @@ public class DrawSystem : BaseSystem
         rect.Width *= Upscale.X;
         rect.Height *= Upscale.Y;
 
-        Color color = Color.Lerp(Color.Blue, Color.LightGray, Rewind.Active ? 0.8f : 0);
+        Color color = new(48 / 255f, 37 / 255f, 138 / 255f);
+        Renderer.Begin(effect: Rewind.Active ? RewindEffect : null);
         Renderer.DrawRotRect(rect.Center.X, rect.Center.Y, rect.Width, rect.Height, rect.Angle, color);
         bool dynamic = data.Has<MovingSolidComponent>();
         if (dynamic)
@@ -113,6 +115,7 @@ public class DrawSystem : BaseSystem
             ref var dyn = ref data.Get<MovingSolidComponent>();
             GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{dyn.Velocity.X}\n{dyn.Velocity.Y}", rect.Center, Color.White);
         }
+        Renderer.End();
     }
 
     private void DrawInCard(Point renderSize, float cardSide, float lean)
@@ -122,12 +125,12 @@ public class DrawSystem : BaseSystem
             Renderer.SetRenderTarget(InCardRT);
             Renderer.Clear(Renderer.EmptyColor);
 
-            Renderer.Begin(samplerState: SamplerState.PointClamp);
+            Renderer.Begin();
             Renderer.DrawRect(new Rectangle((int)(renderSize.X - cardSide) / 2, (int)(renderSize.Y - cardSide) / 2, (int)cardSide, (int)(cardSide * Math.Abs(lean) / 2)), Color.Black.WithAlpha(120));
             Renderer.End();
 
             Renderer.SetRenderTarget(MainRT);
-            Renderer.Begin(samplerState: SamplerState.PointClamp, effect: InCardEffect);
+            Renderer.Begin(effect: InCardEffect);
             Renderer.DrawTexture(InCardRT!, Vector2.Zero, Color.White);
             Renderer.End();
         }
@@ -136,15 +139,15 @@ public class DrawSystem : BaseSystem
     private void DrawFinal(Point renderSize, float cardSide, float lean)
     {
         Vector2 renderOffset = Renderer.RenderOffset;
-        /*Renderer.Begin(samplerState: SamplerState.PointClamp);
+        /*Renderer.Begin();
         Renderer.DrawTexture(Bg, renderOffset, scale: Upscale);
         Renderer.End();*/
 
-        Renderer.Begin(samplerState: SamplerState.PointClamp);
+        Renderer.Begin();
         Renderer.DrawTexture(MainRT!, renderOffset, Color.White);
         Renderer.End();
 
-        Renderer.Begin(samplerState: SamplerState.PointClamp);
+        Renderer.Begin();
         GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Lean: {lean}\nTarget:{UpdateCardSystem.Target}\nWindowSize:{Renderer.WindowSizeP}\nRenderSize:{Renderer.RenderSize}\nRenderOffset:{Renderer.RenderOffset}\nCardSide:{cardSide}\nTime:{Time.TotalTimeSpan}\nRewinding:{Rewind.Active}\nCurrentIndex:{RewindPostUpdateSystem.CurrentIndex}\nRewind Speed:{RewindPostUpdateSystem.RewindSpeed}\nLast Valid Index: {RewindPostUpdateSystem.LastValidIndex}", renderOffset, Color.White);
         Renderer.End();
     }
@@ -156,11 +159,7 @@ public class DrawSystem : BaseSystem
         float halfSideX = cardSide / renderSize.X / 2;
         float halfSideY = cardSide / renderSize.Y / 2;
 
-        CardModifyEffect!.Parameters["HalfSideX"]?.SetValue(halfSideX);
-        CardModifyEffect.Parameters["HalfSideY"]?.SetValue(halfSideY);
-        CardModifyEffect.Parameters["Lean"]?.SetValue(lean);
-        CardModifyEffect.Parameters["CardRadius"]?.SetValue(CardRadius);
-        CardModifyEffect.Parameters["TotalTime"]?.SetValue(Time.TotalTime);
+        RewindEffect!.Parameters["SaturationChange"]?.SetValue(RewindPostUpdateSystem.GetSaturationChange());
 
         InCardEffect!.Parameters["HalfSideX"]?.SetValue(halfSideX);
         InCardEffect.Parameters["HalfSideY"]?.SetValue(halfSideY);
@@ -233,8 +232,8 @@ public class DrawSystem : BaseSystem
             MainRT = new(Renderer.device, renderSize.X, renderSize.Y, false, SurfaceFormat.Color, DepthFormat.None, 4, RenderTargetUsage.PreserveContents);
         }
 
-        if (CardModifyEffect?.IsDisposed != false || Assets.ReloadThisFrame)
-            CardModifyEffect = Assets.Get<Effect>("Effects/CardModify.mgfx");
+        if (RewindEffect?.IsDisposed != false || Assets.ReloadThisFrame)
+            RewindEffect = Assets.Get<Effect>("Effects/Rewind.mgfx");
 
         if (InCardEffect?.IsDisposed != false || Assets.ReloadThisFrame)
             InCardEffect = Assets.Get<Effect>("Effects/InCard.mgfx");

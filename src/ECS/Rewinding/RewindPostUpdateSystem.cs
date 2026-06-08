@@ -11,11 +11,24 @@ public class RewindPostUpdateSystem : BaseSystem
     public static int CurrentIndex = -1;
     public static int RewindSpeed = -1;
 
+    public RewindPostUpdateSystem()
+    {
+        //need to reset these values on world reset.
+        LastValidIndex = 0;
+        CurrentIndex = -1;
+        RewindSpeed = -1;
+    }
+
     protected override void OnAddStore(EntityStore store)
     {
         StoredComponents = new();
         Store = store;
         base.OnAddStore(store);
+    }
+
+    public static float GetSaturationChange()
+    {
+        return Math.Sign(RewindSpeed) * 0.8f;
     }
 
     protected override void OnUpdateGroup()

@@ -1,9 +1,7 @@
 ﻿using DerelictDimension.ECS.Battle;
 using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Rewinding;
-using Friflo.Engine.ECS;
 using Friflo.Engine.ECS.Systems;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monod.AssetsModule;
 using Monod.ECS.DefaultComponents;
@@ -80,15 +78,15 @@ public class DrawSystem : BaseSystem
             pos = Vector2.Zero;
         bool isTimeless = data.Has<TimelessComponent>();
 
-        RotatedRectangle rect = actor.Hitbox;
-        rect.Center += pos;
-        rect.Center.X *= Upscale.X;
-        rect.Center.Y *= Upscale.Y;
+        RectangleF rect = actor.Hitbox;
+        rect.Location += pos;
+        rect.X *= Upscale.X;
+        rect.Y *= Upscale.Y;
         rect.Width *= Upscale.X;
         rect.Height *= Upscale.Y;
         Color color = Color.Lerp(Color.Yellow, Color.LightGray, Rewind.Active ? 1f : 0);
         if (isTimeless) color = Color.Lime;
-        Renderer.DrawRotRect(rect.Center.X, rect.Center.Y, rect.Width, rect.Height, rect.Angle, color);
+        Renderer.DrawRect((Rectangle)rect, color);
         Renderer.DrawLine(rect.Center, rect.Center + (actor.Velocity * Time.DeltaTime), Color.Red, 5);
         GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{actor.Velocity.X}\n{actor.Velocity.Y}\n{actor.RidingEntityId}", rect.Center, Color.Black);
     }

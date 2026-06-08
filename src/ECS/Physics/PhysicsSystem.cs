@@ -1,8 +1,6 @@
 ﻿using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Rewinding;
-using Friflo.Engine.ECS;
 using Friflo.Engine.ECS.Systems;
-using Microsoft.Xna.Framework;
 using Monod.ECS.DefaultComponents;
 using Monod.InputModule;
 using Monod.TimeModule;
@@ -48,8 +46,14 @@ public class PhysicsSystem : BaseSystem
 
                 // --- ПРОХОД ПО ОСИ X ---
                 actorPos.X += actor.Velocity.X * dt;
-                RotatedRectangle actorHitbox = actor.Hitbox;
-                actorHitbox.Center += actorPos; // Смещение центра хитбокса
+
+                // Создаем мировой хитбокс на основе локального смещения и позиции сущности
+                RectangleF worldActorHitbox = new RectangleF(
+                    actor.Hitbox.X + actorPos.X,
+                    actor.Hitbox.Y + actorPos.Y,
+                    actor.Hitbox.Width,
+                    actor.Hitbox.Height
+                );
 
                 foreach (Entity solidEnt in SolidsQuery.Entities)
                 {
@@ -61,27 +65,42 @@ public class PhysicsSystem : BaseSystem
                     RotatedRectangle solidHitbox = solid.Hitbox;
                     solidHitbox.Center += solidPos;
 
-                    if (actorHitbox.Intersects(solidHitbox, out Vector2 mtv))
+                    if (Collisions.Intersects(worldActorHitbox, solidHitbox, out Vector2 mtv))
                     {
-                        // Проверка ступеньки (Step Height): mtv направлен вверх и глубина по Y небольшая
+                        // Проверка ступеньки (Step Height)
                         if (mtv.Y < 0 && Math.Abs(mtv.Y) <= StepThreshold)
                         {
-                            actorPos.Y += mtv.Y; // Шаг вверх
-                            actorHitbox.Center = actor.Hitbox.Center + actorPos;
+                            actorPos.Y += mtv.Y;
+                            // Пересчитываем хитбокс после изменения позиции Y
+                            worldActorHitbox = new RectangleF(
+                                actor.Hitbox.X + actorPos.X,
+                                actor.Hitbox.Y + actorPos.Y,
+                                actor.Hitbox.Width,
+                                actor.Hitbox.Height
+                            );
                             continue;
                         }
 
                         // Иначе выталкиваем по горизонтали
                         actorPos.X += mtv.X;
                         actor.Velocity.X = 0;
-                        actorHitbox.Center = actor.Hitbox.Center + actorPos;
+                        worldActorHitbox = new RectangleF(
+                            actor.Hitbox.X + actorPos.X,
+                            actor.Hitbox.Y + actorPos.Y,
+                            actor.Hitbox.Width,
+                            actor.Hitbox.Height
+                        );
                     }
                 }
 
                 // --- ПРОХОД ПО ОСИ Y ---
                 actorPos.Y += actor.Velocity.Y * dt;
-                actorHitbox = actor.Hitbox;
-                actorHitbox.Center += actorPos;
+                worldActorHitbox = new RectangleF(
+                    actor.Hitbox.X + actorPos.X,
+                    actor.Hitbox.Y + actorPos.Y,
+                    actor.Hitbox.Width,
+                    actor.Hitbox.Height
+                );
 
                 foreach (Entity solidEnt in SolidsQuery.Entities)
                 {
@@ -93,12 +112,17 @@ public class PhysicsSystem : BaseSystem
                     RotatedRectangle solidHitbox = solid.Hitbox;
                     solidHitbox.Center += solidPos;
 
-                    if (actorHitbox.Intersects(solidHitbox, out Vector2 mtv))
+                    if (Collisions.Intersects(worldActorHitbox, solidHitbox, out Vector2 mtv))
                     {
                         // Выталкивание по вертикали
                         actorPos.Y += mtv.Y;
                         actor.Velocity.Y = 0;
-                        actorHitbox.Center = actor.Hitbox.Center + actorPos;
+                        worldActorHitbox = new RectangleF(
+                            actor.Hitbox.X + actorPos.X,
+                            actor.Hitbox.Y + actorPos.Y,
+                            actor.Hitbox.Width,
+                            actor.Hitbox.Height
+                        );
                     }
                 }
 
@@ -109,11 +133,12 @@ public class PhysicsSystem : BaseSystem
                 }
             }
 
-            // --- ПРОВЕРКА ЗЕМЛИ (Riding Check) ---
-            // Сдвигаем хитбокс вниз на 1 пиксель, чтобы проверить, стоим ли мы на объекте
-            RotatedRectangle raycastHitbox = actor.Hitbox;
-            raycastHitbox.Center += actorPos;
-            raycastHitbox.Center.Y += 1f;
+            RectangleF raycastHitbox = actor.Hitbox;
+            raycastHitbox.Location += actorPos;
+            raycastHitbox.Y += raycastHitbox.Height;
+            raycastHitbox.Height = 1f;
+            raycastHitbox.Width -= 2f;
+            raycastHitbox.X += 1f;
 
             float minY = float.MaxValue;
             actor.RidingEntityId = -1;
@@ -129,7 +154,7 @@ public class PhysicsSystem : BaseSystem
                 RotatedRectangle solidHitbox = solid.Hitbox;
                 solidHitbox.Center += solidPos;
 
-                if (raycastHitbox.Intersects(solidHitbox, out _))
+                if (Collisions.Intersects(raycastHitbox, solidHitbox, out var mtv))
                 {
                     minY = solidPos.Y;
                     actor.RidingEntityId = solidEnt.Id;
@@ -173,5 +198,4 @@ public class PhysicsSystem : BaseSystem
             actor.Velocity.Y = -playerControlled.JumpStrength;
         }
     }
-
 }

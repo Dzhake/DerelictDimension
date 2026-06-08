@@ -1,12 +1,11 @@
 ﻿using Friflo.Engine.ECS;
-using Microsoft.Xna.Framework;
 
 namespace DerelictDimension.ECS.Physics;
 
 public struct ActorComponent : IComponent
 {
     public Vector2 Velocity;
-    public RotatedRectangle Hitbox;
+    public RectangleF Hitbox;
     public int RidingEntityId = -1;
     public readonly bool InAir => RidingEntityId < 0;
 

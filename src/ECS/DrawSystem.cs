@@ -23,7 +23,7 @@ public class DrawSystem : BaseSystem
     public RenderTarget2D? MainRT;
     public Texture2D Bg;
     public Texture2D CardBg;
-    public Vector2 Upscale = Vector2.One;
+    public static Vector2 Upscale = Vector2.One;
 
     public ArchetypeQuery<ActorComponent> ActorsQuery;
     public ArchetypeQuery<SolidComponent> SolidsQuery;

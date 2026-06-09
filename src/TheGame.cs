@@ -175,22 +175,23 @@ public class TheGame : MonodGame
 
         if (Input.KeyboardKeysPressed.Count > 0) pressed = Input.KeyboardKeysPressed.ElementAt(0);
         if (Input.KeyboardKeysReleased.Count > 0) released = Input.KeyboardKeysReleased.ElementAt(0);
+        Vector2 mousepos = (Input.MousePos() - Renderer.RenderOffset) / DrawSystem.Upscale;
         if (Input.KeyDown(Key.Mouse1))
         {
             var data = entity.Data;
             ref var pos = ref data.Get<Position2D>();
-            pos.Value = Input.MousePos();
+            pos.Value = mousepos;
             ref var actor = ref data.Get<ActorComponent>();
             actor.Velocity = Vector2.Zero;
         }
         else if (Input.KeyPressed(Key.Mouse2))
         {
-            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(Input.MousePos()));
+            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(mousepos));
             Rewind.Keep(ent);
         }
         else if (Input.KeyPressed(Key.Mouse3))
         {
-            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(Input.MousePos()), new TimelessComponent());
+            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(mousepos), new TimelessComponent());
         }
 
 

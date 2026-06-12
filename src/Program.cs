@@ -1,6 +1,7 @@
 ﻿// 'global using' solves intellicode suggesting system.numerics and stuff like that
 global using Friflo.Engine.ECS;
 global using Microsoft.Xna.Framework;
+global using Microsoft.Xna.Framework.Graphics;
 global using Serilog;
 global using Math = System.Math;
 global using RectangleF = MLEM.Maths.RectangleF;

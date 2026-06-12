@@ -1,5 +1,4 @@
-﻿using Friflo.Engine.ECS;
-using Monod.Shared.Exceptions;
+﻿using Monod.Shared.Exceptions;
 
 namespace DerelictDimension.ECS.Rewinding;
 
@@ -14,10 +13,13 @@ public record struct StoredComponent
         Component = component;
     }
 
-    public void Set(EntityStore store)
+    public readonly void Set(EntityStore store)
     {
         if (EntityId == -1) Guard.Exception($"Tried to apply invalid StoredComponent: {this}");
         Entity entity = store.GetEntityById(EntityId);
+        var data = entity.Data;
+        if (data.Has<TimelessComponent>())
+            return;
         if (Component is null)
         {
             entity.Enabled = !entity.Enabled;
@@ -28,5 +30,5 @@ public record struct StoredComponent
         EntityUtils.AddEntityComponentValue(entity, componentType, Component);
     }
 
-    public override string ToString() => $"{{ EntityId: {EntityId}, Component: {(Component != null ? Component : "<null>")} }}";
+    public override readonly string ToString() => $"{{ EntityId: {EntityId}, Component: {(Component != null ? Component : "<null>")} }}";
 }

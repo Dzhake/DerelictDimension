@@ -8,15 +8,13 @@ public class RewindPostUpdateSystem : BaseSystem
     public List<StoredComponent> StoredComponents;
     public EntityStore Store;
     public static int LastValidIndex;
-    public static int CurrentIndex = -1;
-    public static int RewindSpeed = -1;
 
     public RewindPostUpdateSystem()
     {
         //need to reset these values on world reset.
         LastValidIndex = 0;
-        CurrentIndex = -1;
-        RewindSpeed = -1;
+        Rewind.CurrentIndex = -1;
+        Rewind.RewindSpeed = -1;
     }
 
     protected override void OnAddStore(EntityStore store)
@@ -26,28 +24,26 @@ public class RewindPostUpdateSystem : BaseSystem
         base.OnAddStore(store);
     }
 
-    public static float GetSaturationChange()
-    {
-        return Math.Sign(RewindSpeed) * 0.8f;
-    }
-
     protected override void OnUpdateGroup()
     {
         if (Rewind.Active)
         {
-            int framesToRewind = RewindSpeed;
+            int framesToRewind = Rewind.RewindSpeed;
             int framesSign = Math.Sign(framesToRewind);
-            while (framesToRewind != 0 && (CurrentIndex > 0 || RewindSpeed > 0) && (CurrentIndex < LastValidIndex || RewindSpeed <= 0))
+            while (framesToRewind != 0 && (Rewind.CurrentIndex > 0 || Rewind.RewindSpeed > 0) && (Rewind.CurrentIndex < LastValidIndex || Rewind.RewindSpeed <= 0))
             {
-                CurrentIndex += framesSign;
-                StoredComponent stored = StoredComponents[CurrentIndex];
+                Rewind.CurrentIndex += framesSign;
+                StoredComponent stored = StoredComponents[Rewind.CurrentIndex];
                 if (stored.EntityId == -1)
                 {
+                    Rewind.CurrentFrame += framesSign;
                     framesToRewind -= framesSign;
                     continue;
                 }
                 stored.Set(Store);
             }
+            //fix CurrentFrame not resetting to zero because there's no "-1" stored, should probably improve this somehow.
+            if (Rewind.CurrentIndex == 0) Rewind.CurrentFrame = 0;
         }
         else
         {
@@ -58,6 +54,7 @@ public class RewindPostUpdateSystem : BaseSystem
             }
 
             StoreComponent(-1, null);
+            Rewind.CurrentFrame++;
             Rewind.StoredComponents.Clear();
         }
         base.OnUpdateGroup();
@@ -66,10 +63,10 @@ public class RewindPostUpdateSystem : BaseSystem
     private void StoreComponent(int entityId, IComponent? component)
     {
         StoredComponent storedComponent = new(entityId, component);
-        if (CurrentIndex >= StoredComponents.Count - 1)
+        if (Rewind.CurrentIndex >= StoredComponents.Count - 1)
             StoredComponents.Add(storedComponent);
         else
-            StoredComponents[CurrentIndex] = storedComponent;
-        CurrentIndex++;
+            StoredComponents[Rewind.CurrentIndex] = storedComponent;
+        Rewind.CurrentIndex++;
     }
 }

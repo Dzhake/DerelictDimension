@@ -20,7 +20,7 @@ public struct RotatedRectangle
     public RotatedRectangle(float centerX, float centerY, float width, float height, float angle) : this(new(centerX, centerY), width, height, angle) { }
 
     // Получение 4 вершин прямоугольника в мировых координатах
-    public Vector2[] GetVertices()
+    public readonly Vector2[] GetVertices()
     {
         Vector2 halfSize = new Vector2(Width / 2f, Height / 2f);
         Vector2[] localVertices =

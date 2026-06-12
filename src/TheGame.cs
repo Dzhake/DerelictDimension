@@ -89,9 +89,9 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100, (float)Math.PI / 6) }, new Position2D(300, 550));
-        Store.CreateEntity(new SolidComponent() { Hitbox = new(0, 0, 500, 100, (float)Math.PI / 2 * 1.05f) }, new Position2D(810, 550.5f));
-        entity = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(300, 100), new PlayerControlledComponent());
+        Store.CreateEntity(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Position2D(300, 550));
+        Store.CreateEntity(new SupportComponent(), new HitboxComponent(0, 0, 250, 50), new Position2D(810, 550.5f));
+        entity = Store.CreateEntity(new MobileComponent(), new HitboxComponent(0, 0, 50, 50), new Position2D(300, 100), new PlayerControlledComponent());
 
         InitializeSystems();
     }
@@ -121,6 +121,7 @@ public class TheGame : MonodGame
     {
         InitWorld();
         Rewind.StoredComponents.Clear();
+        Rewind.CurrentFrame = 0;
     }
 
     ///<inheritdoc/>
@@ -181,17 +182,18 @@ public class TheGame : MonodGame
             var data = entity.Data;
             ref var pos = ref data.Get<Position2D>();
             pos.Value = mousepos;
-            ref var actor = ref data.Get<ActorComponent>();
-            actor.Velocity = Vector2.Zero;
+            ref var mobile = ref data.Get<MobileComponent>();
+            mobile.Velocity = Vector2.Zero;
         }
         else if (Input.KeyPressed(Key.Mouse2))
         {
-            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(mousepos));
+            Entity ent = Store.CreateEntity(new MobileComponent(), new HitboxComponent(0, 0, 50, 50), new Position2D(mousepos));
             Rewind.Keep(ent);
         }
         else if (Input.KeyPressed(Key.Mouse3))
         {
-            Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(mousepos), new TimelessComponent());
+            //Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(mousepos), new TimelessComponent());
+            entity.AddComponent(new TemporaryTimeless());
         }
 
 

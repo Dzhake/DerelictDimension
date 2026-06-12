@@ -1,38 +1,37 @@
-﻿using System;
+﻿using Monod.MathModule;
+using System;
 
 namespace DerelictDimension.ECS.Physics;
 
+//this file is vibecoded because collisions are some algorithms written in 500 pages long books i'm too lazy to read. sorry not sorry.
 public static class Collisions
 {
-    public static bool Intersects(AABB aabb, RotatedRectangle obb, out Vector2 mtv)
+    public static bool CheckAABBToRotatedRectangle(AABB aabb, RotatedRectangle obb, out Vector2 mtv)
     {
         mtv = Vector2.Zero;
+        Vector2 obbHalfSize = new Vector2(obb.Width * 0.5f, obb.Height * 0.5f);
 
-        // Половины размеров OBB
-        Vector2 obbHalf = new Vector2(obb.Width * 0.5f, obb.Height * 0.5f);
 
-        // Предварительно вычисляем тригонометрию для угла OBB
         float cos = MathF.Cos(obb.Angle);
         float sin = MathF.Sin(obb.Angle);
         float absCos = MathF.Abs(cos);
         float absSin = MathF.Abs(sin);
 
-        // Вектор от центра OBB к центру AABB (уже без лишних сложений/делений!)
         Vector2 centerDiff = new Vector2(aabb.CenterX - obb.Center.X, aabb.CenterY - obb.Center.Y);
 
         float minOverlap = float.MaxValue;
         Vector2 smallestAxis = Vector2.Zero;
 
-        // --- ОСЬ 1: Глобальная ось X (AABB) ---
-        float obbProjX = obbHalf.X * absCos + obbHalf.Y * absSin;
+        // global axis X
+        float obbProjX = obbHalfSize.X * absCos + obbHalfSize.Y * absSin;
         float overlapX = aabb.HalfWidth + obbProjX - MathF.Abs(centerDiff.X);
         if (overlapX <= 0) return false;
 
         minOverlap = overlapX;
         smallestAxis = Vector2.UnitX;
 
-        // --- ОСЬ 2: Глобальная ось Y (AABB) ---
-        float obbProjY = obbHalf.X * absSin + obbHalf.Y * absCos;
+        // global axis Y
+        float obbProjY = obbHalfSize.X * absSin + obbHalfSize.Y * absCos;
         float overlapY = aabb.HalfHeight + obbProjY - MathF.Abs(centerDiff.Y);
         if (overlapY <= 0) return false;
 
@@ -42,14 +41,14 @@ public static class Collisions
             smallestAxis = Vector2.UnitY;
         }
 
-        // Локальные оси OBB
+        // local axes
         Vector2 obbAxisX = new Vector2(cos, sin);
         Vector2 obbAxisY = new Vector2(-sin, cos);
 
-        // --- ОСЬ 3: Локальная ось X (OBB) ---
+        // local axis X
         float distObbX = MathF.Abs(centerDiff.X * cos + centerDiff.Y * sin);
         float aabbProjObbX = aabb.HalfWidth * absCos + aabb.HalfHeight * absSin;
-        float overlapObbX = aabbProjObbX + obbHalf.X - distObbX;
+        float overlapObbX = aabbProjObbX + obbHalfSize.X - distObbX;
         if (overlapObbX <= 0) return false;
 
         if (overlapObbX < minOverlap)
@@ -58,10 +57,10 @@ public static class Collisions
             smallestAxis = obbAxisX;
         }
 
-        // --- ОСЬ 4: Локальная ось Y (OBB) ---
+        // locla axis Y
         float distObbY = MathF.Abs(centerDiff.X * -sin + centerDiff.Y * cos);
         float aabbProjObbY = aabb.HalfWidth * absSin + aabb.HalfHeight * absCos;
-        float overlapObbY = aabbProjObbY + obbHalf.Y - distObbY;
+        float overlapObbY = aabbProjObbY + obbHalfSize.Y - distObbY;
         if (overlapObbY <= 0) return false;
 
         if (overlapObbY < minOverlap)
@@ -70,13 +69,153 @@ public static class Collisions
             smallestAxis = obbAxisY;
         }
 
-        // Определение направления выталкивания
+        // determine mtv direction
         if (Vector2.Dot(centerDiff, smallestAxis) < 0)
-        {
             smallestAxis = -smallestAxis;
-        }
 
         mtv = smallestAxis * minOverlap;
+        return true;
+    }
+
+    /// <summary>
+    /// Checks whether two <see cref="AABB"/> intersect and returns minimal traversal vector for <paramref name="a"/>.
+    /// </summary>
+    /// <param name="a">AABB for which mtv is calculated.</param>
+    /// <param name="b">Other AABB.</param>
+    /// <param name="mtv">Minimal travelsal vector for <paramref name="a"/>.</param>
+    /// <returns>Whether <paramref name="a"/> and <paramref name="b"/> intersect.</returns>
+    public static bool CheckAABBToAABB(ref AABB a, ref AABB b, out Vector2 mtv)
+    {
+        mtv = Vector2.Zero;
+
+        float distX = a.CenterX - b.CenterX;
+        float distY = a.CenterY - b.CenterY;
+
+        float overlapX = (a.HalfWidth + b.HalfWidth) - Math.Abs(distX);
+        float overlapY = (a.HalfHeight + b.HalfHeight) - Math.Abs(distY);
+
+        // SAT
+        if (overlapX <= 0 || overlapY <= 0)
+            return false;
+
+        if (overlapX < overlapY)
+        {
+            float sign = Math.Sign(distX);
+            if (sign == 0) sign = 1f; //push right if distX is 0, i.e. centers have same X
+            mtv = new Vector2(overlapX * sign, 0);
+        }
+        else
+        {
+            float sign = Math.Sign(distY);
+            if (sign == 0) sign = -1f; //push up if distY is 0, i.e. centers have same Y
+            mtv = new Vector2(0, overlapY * sign);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Compute the exact time of intersection and surface normal between a moving AABB and a static AABB using the Swept AABB algorithm.
+    /// </summary>
+    /// <param name="a">The moving AABB.</param>
+    /// <param name="b">The static AABB acting as the obstacle.</param>
+    /// <param name="velocity">The displacement vector (velocity) of AABB 'a' for the current frame.</param>
+    /// <param name="time">Outputs the normalized time of collision [0.0, 1.0] if a hit occurs; otherwise, 1.0f.</param>
+    /// <param name="normal">Outputs the collision normal vector pointing outward from AABB 'b'.</param>
+    /// <returns>True if a collision occurs within the current frame's time step; otherwise, false.</returns>
+    public static bool SweptCheck(ref AABB a, ref AABB b, ref Vector2 velocity, out float time, out Vector2 normal)
+    {
+        float invEntryX, invEntryY;
+        float invExitX, invExitY;
+
+        // 1. Find the distance between the objects on the near and far sides for both axes.
+        if (velocity.X > 0.0f)
+        {
+            invEntryX = b.Left - a.Right;
+            invExitX = b.Right - a.Left;
+        }
+        else
+        {
+            invEntryX = b.Right - a.Left;
+            invExitX = b.Left - a.Right;
+        }
+
+        if (velocity.Y > 0.0f)
+        {
+            invEntryY = b.Top - a.Bottom;
+            invExitY = b.Bottom - a.Top;
+        }
+        else
+        {
+            invEntryY = b.Bottom - a.Top;
+            invExitY = b.Top - a.Bottom;
+        }
+
+        float xEntry, yEntry;
+        float xExit, yExit;
+
+        // 2. Calculate time of collision and time of leaving for each axis.
+        if (Math.Abs(velocity.X) < MathM.Epsilon)
+        {
+            // Minkowski difference: if there is no velocity on this axis, they must already be overlapping to collide.
+            if (a.Right <= b.Left || a.Left >= b.Right)
+            {
+                xEntry = float.PositiveInfinity;
+                xExit = float.PositiveInfinity;
+            }
+            else
+            {
+                xEntry = float.NegativeInfinity;
+                xExit = float.PositiveInfinity;
+            }
+        }
+        else
+        {
+            xEntry = invEntryX / velocity.X;
+            xExit = invExitX / velocity.X;
+        }
+
+        if (Math.Abs(velocity.Y) < MathM.Epsilon)
+        {
+            if (a.Bottom <= b.Top || a.Top >= b.Bottom)
+            {
+                yEntry = float.PositiveInfinity;
+                yExit = float.PositiveInfinity;
+            }
+            else
+            {
+                yEntry = float.NegativeInfinity;
+                yExit = float.PositiveInfinity;
+            }
+        }
+        else
+        {
+            yEntry = invEntryY / velocity.Y;
+            yExit = invExitY / velocity.Y;
+        }
+
+        // find the earliest/latest times of collision across all axes.
+        float entryTime = Math.Max(xEntry, yEntry);
+        float exitTime = Math.Min(xExit, yExit);
+
+        // a collision occurs if the entry time is before the exit time,
+        // and the entry time is within the bounds of the current frame [0.0, 1.0].
+        // entryTime < 0.0f ignores objects that are already intersecting.
+        if (entryTime > exitTime || entryTime < 0.0f || entryTime > 1.0f)
+        {
+            //return 1 because that means object can fully move (no collision prevents movement).
+            time = 1.0f;
+            normal = Vector2.Zero;
+            return false;
+        }
+
+        // determine collision normal based on which axis collided first.
+        if (xEntry > yEntry)
+            normal = velocity.X > 0.0f ? new Vector2(-1.0f, 0.0f) : new Vector2(1.0f, 0.0f);
+        else
+            normal = velocity.Y > 0.0f ? new Vector2(0.0f, -1.0f) : new Vector2(0.0f, 1.0f);
+
+        time = entryTime;
         return true;
     }
 }

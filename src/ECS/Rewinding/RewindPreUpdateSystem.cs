@@ -9,11 +9,14 @@ public class RewindPreUpdateSystem : BaseSystem
     {
         base.OnUpdateGroup();
         bool enableRewind = Input.KeyDown(Key.LeftShift);
-        ref int rewindSpeed = ref RewindPostUpdateSystem.RewindSpeed;
-        if (enableRewind && !Rewind.Active)
+        ref int rewindSpeed = ref Rewind.RewindSpeed;
+        if (!Rewind.Active)
         {
             rewindSpeed = -1;
-            RewindPostUpdateSystem.LastValidIndex = RewindPostUpdateSystem.CurrentIndex;
+        }
+        if (enableRewind && !Rewind.Active)
+        {
+            RewindPostUpdateSystem.LastValidIndex = Rewind.CurrentIndex;
         }
         if (enableRewind && Input.KeyPressed(Key.Up))
         {

@@ -15,7 +15,7 @@ public record struct ComponentRef
         ComponentType = componentType;
     }
 
-    public IComponent Get(EntityStore store)
+    public readonly IComponent Get(EntityStore store)
     {
         if (EntityId == -1 || ComponentType == null) Guard.Exception($"Tried to get component of invalid ComponentRef: {this}");
         Entity entity = store.GetEntityById(EntityId);
@@ -24,5 +24,5 @@ public record struct ComponentRef
         return EntityUtils.GetEntityComponent(entity, componentType);
     }
 
-    public override string ToString() => $"{{ EntityId: {EntityId}, ComponentType: {(ComponentType != null ? ComponentType : "<null>")} }}";
+    public override readonly string ToString() => $"{{ EntityId: {EntityId}, ComponentType: {(ComponentType != null ? ComponentType : "<null>")} }}";
 }

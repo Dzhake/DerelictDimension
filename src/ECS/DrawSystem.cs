@@ -2,7 +2,6 @@
 using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
-using Microsoft.Xna.Framework.Graphics;
 using Monod.AssetsModule;
 using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
@@ -11,6 +10,7 @@ using Monod.Graphics.Extensions;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.TimeModule;
+using Monod.Utils.Extensions;
 
 namespace DerelictDimension.ECS;
 
@@ -25,8 +25,8 @@ public class DrawSystem : BaseSystem
     public Texture2D CardBg;
     public static Vector2 Upscale = Vector2.One;
 
-    public ArchetypeQuery<ActorComponent> ActorsQuery;
-    public ArchetypeQuery<SolidComponent> SolidsQuery;
+    public ArchetypeQuery<MobileComponent> MobilesQuery;
+    public ArchetypeQuery<SupportComponent> SupportsQuery;
     public static float X;
     public static float Y;
     public static float width;
@@ -37,8 +37,8 @@ public class DrawSystem : BaseSystem
     protected override void OnAddStore(EntityStore store)
     {
         base.OnAddStore(store);
-        ActorsQuery = store.Query<ActorComponent>();
-        SolidsQuery = store.Query<SolidComponent>();
+        MobilesQuery = store.Query<MobileComponent>();
+        SupportsQuery = store.Query<SupportComponent>();
     }
 
     protected override void OnUpdateGroup()
@@ -59,16 +59,17 @@ public class DrawSystem : BaseSystem
 
     private void DrawGame()
     {
-        ActorsQuery.ForEachEntity(DrawActor);
-        SolidsQuery.ForEachEntity(DrawSolid);
+        MobilesQuery.ForEachEntity(DrawMobile);
+        SupportsQuery.ForEachEntity(DrawSupport);
         Renderer.Begin();
         Renderer.DrawRotRect(X, Y, width, height, angle, Color.White);
         Renderer.End();
     }
 
-    private void DrawActor(ref ActorComponent actor, Entity entity)
+    private void DrawMobile(ref MobileComponent mobile, Entity entity)
     {
         var data = entity.Data;
+        if (!data.Has<HitboxComponent>()) return;
         Vector2 pos;
         if (data.Has<Position2D>())
             pos = data.Get<Position2D>().Value;
@@ -76,7 +77,7 @@ public class DrawSystem : BaseSystem
             pos = Vector2.Zero;
         bool isTimeless = data.Has<TimelessComponent>();
 
-        AABB rect = actor.Hitbox;
+        AABB rect = data.Get<HitboxComponent>().Value;
         rect.Center += pos;
         rect.CenterX *= Upscale.X;
         rect.CenterY *= Upscale.Y;
@@ -86,35 +87,31 @@ public class DrawSystem : BaseSystem
         if (isTimeless) color = Color.Lime;
         Renderer.Begin(effect: isTimeless || !Rewind.Active ? null : RewindEffect);
         Renderer.DrawRect((Rectangle)rect, color);
-        Renderer.DrawLine(rect.Center, rect.Center + (actor.Velocity * Time.DeltaTime), Color.Red, 5);
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{actor.Velocity.X}\n{actor.Velocity.Y}\n{actor.RidingEntityId}", rect.Center, Color.Black);
+        Renderer.DrawLine(rect.Center, rect.Center + (mobile.Velocity * Time.DeltaTime), Color.Red, 5);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{mobile.Velocity.X}\n{mobile.Velocity.Y}\n{mobile.RidingEntityId}", rect.Center, Color.Black);
         Renderer.End();
     }
 
-    private void DrawSolid(ref SolidComponent solid, Entity entity)
+    private void DrawSupport(ref SupportComponent support, Entity entity)
     {
         var data = entity.Data;
+        if (!data.Has<HitboxComponent>()) return;
         Vector2 pos;
         if (data.Has<Position2D>())
             pos = data.Get<Position2D>().Value;
         else
             pos = Vector2.Zero;
-        RotatedRectangle rect = solid.Hitbox;
+        AABB rect = data.Get<HitboxComponent>().Value;
         rect.Center += pos;
-        rect.Center.X *= Upscale.X;
-        rect.Center.Y *= Upscale.Y;
+        rect.CenterX *= Upscale.X;
+        rect.CenterY *= Upscale.Y;
         rect.Width *= Upscale.X;
         rect.Height *= Upscale.Y;
 
         Color color = new(48 / 255f, 37 / 255f, 138 / 255f);
+        if (support.MakeTimeless && Rewind.CurrentFrame % 60 < 20) color.AddRgb(25);
         Renderer.Begin(effect: Rewind.Active ? RewindEffect : null);
-        Renderer.DrawRotRect(rect.Center.X, rect.Center.Y, rect.Width, rect.Height, rect.Angle, color);
-        bool dynamic = data.Has<MovingSolidComponent>();
-        if (dynamic)
-        {
-            ref var dyn = ref data.Get<MovingSolidComponent>();
-            GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{dyn.Velocity.X}\n{dyn.Velocity.Y}", rect.Center, Color.White);
-        }
+        Renderer.DrawRotRect(rect.Center.X, rect.Center.Y, rect.Width, rect.Height, 0, color);
         Renderer.End();
     }
 
@@ -148,7 +145,7 @@ public class DrawSystem : BaseSystem
         Renderer.End();
 
         Renderer.Begin();
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Lean: {lean}\nTarget:{UpdateCardSystem.Target}\nWindowSize:{Renderer.WindowSizeP}\nRenderSize:{Renderer.RenderSize}\nRenderOffset:{Renderer.RenderOffset}\nCardSide:{cardSide}\nTime:{Time.TotalTimeSpan}\nRewinding:{Rewind.Active}\nCurrentIndex:{RewindPostUpdateSystem.CurrentIndex}\nRewind Speed:{RewindPostUpdateSystem.RewindSpeed}\nLast Valid Index: {RewindPostUpdateSystem.LastValidIndex}", renderOffset, Color.White);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Target:{UpdateCardSystem.Target}\nTime:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nRewinding:{Rewind.Active}\nCurrentIndex:{Rewind.CurrentIndex}\nRewind Speed:{Rewind.RewindSpeed}\nLast Valid Index: {RewindPostUpdateSystem.LastValidIndex}", renderOffset, Color.White);
         Renderer.End();
     }
 
@@ -159,7 +156,7 @@ public class DrawSystem : BaseSystem
         float halfSideX = cardSide / renderSize.X / 2;
         float halfSideY = cardSide / renderSize.Y / 2;
 
-        RewindEffect!.Parameters["SaturationChange"]?.SetValue(RewindPostUpdateSystem.GetSaturationChange());
+        RewindEffect!.Parameters["SaturationChange"]?.SetValue(Rewind.GetSaturationChange());
 
         InCardEffect!.Parameters["HalfSideX"]?.SetValue(halfSideX);
         InCardEffect.Parameters["HalfSideY"]?.SetValue(halfSideY);

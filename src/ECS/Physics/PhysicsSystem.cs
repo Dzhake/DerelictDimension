@@ -3,152 +3,185 @@ using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
 using Monod.InputModule;
+using Monod.MathModule;
 using Monod.TimeModule;
-using System;
 
 public class PhysicsSystem : BaseSystem
 {
     public readonly Vector2 GravityAccel = new(0, 1000);
 
-    public ArchetypeQuery<ActorComponent> ActorsQuery;
-    public ArchetypeQuery<SolidComponent> SolidsQuery;
-    public float StepThreshold = 10f;
-    public float SlopeThreshold = (float)(Math.Sqrt(2) / 2);
+    public ArchetypeQuery<MobileComponent> MobilesQuery;
+    public ArchetypeQuery<SupportComponent> SupportsQuery;
+    public EntityStore Store;
 
     protected override void OnAddStore(EntityStore store)
     {
         base.OnAddStore(store);
-        ActorsQuery = store.Query<ActorComponent>();
-        SolidsQuery = store.Query<SolidComponent>();
+        MobilesQuery = store.Query<MobileComponent>();
+        SupportsQuery = store.Query<SupportComponent>();
+        Store = store;
     }
 
     protected override void OnUpdateGroup()
     {
         float dt = Time.DeltaTime;
 
-        foreach (Entity actorEnt in ActorsQuery.Entities)
+        var cb = Store.GetCommandBuffer();
+
+        foreach (Entity mobileEnt in MobilesQuery.Entities)
         {
-            var actorData = actorEnt.Data;
-            if (!actorData.Has<Position2D>()) continue;
-            ref var actor = ref actorData.Get<ActorComponent>();
-            ref var actorPos = ref actorData.Get<Position2D>();
-            bool isTimeless = actorData.Has<TimelessComponent>();
+            var mobileData = mobileEnt.Data;
+            if (!mobileData.Has<Position2D>() || !mobileData.Has<HitboxComponent>()) continue;
+            ref var mobile = ref mobileData.Get<MobileComponent>();
+            ref var mobilePos = ref mobileData.Get<Position2D>();
+            ref var mobileHitbox = ref mobileData.Get<HitboxComponent>();
+            bool isTimeless = mobileData.Has<TimelessComponent>();
+            bool temporaryTimeless = mobileData.Has<TemporaryTimeless>();
 
             if (!Rewind.Active || isTimeless)
             {
-                if (!isTimeless)
+                Rewind.Keep(mobileEnt, in mobile);
+                Rewind.Keep(mobileEnt, in mobilePos);
+
+                // Apply forces
+                if (mobile.Grounded)
                 {
-                    Rewind.Keep(actorEnt, ref actor);
-                    Rewind.Keep(actorEnt, ref actorPos);
+                    var supportEnt = Store.GetEntityById(mobile.RidingEntityId);
+                    //entity/component were removed for some reason
+                    if (supportEnt.IsNull || !supportEnt.HasComponent<SupportComponent>()) return;
+                    mobile.Velocity.X *= supportEnt.GetComponent<SupportComponent>().FrictionSpeedMultPerFrame;
+                    if (Math.Abs(mobile.Velocity.X) < 0.01f) mobile.Velocity.X = 0;
                 }
 
-                actor.Velocity += GravityAccel * dt;
-                HandlePlayerInput(actorData, ref actor);
+                mobile.Velocity += GravityAccel * dt;
+                HandlePlayerInput(mobileData, ref mobile);
 
-                // --- ПРОХОД ПО ОСИ X ---
-                actorPos.X += actor.Velocity.X * dt;
+                Vector2 frameVelocity = mobile.Velocity * dt;
+                AABB worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
 
-                // Создаем мировой хитбокс AABB на основе локального смещения центра и позиции
-                AABB worldActorHitbox = GetWorldHitbox(actor, actorPos);
+                float minCollisionTime = 1.0f;
+                Vector2 finalNormal = Vector2.Zero;
+                Entity? hitEntity = null;
 
-                foreach (Entity solidEnt in SolidsQuery.Entities)
+                foreach (Entity supportEnt in SupportsQuery.Entities)
                 {
-                    var solidData = solidEnt.Data;
-                    if (!solidData.Has<Position2D>()) continue;
-                    ref var solid = ref solidData.Get<SolidComponent>();
-                    ref var solidPos = ref solidData.Get<Position2D>();
+                    var supportData = supportEnt.Data;
+                    if (!supportData.Has<Position2D>() || !supportData.Has<HitboxComponent>()) continue;
 
-                    RotatedRectangle solidHitbox = solid.Hitbox;
-                    solidHitbox.Center += solidPos;
+                    ref var supportPos = ref supportData.Get<Position2D>();
+                    bool supportIsSolid = supportData.Has<SolidComponent>();
+                    AABB worldSupportHitbox = GetWorldHitbox(ref supportData.Get<HitboxComponent>(), ref supportPos);
 
-                    if (Collisions.Intersects(worldActorHitbox, solidHitbox, out Vector2 mtv))
+                    // try to push mobile entity outside if the support is solid
+                    if (supportIsSolid && Collisions.CheckAABBToAABB(ref worldMobileHitbox, ref worldSupportHitbox, out Vector2 mtv))
                     {
-                        if (mtv.Y < 0 && Math.Abs(mtv.Y) <= StepThreshold && Math.Abs(mtv.Y) > Math.Abs(mtv.X))
+                        mobilePos.Value += mtv;
+                        if (mtv.X != 0) mobile.Velocity.X = 0;
+                        if (mtv.Y != 0) mobile.Velocity.Y = 0;
+
+                        worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
+                        frameVelocity = mobile.Velocity * dt;
+                    }
+
+                    // find closest collision
+                    if (Collisions.SweptCheck(ref worldMobileHitbox, ref worldSupportHitbox, ref frameVelocity, out float collisionTime, out Vector2 normal))
+                    {
+                        // solid or matching one-way
+                        bool canCollide = supportIsSolid || supportData.Get<SupportComponent>().Normals.Matches(normal);
+
+                        if (collisionTime < minCollisionTime && canCollide)
                         {
-                            actorPos.Y += mtv.Y;
-                            worldActorHitbox = GetWorldHitbox(actor, actorPos);
-                            continue;
+                            minCollisionTime = collisionTime;
+                            finalNormal = normal;
+                            hitEntity = supportEnt;
                         }
-
-                        // Иначе выталкиваем по горизонтали
-                        actorPos.X += mtv.X;
-                        actor.Velocity.X = 0;
-                        worldActorHitbox = GetWorldHitbox(actor, actorPos);
                     }
                 }
 
-                // --- ПРОХОД ПО ОСИ Y ---
-                actorPos.Y += actor.Velocity.Y * dt;
-                worldActorHitbox = GetWorldHitbox(actor, actorPos);
+                // apply velocity
+                float timeUntilCollision = Math.Max(0, minCollisionTime - MathM.Epsilon);
+                mobilePos.Value += frameVelocity * timeUntilCollision;
 
-                foreach (Entity solidEnt in SolidsQuery.Entities)
+                if (minCollisionTime < 1.0f)
                 {
-                    var solidData = solidEnt.Data;
-                    if (!solidData.Has<Position2D>()) continue;
-                    ref var solid = ref solidData.Get<SolidComponent>();
-                    ref var solidPos = ref solidData.Get<Position2D>();
+                    // reset speed on collision
+                    if (finalNormal.X != 0) mobile.Velocity.X = 0;
+                    if (finalNormal.Y != 0) mobile.Velocity.Y = 0;
+                    //slide
+                    frameVelocity = mobile.Velocity * dt;
+                    mobilePos.Value += frameVelocity * (1 - timeUntilCollision);
+                }
 
-                    RotatedRectangle solidHitbox = solid.Hitbox;
-                    solidHitbox.Center += solidPos;
 
-                    if (Collisions.Intersects(worldActorHitbox, solidHitbox, out Vector2 mtv))
+
+                AABB raycastHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
+                raycastHitbox.CenterY++;
+
+                float maxY = float.MaxValue;
+                int ridingEntityId = -1;
+
+                foreach (Entity supportEnt in SupportsQuery.Entities)
+                {
+                    var supportData = supportEnt.Data;
+                    var support = supportData.Get<SupportComponent>();
+                    if (!support.Normals.HasFlag(Monod.MathModule.Direction4.Up) && !supportData.Has<SolidComponent>()) continue;
+                    if (!supportData.Has<Position2D>()) continue;
+                    ref var supportPos = ref supportData.Get<Position2D>();
+                    if (maxY < supportPos.Y) continue;
+                    if (!supportData.Has<HitboxComponent>()) continue;
+                    AABB supportHitbox = supportData.Get<HitboxComponent>().Value;
+                    supportHitbox.Center += supportPos.Value;
+
+                    if (Collisions.CheckAABBToAABB(ref raycastHitbox, ref supportHitbox, out var mtv))
                     {
-                        // Выталкивание по вертикали
-                        actorPos.Y += mtv.Y;
-                        float mtvLength = mtv.Length();
-                        Vector2 mtvNormal = mtv / mtvLength;
-                        if (mtvNormal.Y < -SlopeThreshold)
-                            actor.Velocity.Y = 0;
-                        worldActorHitbox = GetWorldHitbox(actor, actorPos);
+                        maxY = supportPos.Y;
+                        ridingEntityId = supportData.Id;
                     }
                 }
 
-                if (!actor.InAir)
-                {
-                    actor.Velocity.X *= 0.95f;
-                    if (Math.Abs(actor.Velocity.X) < 0.1f) actor.Velocity.X = 0;
-                }
+                mobile.RidingEntityId = ridingEntityId;
             }
 
 
-            AABB raycastHitbox = GetWorldHitbox(actor, actorPos);
-
-            float minY = float.MaxValue;
-            actor.RidingEntityId = -1;
-
-            foreach (Entity solidEnt in SolidsQuery.Entities)
+            if (mobileData.Has<TimelessComponent>() && !mobileData.Has<TemporaryTimeless>()) continue;
+            bool shouldBeTempTimeless = false;
+            if (mobile.RidingEntityId != -1)
             {
-                var solidData = solidEnt.Data;
-                if (!solidData.Has<Position2D>()) continue;
-                ref var solidPos = ref solidData.Get<Position2D>();
-                if (minY < solidPos.Y) continue;
-                ref var solid = ref solidData.Get<SolidComponent>();
-
-                RotatedRectangle solidHitbox = solid.Hitbox;
-                solidHitbox.Center += solidPos;
-
-                if (Collisions.Intersects(raycastHitbox, solidHitbox, out var mtv))
-                {
-                    minY = solidPos.Y;
-                    actor.RidingEntityId = solidEnt.Id;
-                }
+                Entity ridingEntity = Store.GetEntityById(mobile.RidingEntityId);
+                var ridingEntityData = ridingEntity.Data;
+                ref var ridingEntitySupportC = ref ridingEntityData.Get<SupportComponent>();
+                shouldBeTempTimeless = ridingEntitySupportC.MakeTimeless;
             }
+            if (shouldBeTempTimeless) MakeTimeless(mobileData, cb);
+            else UnmakeTimeless(mobileData, cb);
         }
+        cb.Playback();
     }
 
-    private static AABB GetWorldHitbox(ActorComponent actor, Position2D actorPos) => new(actor.Hitbox.CenterX + actorPos.X, actor.Hitbox.CenterY + actorPos.Y, actor.Hitbox.HalfWidth, actor.Hitbox.HalfHeight);
-
-    private static void HandlePlayerInput(EntityData actorData, ref ActorComponent actor)
+    private void UnmakeTimeless(EntityData data, CommandBuffer cb)
     {
-        if (!actorData.Has<PlayerControlledComponent>()) return;
+        if (data.Has<TemporaryTimeless>() && data.Has<TimelessComponent>()) cb.RemoveComponent<TimelessComponent>(data.Id);
+    }
 
-        ref var playerControlled = ref actorData.Get<PlayerControlledComponent>();
+    private void MakeTimeless(EntityData data, CommandBuffer cb)
+    {
+        if (!data.Has<TimelessComponent>()) cb.AddComponent(data.Id, new TimelessComponent());
+        if (!data.Has<TemporaryTimeless>()) cb.AddComponent(data.Id, new TemporaryTimeless());
+    }
+
+    private static AABB GetWorldHitbox(ref HitboxComponent hitbox, ref Position2D mobilePos) => new(hitbox.Value.CenterX + mobilePos.X, hitbox.Value.CenterY + mobilePos.Y, hitbox.Value.HalfWidth, hitbox.Value.HalfHeight);
+
+    private static void HandlePlayerInput(EntityData mobileData, ref MobileComponent mobile)
+    {
+        if (!mobileData.Has<PlayerControlledComponent>()) return;
+
+        ref var playerControlled = ref mobileData.Get<PlayerControlledComponent>();
 
         bool left = Input.KeyDown(Key.Left);
         bool right = Input.KeyDown(Key.Right);
 
-        ref float xvel = ref actor.Velocity.X;
-        float xAccel = actor.InAir ? playerControlled.AirAcceleration : playerControlled.Acceleration;
+        ref float xvel = ref mobile.Velocity.X;
+        float xAccel = mobile.InAir ? playerControlled.AirAcceleration : playerControlled.Acceleration;
         float targetX = xvel;
         if (left && right)
             targetX = 0;
@@ -157,20 +190,27 @@ public class PhysicsSystem : BaseSystem
         else if (right)
             targetX = playerControlled.TargetXVel;
 
-        if (xvel > targetX)
-        {
-            xvel -= xAccel * Time.DeltaTime;
-            if (xvel < targetX) xvel = targetX;
-        }
-        else if (xvel < targetX)
-        {
-            xvel += xAccel * Time.DeltaTime;
-            if (xvel > targetX) xvel = targetX;
-        }
+        float frameAccel = xAccel * Time.DeltaTime;
+        LerpFloat(ref xvel, targetX, frameAccel);
 
-        if (Input.KeyDown(Key.Space) && !actor.InAir)
+        if (Input.KeyDown(Key.Space) && !mobile.InAir)
         {
-            actor.Velocity.Y = -playerControlled.JumpStrength;
+            mobile.Velocity.Y = -playerControlled.JumpStrength;
+            mobile.RidingEntityId = -1;
+        }
+    }
+
+    private static void LerpFloat(ref float from, float to, float amount)
+    {
+        if (from > to)
+        {
+            from -= amount;
+            if (from < to) from = to;
+        }
+        else if (from < to)
+        {
+            from += amount;
+            if (from > to) from = to;
         }
     }
 }

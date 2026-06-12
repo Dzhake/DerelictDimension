@@ -56,60 +56,76 @@ public class PhysicsSystem : BaseSystem
                 mobile.Velocity += GravityAccel * dt;
                 HandlePlayerInput(mobileData, ref mobile);
 
-                Vector2 frameVelocity = mobile.Velocity * dt;
                 AABB worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
-
-                float minCollisionTime = 1.0f;
-                Vector2 finalNormal = Vector2.Zero;
-                Entity? hitEntity = null;
 
                 foreach (Entity supportEnt in SupportsQuery.Entities)
                 {
                     var supportData = supportEnt.Data;
-                    if (!supportData.Has<Position2D>() || !supportData.Has<HitboxComponent>()) continue;
+                    if (!supportData.Has<Position2D>() || !supportData.Has<HitboxComponent>() || !supportData.Has<SolidComponent>()) continue;
 
                     ref var supportPos = ref supportData.Get<Position2D>();
-                    bool supportIsSolid = supportData.Has<SolidComponent>();
                     AABB worldSupportHitbox = GetWorldHitbox(ref supportData.Get<HitboxComponent>(), ref supportPos);
 
-                    // try to push mobile entity outside if the support is solid
-                    if (supportIsSolid && Collisions.CheckAABBToAABB(ref worldMobileHitbox, ref worldSupportHitbox, out Vector2 mtv))
+                    if (Collisions.CheckAABBToAABB(ref worldMobileHitbox, ref worldSupportHitbox, out Vector2 mtv))
                     {
                         mobilePos.Value += mtv;
                         if (mtv.X != 0) mobile.Velocity.X = 0;
                         if (mtv.Y != 0) mobile.Velocity.Y = 0;
-
                         worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
-                        frameVelocity = mobile.Velocity * dt;
-                    }
-
-                    // find closest collision
-                    if (Collisions.SweptCheck(ref worldMobileHitbox, ref worldSupportHitbox, ref frameVelocity, out float collisionTime, out Vector2 normal))
-                    {
-                        // solid or matching one-way
-                        bool canCollide = supportIsSolid || supportData.Get<SupportComponent>().Normals.Matches(normal);
-
-                        if (collisionTime < minCollisionTime && canCollide)
-                        {
-                            minCollisionTime = collisionTime;
-                            finalNormal = normal;
-                            hitEntity = supportEnt;
-                        }
                     }
                 }
 
-                // apply velocity
-                float timeUntilCollision = Math.Max(0, minCollisionTime - MathM.Epsilon);
-                mobilePos.Value += frameVelocity * timeUntilCollision;
+                // Sweeping and sliding
+                int maxIterations = 3; //
+                float timeRemaining = 1.0f;
 
-                if (minCollisionTime < 1.0f)
+                for (int i = 0; i < maxIterations && timeRemaining > 0; i++)
                 {
-                    // reset speed on collision
-                    if (finalNormal.X != 0) mobile.Velocity.X = 0;
-                    if (finalNormal.Y != 0) mobile.Velocity.Y = 0;
-                    //slide
-                    frameVelocity = mobile.Velocity * dt;
-                    mobilePos.Value += frameVelocity * (1 - timeUntilCollision);
+                    Vector2 currentFrameVelocity = mobile.Velocity * dt * timeRemaining;
+
+                    float minCollisionTime = 1.0f;
+                    Vector2 finalNormal = Vector2.Zero;
+
+                    // find most recent collision
+                    foreach (Entity supportEnt in SupportsQuery.Entities)
+                    {
+                        var supportData = supportEnt.Data;
+                        if (!supportData.Has<Position2D>() || !supportData.Has<HitboxComponent>()) continue;
+
+                        ref var supportPos = ref supportData.Get<Position2D>();
+                        bool supportIsSolid = supportData.Has<SolidComponent>();
+                        AABB worldSupportHitbox = GetWorldHitbox(ref supportData.Get<HitboxComponent>(), ref supportPos);
+
+                        if (Collisions.SweptCheck(ref worldMobileHitbox, ref worldSupportHitbox, ref currentFrameVelocity, out float collisionTime, out Vector2 normal))
+                        {
+                            // solid or matching one-way
+                            bool canCollide = supportIsSolid || supportData.Get<SupportComponent>().Normals.Matches(normal);
+
+                            if (collisionTime < minCollisionTime && canCollide)
+                            {
+                                minCollisionTime = collisionTime;
+                                finalNormal = normal;
+                            }
+                        }
+                    }
+
+                    if (minCollisionTime < 1.0f)
+                    {
+                        float timeToMove = Math.Max(0.0f, minCollisionTime - MathM.Epsilon);
+                        mobilePos.Value += currentFrameVelocity * timeToMove;
+
+                        timeRemaining -= timeRemaining * minCollisionTime;
+
+                        if (finalNormal.X != 0) mobile.Velocity.X = 0;
+                        if (finalNormal.Y != 0) mobile.Velocity.Y = 0;
+
+                        worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
+                    }
+                    else
+                    {
+                        mobilePos.Value += currentFrameVelocity;
+                        timeRemaining = 0;
+                    }
                 }
 
 

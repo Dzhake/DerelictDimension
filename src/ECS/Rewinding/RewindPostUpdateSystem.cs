@@ -5,15 +5,14 @@ namespace DerelictDimension.ECS.Rewinding;
 
 public class RewindPostUpdateSystem : BaseSystem
 {
-    public List<StoredComponent> StoredComponents;
+    public List<List<StoredComponent>> StoredComponents;
     public EntityStore Store;
-    public static int LastValidIndex;
+    public static int LastValidFrame;
 
     public RewindPostUpdateSystem()
     {
         //need to reset these values on world reset.
-        LastValidIndex = 0;
-        Rewind.CurrentIndex = -1;
+        LastValidFrame = 0;
         Rewind.RewindSpeed = -1;
     }
 
@@ -30,43 +29,51 @@ public class RewindPostUpdateSystem : BaseSystem
         {
             int framesToRewind = Rewind.RewindSpeed;
             int framesSign = Math.Sign(framesToRewind);
-            while (framesToRewind != 0 && (Rewind.CurrentIndex > 0 || Rewind.RewindSpeed > 0) && (Rewind.CurrentIndex < LastValidIndex || Rewind.RewindSpeed <= 0))
+            while (framesToRewind != 0 && (Rewind.CurrentFrame > 0 || framesSign == 1) && (Rewind.CurrentFrame < LastValidFrame || framesSign == -1))
             {
-                Rewind.CurrentIndex += framesSign;
-                StoredComponent stored = StoredComponents[Rewind.CurrentIndex];
-                if (stored.EntityId == -1)
-                {
-                    Rewind.CurrentFrame += framesSign;
-                    framesToRewind -= framesSign;
-                    continue;
-                }
-                stored.Set(Store);
+                Rewind.CurrentFrame += framesSign;
+                framesToRewind -= framesSign;
+                foreach (StoredComponent stored in StoredComponents[Rewind.CurrentFrame])
+                    stored.Set(Store);
             }
-            //fix CurrentFrame not resetting to zero because there's no "-1" stored, should probably improve this somehow.
-            if (Rewind.CurrentIndex == 0) Rewind.CurrentFrame = 0;
         }
         else
         {
-            foreach (var (componentRef, component) in Rewind.StoredComponents)
+            if (Rewind.CurrentFrame >= StoredComponents.Count - 1)
             {
-                if (component?.Equals(componentRef.Get(Store)) == true) continue;
-                StoreComponent(componentRef.EntityId, component);
+                StoredComponents.Add(new());
+            }
+            else
+            {
+                StoredComponents[Rewind.CurrentFrame].Clear();
             }
 
-            StoreComponent(-1, null);
+            foreach (var (componentRef, stored) in Rewind.StoredComponents)
+            {
+                IComponent? currentValue = componentRef.Get(Store);
+                bool store = stored.forceStore;
+                if (stored.component?.Equals(currentValue) != true)
+                {
+                    store = true;
+                    Rewind.StoredComponents[componentRef] = (null, true);
+                }
+                else
+                    Rewind.StoredComponents.Remove(componentRef);
+                if (store) StoreComponent(componentRef.EntityId, stored.component);
+            }
+
             Rewind.CurrentFrame++;
-            Rewind.StoredComponents.Clear();
         }
         base.OnUpdateGroup();
     }
 
     private void StoreComponent(int entityId, IComponent? component)
     {
-        StoredComponent storedComponent = new(entityId, component);
-        if (Rewind.CurrentIndex >= StoredComponents.Count - 1)
-            StoredComponents.Add(storedComponent);
+        StoredComponent storedComponent;
+        if (component is not null)
+            storedComponent = new(entityId, component);
         else
-            StoredComponents[Rewind.CurrentIndex] = storedComponent;
-        Rewind.CurrentIndex++;
+            storedComponent = new(entityId, null);
+        StoredComponents[Rewind.CurrentFrame].Add(storedComponent);
     }
 }

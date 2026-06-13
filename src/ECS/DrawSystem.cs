@@ -145,7 +145,7 @@ public class DrawSystem : BaseSystem
         Renderer.End();
 
         Renderer.Begin();
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Target:{UpdateCardSystem.Target}\nTime:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nRewinding:{Rewind.Active}\nCurrentIndex:{Rewind.CurrentIndex}\nRewind Speed:{Rewind.RewindSpeed}\nLast Valid Index: {RewindPostUpdateSystem.LastValidIndex}", renderOffset, Color.White);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Target:{UpdateCardSystem.Target}\nTime:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nRewinding:{Rewind.Active}\nRewind Speed:{Rewind.RewindSpeed}\nLast Valid Frame: {RewindPostUpdateSystem.LastValidFrame}", renderOffset, Color.White);
         Renderer.End();
     }
 

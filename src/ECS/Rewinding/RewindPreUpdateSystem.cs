@@ -16,7 +16,7 @@ public class RewindPreUpdateSystem : BaseSystem
         }
         if (enableRewind && !Rewind.Active)
         {
-            RewindPostUpdateSystem.LastValidIndex = Rewind.CurrentIndex;
+            RewindPostUpdateSystem.LastValidFrame = Rewind.CurrentFrame - 1;
         }
         if (enableRewind && Input.KeyPressed(Key.Up))
         {

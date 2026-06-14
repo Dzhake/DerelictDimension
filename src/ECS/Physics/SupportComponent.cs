@@ -7,6 +7,7 @@ public struct SupportComponent : IComponent
     public float FrictionSpeedMultPerFrame;
     public bool MakeTimeless;
     public Direction4 Normals;
+    public Vector2 OverrideBounciness = new(-1, -1);
 
     //specify one argument to turn it into 'constructor with default arguments' instead of 'constructor without arguments'..
     public SupportComponent() : this(Direction4.Up) { }

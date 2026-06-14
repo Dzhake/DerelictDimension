@@ -30,5 +30,5 @@ public record struct StoredComponent
         EntityUtils.AddEntityComponentValue(entity, componentType, Component);
     }
 
-    public override readonly string ToString() => $"{{ EntityId: {EntityId}, Component: {(Component != null ? Component : "<null>")} }}";
+    public readonly override string ToString() => $"{{ EntityId: {EntityId}, Component: {(Component != null ? Component : "<null>")} }}";
 }

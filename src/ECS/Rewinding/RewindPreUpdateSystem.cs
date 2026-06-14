@@ -16,6 +16,7 @@ public class RewindPreUpdateSystem : BaseSystem
         }
         if (enableRewind && !Rewind.Active)
         {
+            // when we begin rewind very last frame becomes invalid, we need to exclude it.
             RewindPostUpdateSystem.LastValidFrame = Rewind.CurrentFrame - 1;
         }
         if (enableRewind && Input.KeyPressed(Key.Up))

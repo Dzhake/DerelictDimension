@@ -90,8 +90,8 @@ public class TheGame : MonodGame
         ClearStore();
 
         Store.CreateEntity(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Position2D(300, 550));
-        Store.CreateEntity(new SupportComponent(friction: 1), new HitboxComponent(0, 0, 250, 50), new Position2D(810, 550.5f));
-        entity = Store.CreateEntity(new MobileComponent(), new HitboxComponent(0, 0, 50, 50), new Position2D(300, 100), new PlayerControlledComponent());
+        Store.CreateEntity(new SupportComponent() { OverrideBounciness = new(0, 1) }, new HitboxComponent(0, 0, 250, 50), new Position2D(810, 550.5f));
+        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Bounciness = new(0, 0), FlipOnEdge = true }, new HitboxComponent(0, 0, 50, 50), new Position2D(300, 100), new PlayerControlledComponent());
 
         InitializeSystems();
     }

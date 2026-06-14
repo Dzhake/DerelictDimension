@@ -50,15 +50,27 @@ public class RewindPostUpdateSystem : BaseSystem
 
             foreach (var (componentRef, stored) in Rewind.StoredComponents)
             {
+                if (stored.component == null)
+                {
+                    StoreComponent(componentRef.EntityId, null);
+                    Rewind.StoredComponents.Remove(componentRef);
+                    return;
+                }
+
                 IComponent? currentValue = componentRef.Get(Store);
                 bool store = stored.forceStore;
+                // component/entity changed
                 if (stored.component?.Equals(currentValue) != true)
                 {
                     store = true;
+                    // force store next frame
                     Rewind.StoredComponents[componentRef] = (null, true);
                 }
                 else
+                {
                     Rewind.StoredComponents.Remove(componentRef);
+                }
+
                 if (store) StoreComponent(componentRef.EntityId, stored.component);
             }
 

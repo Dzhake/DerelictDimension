@@ -34,6 +34,8 @@ public static class Rewind
             StoredComponents[key] = (component, stored.forceStore);
         }
         else //just store the component
+        {
             StoredComponents.Add(key, (component, false));
+        }
     }
 }

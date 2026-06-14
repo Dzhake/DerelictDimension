@@ -115,21 +115,30 @@ public static class Collisions
     }
 
     /// <summary>
+    /// Check whether two <see cref="AABB"/> intersect.
+    /// </summary>
+    /// <returns>Whether two <see cref="AABB"/> intersect.</returns>
+    public static bool QuickCheckAABBToAABB(ref AABB a, ref AABB b)
+    {
+        return (a.HalfWidth + b.HalfWidth) >= Math.Abs(a.CenterX - b.CenterX) && (a.HalfHeight + b.HalfHeight) >= Math.Abs(a.CenterY - b.CenterY);
+    }
+
+    /// <summary>
     /// Compute the exact time of intersection and surface normal between a moving AABB and a static AABB using the Swept AABB algorithm.
     /// </summary>
     /// <param name="a">The moving AABB.</param>
     /// <param name="b">The static AABB acting as the obstacle.</param>
-    /// <param name="velocity">The displacement vector (velocity) of AABB 'a' for the current frame.</param>
+    /// <param name="movement">The displacement vector (movement) of AABB 'a' for the current frame.</param>
     /// <param name="time">Outputs the normalized time of collision [0.0, 1.0] if a hit occurs; otherwise, 1.0f.</param>
     /// <param name="normal">Outputs the collision normal vector pointing outward from AABB 'b'.</param>
     /// <returns>True if a collision occurs within the current frame's time step; otherwise, false.</returns>
-    public static bool SweptCheck(ref AABB a, ref AABB b, ref Vector2 velocity, out float time, out Vector2 normal)
+    public static bool SweptCheck(ref AABB a, ref AABB b, ref Vector2 movement, out float time, out Vector2 normal)
     {
         float invEntryX, invEntryY;
         float invExitX, invExitY;
 
         // 1. Find the distance between the objects on the near and far sides for both axes.
-        if (velocity.X > 0.0f)
+        if (movement.X > 0.0f)
         {
             invEntryX = b.Left - a.Right;
             invExitX = b.Right - a.Left;
@@ -140,7 +149,7 @@ public static class Collisions
             invExitX = b.Left - a.Right;
         }
 
-        if (velocity.Y > 0.0f)
+        if (movement.Y > 0.0f)
         {
             invEntryY = b.Top - a.Bottom;
             invExitY = b.Bottom - a.Top;
@@ -155,7 +164,7 @@ public static class Collisions
         float xExit, yExit;
 
         // 2. Calculate time of collision and time of leaving for each axis.
-        if (Math.Abs(velocity.X) < MathM.Epsilon)
+        if (Math.Abs(movement.X) < MathM.Epsilon)
         {
             // Minkowski difference: if there is no velocity on this axis, they must already be overlapping to collide.
             if (a.Right <= b.Left || a.Left >= b.Right)
@@ -171,11 +180,11 @@ public static class Collisions
         }
         else
         {
-            xEntry = invEntryX / velocity.X;
-            xExit = invExitX / velocity.X;
+            xEntry = invEntryX / movement.X;
+            xExit = invExitX / movement.X;
         }
 
-        if (Math.Abs(velocity.Y) < MathM.Epsilon)
+        if (Math.Abs(movement.Y) < MathM.Epsilon)
         {
             if (a.Bottom <= b.Top || a.Top >= b.Bottom)
             {
@@ -190,8 +199,8 @@ public static class Collisions
         }
         else
         {
-            yEntry = invEntryY / velocity.Y;
-            yExit = invExitY / velocity.Y;
+            yEntry = invEntryY / movement.Y;
+            yExit = invExitY / movement.Y;
         }
 
         // find the earliest/latest times of collision across all axes.
@@ -211,9 +220,9 @@ public static class Collisions
 
         // determine collision normal based on which axis collided first.
         if (xEntry > yEntry)
-            normal = velocity.X > 0.0f ? new Vector2(-1.0f, 0.0f) : new Vector2(1.0f, 0.0f);
+            normal = movement.X > 0.0f ? new Vector2(-1.0f, 0.0f) : new Vector2(1.0f, 0.0f);
         else
-            normal = velocity.Y > 0.0f ? new Vector2(0.0f, -1.0f) : new Vector2(0.0f, 1.0f);
+            normal = movement.Y > 0.0f ? new Vector2(0.0f, -1.0f) : new Vector2(0.0f, 1.0f);
 
         time = entryTime;
         return true;

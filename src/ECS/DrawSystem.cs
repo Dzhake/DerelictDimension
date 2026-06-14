@@ -88,7 +88,7 @@ public class DrawSystem : BaseSystem
         Renderer.Begin(effect: isTimeless || !Rewind.Active ? null : RewindEffect);
         Renderer.DrawRect((Rectangle)rect, color);
         Renderer.DrawLine(rect.Center, rect.Center + (mobile.Velocity * Time.DeltaTime), Color.Red, 5);
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{mobile.Velocity.X}\n{mobile.Velocity.Y}\n{mobile.RidingEntityId}", rect.Center, Color.Black);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{mobile.Velocity.X}\n{mobile.Velocity.Y}\n{mobile.SupportingEntityId}", rect.Center, Color.Black);
         Renderer.End();
     }
 

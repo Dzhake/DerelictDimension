@@ -8,7 +8,9 @@ public class RewindPreUpdateSystem : BaseSystem
     protected override void OnUpdateGroup()
     {
         base.OnUpdateGroup();
-        bool enableRewind = Input.KeyDown(Key.LeftShift);
+        bool enableRewind = Rewind.Active;
+        if (Input.KeyPressed(Key.LeftShift))
+            enableRewind = !enableRewind;
         ref int rewindSpeed = ref Rewind.RewindSpeed;
         if (!Rewind.Active)
         {

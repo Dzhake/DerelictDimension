@@ -98,7 +98,7 @@ public class PhysicsSystem : BaseSystem
 
     private void MoveMobileEntity(Vector2 movement, ref MobileComponent mobile, ref MobileInfoComponent mobileInfo, ref Position2D mobilePos, ref HitboxComponent mobileHitbox, ref AABB worldMobileHitbox, bool force = false)
     {
-        int maxIterations = 3;
+        int maxIterations = 5;
         float timeRemaining = 1.0f;
 
         for (int i = 0; i < maxIterations && timeRemaining > 0; i++)
@@ -111,6 +111,7 @@ public class PhysicsSystem : BaseSystem
             Vector2 finalNormal = Vector2.Zero;
             SupportComponent empty = default;
             ref SupportComponent collision = ref empty;
+            Entity? collisionEntity = null;
 
             // find most recent collision
             foreach (Entity supportEnt in SupportsQuery.Entities)
@@ -131,10 +132,11 @@ public class PhysicsSystem : BaseSystem
                     finalNormal = normal;
                     forceBounciness = null;
                     collision = supportC;
+                    collisionEntity = supportEnt;
                 }
             }
 
-            if (!force && mobileInfo.FlipOnEdge && movement.X != 0 && mobile.SupportingEntityId >= 0)
+            if (!force && mobileInfo.FlipOnEdge && currentFrameMovement.X != 0 && mobile.SupportingEntityId >= 0)
             {
                 var supportingEntity = Store.GetEntityById(mobile.SupportingEntityId);
                 var supportingData = supportingEntity.Data;
@@ -145,23 +147,24 @@ public class PhysicsSystem : BaseSystem
                 if (movement.X > 0)
                 {
                     float startRight = worldMobileHitbox.Right;
-                    float endRight = startRight + movement.X;
                     float platformRight = supportingHitbox.Value.Right + supportingPos.X;
+                    float endRight = startRight + currentFrameMovement.X;
                     collisionTime = (platformRight - startRight) / (endRight - startRight);
                 }
                 else
                 {
                     float startLeft = worldMobileHitbox.Left;
-                    float endLeft = startLeft + movement.X;
                     float platformLeft = supportingHitbox.Value.Left + supportingPos.X;
+                    float endLeft = startLeft + currentFrameMovement.X;
                     collisionTime = (startLeft - platformLeft) / (startLeft - endLeft);
                 }
 
-                if (collisionTime < minCollisionTime)
+                if (collisionTime >= 0 && collisionTime < minCollisionTime)
                 {
                     minCollisionTime = collisionTime;
                     finalNormal = new(-Math.Sign(movement.X), 0);
                     forceBounciness = new(1, 0);
+                    collisionEntity = null;
                 }
             }
 
@@ -171,6 +174,14 @@ public class PhysicsSystem : BaseSystem
             {
                 float timeToMove = Math.Max(0.0f, minCollisionTime - MathM.Epsilon);
                 mobilePos.Value += currentFrameMovement * timeToMove;
+                if (finalNormal.X == 0 && finalNormal.Y == -1 && collisionEntity != null)
+                {
+                    mobile.SupportingEntityId = collisionEntity.Value.Id;
+                }
+                else if (currentFrameMovement.Y != 0)
+                {
+                    mobile.SupportingEntityId = -1;
+                }
 
                 timeRemaining -= timeRemaining * minCollisionTime;
                 Vector2 bounce = forceBounciness ?? GetBounce(ref mobileInfo, ref collision);
@@ -181,39 +192,14 @@ public class PhysicsSystem : BaseSystem
             }
             else
             {
+                if (currentFrameMovement.Y != 0)
+                {
+                    mobile.SupportingEntityId = -1;
+                }
                 mobilePos.Value += currentFrameMovement;
                 timeRemaining = 0;
             }
         }
-
-
-        // find supporting platform
-        AABB raycastHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
-        raycastHitbox.CenterY++;
-
-        float maxY = float.MaxValue;
-        int ridingEntityId = -1;
-
-        foreach (Entity supportEnt in SupportsQuery.Entities)
-        {
-            var supportData = supportEnt.Data;
-            var support = supportData.Get<SupportComponent>();
-            if (!support.Normals.HasFlag(Direction4.Up) && !supportData.Has<SolidComponent>()) continue;
-            if (!supportData.Has<Position2D>()) continue;
-            ref var supportPos = ref supportData.Get<Position2D>();
-            if (maxY < supportPos.Y) continue;
-            if (!supportData.Has<HitboxComponent>()) continue;
-            AABB supportHitbox = supportData.Get<HitboxComponent>().Value;
-            supportHitbox.Center += supportPos.Value;
-
-            if (Collisions.CheckAABBToAABB(ref raycastHitbox, ref supportHitbox, out var mtv))
-            {
-                maxY = supportPos.Y;
-                ridingEntityId = supportData.Id;
-            }
-        }
-
-        mobile.SupportingEntityId = ridingEntityId;
     }
 
     private static void ApplyBounce(ref Vector2 vector, Vector2 collisionDirection, Vector2 bounce)
@@ -263,26 +249,12 @@ public class PhysicsSystem : BaseSystem
             targetX = playerControlled.TargetXVel;
 
         float frameAccel = xAccel * Time.DeltaTime;
-        LerpFloat(ref xvel, targetX, frameAccel);
+        MathM.LerpFloat(ref xvel, targetX, frameAccel);
 
         if (Input.KeyDown(Key.Space) && !mobile.InAir)
         {
             mobile.Velocity.Y = -playerControlled.JumpStrength;
             mobile.SupportingEntityId = -1;
-        }
-    }
-
-    private static void LerpFloat(ref float from, float to, float amount)
-    {
-        if (from > to)
-        {
-            from -= amount;
-            if (from < to) from = to;
-        }
-        else if (from < to)
-        {
-            from += amount;
-            if (from > to) from = to;
         }
     }
 }

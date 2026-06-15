@@ -1,4 +1,5 @@
 ﻿using Friflo.Engine.ECS.Systems;
+using Monod.InputModule;
 using System.Collections.Generic;
 
 namespace DerelictDimension.ECS.Rewinding;
@@ -28,6 +29,9 @@ public class RewindPostUpdateSystem : BaseSystem
         if (Rewind.Active)
         {
             int framesToRewind = Rewind.RewindSpeed;
+            if (Input.KeyPressed(Key.W)) framesToRewind++;
+            if (Input.KeyPressed(Key.Q)) framesToRewind--;
+
             int framesSign = Math.Sign(framesToRewind);
             while (framesToRewind != 0 && (Rewind.CurrentFrame > 0 || framesSign == 1) && (Rewind.CurrentFrame < LastValidFrame || framesSign == -1))
             {

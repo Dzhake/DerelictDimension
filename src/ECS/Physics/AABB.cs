@@ -41,8 +41,8 @@ public struct AABB
 
     public float Bottom { readonly get => CenterY + HalfHeight; set => CenterY = value - HalfHeight; }
     public float Top { readonly get => CenterY - HalfHeight; set => CenterY = value + HalfHeight; }
-    public float Right { readonly get => CenterX + HalfWidth; set => CenterY = value - HalfWidth; }
-    public float Left { readonly get => CenterX - HalfWidth; set => CenterY = value + HalfWidth; }
+    public float Right { readonly get => CenterX + HalfWidth; set => CenterX = value - HalfWidth; }
+    public float Left { readonly get => CenterX - HalfWidth; set => CenterX = value + HalfWidth; }
 
     public readonly Vector2 TopLeft => new(Left, Top);
     public readonly Vector2 TopRight => new(Right, Top);

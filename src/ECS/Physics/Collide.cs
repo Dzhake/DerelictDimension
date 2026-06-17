@@ -4,7 +4,7 @@ using System;
 namespace DerelictDimension.ECS.Physics;
 
 //this file is vibecoded because collisions are some algorithms written in 500 pages long books i'm too lazy to read. sorry not sorry.
-public static class Collisions
+public static class Collide
 {
     public static bool CheckAABBToRotatedRectangle(AABB aabb, RotatedRectangle obb, out Vector2 mtv)
     {

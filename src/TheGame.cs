@@ -42,7 +42,7 @@ public class TheGame : MonodGame
 
     public static Vector2 GameSize;
     public static Entity entity;
-    public static int WantedFPS = 60;
+    public static float WantedFPS = 60;
 
     /// <summary>
     /// Creates a new <see cref="TheGame"/>.
@@ -54,6 +54,7 @@ public class TheGame : MonodGame
         Instance = this;
         GameSize = new(1280, 720);
         IsFixedTimeStep = true;
+        MaxElapsedTime = TimeSpan.FromMilliseconds(1000f / WantedFPS * 60);
         TargetElapsedTime = TimeSpan.FromMilliseconds(1000f / WantedFPS);
     }
 

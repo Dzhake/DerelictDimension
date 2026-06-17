@@ -1,12 +1,10 @@
-﻿using DerelictDimension.ECS.Battle;
-using DerelictDimension.ECS.Physics;
+﻿using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
 using Monod.AssetsModule;
 using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
 using Monod.Graphics.ECS.Sprite;
-using Monod.Graphics.Extensions;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.TimeModule;
@@ -88,6 +86,7 @@ public class DrawSystem : BaseSystem
         Renderer.Begin(effect: isTimeless || !Rewind.Active ? null : RewindEffect);
         Renderer.DrawRect((Rectangle)rect, color);
         Renderer.DrawLine(rect.Center, rect.Center + (mobile.Velocity * Time.DeltaTime), Color.Red, 5);
+        Renderer.DrawLine(new(0, mobile.HighestPoint), new(Renderer.WindowSize.X, mobile.HighestPoint), Color.LightBlue, 1);
         GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{mobile.Velocity.X}\n{mobile.Velocity.Y}\n{mobile.SupportingEntityId}", rect.Center, Color.Black);
         Renderer.End();
     }
@@ -113,24 +112,6 @@ public class DrawSystem : BaseSystem
         Renderer.Begin(effect: Rewind.Active ? RewindEffect : null);
         Renderer.DrawRotRect(rect.Center.X, rect.Center.Y, rect.Width, rect.Height, 0, color);
         Renderer.End();
-    }
-
-    private void DrawInCard(Point renderSize, float cardSide, float lean)
-    {
-        if (lean != 0)
-        {
-            Renderer.SetRenderTarget(InCardRT);
-            Renderer.Clear(Renderer.EmptyColor);
-
-            Renderer.Begin();
-            Renderer.DrawRect(new Rectangle((int)(renderSize.X - cardSide) / 2, (int)(renderSize.Y - cardSide) / 2, (int)cardSide, (int)(cardSide * Math.Abs(lean) / 2)), Color.Black.WithAlpha(120));
-            Renderer.End();
-
-            Renderer.SetRenderTarget(MainRT);
-            Renderer.Begin(effect: InCardEffect);
-            Renderer.DrawTexture(InCardRT!, Vector2.Zero, Color.White);
-            Renderer.End();
-        }
     }
 
     private void DrawFinal(Point renderSize, float cardSide, float lean)
@@ -161,19 +142,6 @@ public class DrawSystem : BaseSystem
         InCardEffect!.Parameters["HalfSideX"]?.SetValue(halfSideX);
         InCardEffect.Parameters["HalfSideY"]?.SetValue(halfSideY);
         InCardEffect.Parameters["CardRadius"]?.SetValue(CardRadius);
-    }
-
-    private void DrawFighter(ref FighterComponent fighter, ref Sprite2D sprite, Entity entity)
-    {
-        var data = entity.Data;
-        if (sprite.Texture is null) return;
-        GetDrawInfo(sprite, data, out var _, out var scale, out var depth, out var rotation, out var origin);
-        scale ??= Vector2.One;
-
-        Vector2 pos = UpdateBattleSystem.GridPosToWorldPos(fighter.Position);
-        SpriteEffects spriteEffects = sprite.spriteEffects;
-        if (fighter.LooksLeft) spriteEffects |= SpriteEffects.FlipHorizontally;
-        Renderer.DrawTexture(sprite.Texture, pos * Upscale, sprite.color, null, rotation ?? 0f, origin, scale * Upscale, spriteEffects, depth ?? 0f);
     }
 
     private void DrawGameLayerSprite(ref Sprite2D sprite, Entity entity)

@@ -1,4 +1,5 @@
 ﻿using DerelictDimension.ECS.Physics;
+using DerelictDimension.ECS.Physics.Collisions;
 using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
@@ -69,12 +70,13 @@ public class PhysicsSystem : BaseSystem
                     ref SupportComponent supportC = ref supportData.Get<SupportComponent>();
                     AABB worldSupportHitbox = GetWorldHitbox(ref supportData.Get<HitboxComponent>(), ref supportPos);
 
-                    if (Collisions.CheckAABBToAABB(ref worldMobileHitbox, ref worldSupportHitbox, out Vector2 mtv))
+                    //should probably check this in sweep check instead?
+                    /*if (Collide.CheckAABBToAABB(ref worldMobileHitbox, ref worldSupportHitbox, out Vector2 mtv))
                     {
                         mobilePos.Value += mtv;
                         ApplyBounce(ref mobile.Velocity, mtv, GetBounce(ref mobileInfo, ref supportC));
                         worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
-                    }
+                    }*/
                 }
 
                 MoveMobileEntity(mobile.Velocity * dt, ref mobile, ref mobileInfo, ref mobilePos, ref mobileHitbox, ref worldMobileHitbox);
@@ -104,14 +106,11 @@ public class PhysicsSystem : BaseSystem
         for (int i = 0; i < maxIterations && timeRemaining > 0; i++)
         {
             Vector2 currentFrameMovement = movement * timeRemaining;
-            AABB quickCheckHitbox = worldMobileHitbox.Union(worldMobileHitbox with { Center = worldMobileHitbox.Center + movement });
+            AABB quickCheckHitbox = worldMobileHitbox.Union(worldMobileHitbox with { Center = worldMobileHitbox.Center + currentFrameMovement });
 
             float minCollisionTime = 1.0f;
-            Vector2? forceBounciness = null;
-            Vector2 finalNormal = Vector2.Zero;
-            SupportComponent empty = default;
-            ref SupportComponent collision = ref empty;
-            Entity? collisionEntity = null;
+            ICollision? collision = null;
+
 
             // find most recent collision
             foreach (Entity supportEnt in SupportsQuery.Entities)
@@ -123,86 +122,79 @@ public class PhysicsSystem : BaseSystem
                 bool supportIsSolid = supportData.Has<SolidComponent>();
                 AABB worldSupportHitbox = GetWorldHitbox(ref supportData.Get<HitboxComponent>(), ref supportPos);
 
-                if (!Collisions.QuickCheckAABBToAABB(ref quickCheckHitbox, ref worldSupportHitbox)) continue;
+                if (!Collide.QuickCheckAABBToAABB(ref quickCheckHitbox, ref worldSupportHitbox)) continue;
 
                 ref var supportC = ref supportData.Get<SupportComponent>();
-                if (Collisions.SweptCheck(ref worldMobileHitbox, ref worldSupportHitbox, ref currentFrameMovement, out float collisionTime, out Vector2 normal) && collisionTime < minCollisionTime && (supportIsSolid || supportC.Normals.Matches(normal)))
+                if (Collide.SweptCheck(ref worldMobileHitbox, ref worldSupportHitbox, ref currentFrameMovement, out float collisionTime, out Vector2 normal) && collisionTime < minCollisionTime && (supportIsSolid || supportC.Normals.Matches(normal)))
                 {
                     minCollisionTime = collisionTime;
-                    finalNormal = normal;
-                    forceBounciness = null;
-                    collision = supportC;
-                    collisionEntity = supportEnt;
+                    if (collision is not SupportCollision supportCollision) supportCollision = new();
+
+                    supportCollision.Normal = normal;
+                    supportCollision.SupportEntity = supportEnt;
+                    collision = supportCollision;
                 }
             }
 
+            //check flip on edge
             if (!force && mobileInfo.FlipOnEdge && currentFrameMovement.X != 0 && mobile.SupportingEntityId >= 0)
             {
                 var supportingEntity = Store.GetEntityById(mobile.SupportingEntityId);
                 var supportingData = supportingEntity.Data;
-                if (!supportingData.Has<HitboxComponent>() || !supportingData.Has<Position2D>()) return;
-                ref var supportingHitbox = ref supportingData.Get<HitboxComponent>();
-                ref var supportingPos = ref supportingData.Get<Position2D>().Value;
-                float collisionTime = 1f;
-                if (movement.X > 0)
+                if (supportingData.Has<HitboxComponent>() && supportingData.Has<Position2D>())
                 {
-                    float startRight = worldMobileHitbox.Right;
-                    float platformRight = supportingHitbox.Value.Right + supportingPos.X;
-                    float endRight = startRight + currentFrameMovement.X;
-                    collisionTime = (platformRight - startRight) / (endRight - startRight);
-                }
-                else
-                {
-                    float startLeft = worldMobileHitbox.Left;
-                    float platformLeft = supportingHitbox.Value.Left + supportingPos.X;
-                    float endLeft = startLeft + currentFrameMovement.X;
-                    collisionTime = (startLeft - platformLeft) / (startLeft - endLeft);
-                }
+                    ref var supportingHitbox = ref supportingData.Get<HitboxComponent>();
+                    ref var supportingPos = ref supportingData.Get<Position2D>().Value;
+                    float collisionTime;
+                    if (movement.X > 0)
+                    {
+                        float startRight = worldMobileHitbox.Right;
+                        float platformRight = supportingHitbox.Value.Right + supportingPos.X;
+                        float endRight = startRight + currentFrameMovement.X;
+                        collisionTime = (platformRight - startRight) / (endRight - startRight);
+                    }
+                    else
+                    {
+                        float startLeft = worldMobileHitbox.Left;
+                        float platformLeft = supportingHitbox.Value.Left + supportingPos.X;
+                        float endLeft = startLeft + currentFrameMovement.X;
+                        collisionTime = (startLeft - platformLeft) / (startLeft - endLeft);
+                    }
 
-                if (collisionTime >= 0 && collisionTime < minCollisionTime)
-                {
-                    minCollisionTime = collisionTime;
-                    finalNormal = new(-Math.Sign(movement.X), 0);
-                    forceBounciness = new(1, 0);
-                    collisionEntity = null;
+                    if (collisionTime >= 0 && collisionTime < minCollisionTime)
+                    {
+                        minCollisionTime = collisionTime;
+                        if (collision is not VirtualCollision virtualCollision) virtualCollision = new();
+
+                        virtualCollision.Normal = new(-Math.Sign(movement.X), 0);
+                        virtualCollision.Bounce = new(1, 0);
+                        collision = virtualCollision;
+                    }
                 }
             }
 
 
-
-            if (minCollisionTime < 1.0f)
+            //apply collision
+            if (collision != null)
             {
-                float timeToMove = Math.Max(0.0f, minCollisionTime - MathM.Epsilon);
-                mobilePos.Value += currentFrameMovement * timeToMove;
-                if (finalNormal.X == 0 && finalNormal.Y == -1 && collisionEntity != null)
-                {
-                    mobile.SupportingEntityId = collisionEntity.Value.Id;
-                }
-                else if (currentFrameMovement.Y != 0)
-                {
-                    mobile.SupportingEntityId = -1;
-                }
-
+                collision.Apply(ref movement, timeRemaining, minCollisionTime, ref mobile, ref mobilePos, ref mobileInfo);
                 timeRemaining -= timeRemaining * minCollisionTime;
-                Vector2 bounce = forceBounciness ?? GetBounce(ref mobileInfo, ref collision);
-                ApplyBounce(ref mobile.Velocity, finalNormal, bounce);
-                ApplyBounce(ref movement, finalNormal, bounce);
 
+                mobile.HighestPoint = Math.Min(mobile.HighestPoint, mobilePos.Value.Y);
                 worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
             }
             else
             {
                 if (currentFrameMovement.Y != 0)
-                {
                     mobile.SupportingEntityId = -1;
-                }
                 mobilePos.Value += currentFrameMovement;
+                mobile.HighestPoint = Math.Min(mobile.HighestPoint, mobilePos.Value.Y);
                 timeRemaining = 0;
             }
         }
     }
 
-    private static void ApplyBounce(ref Vector2 vector, Vector2 collisionDirection, Vector2 bounce)
+    public static void ApplyBounce(ref Vector2 vector, Vector2 collisionDirection, Vector2 bounce)
     {
         if (collisionDirection.X != 0)
             vector.X *= -bounce.X;
@@ -210,7 +202,7 @@ public class PhysicsSystem : BaseSystem
             vector.Y *= -bounce.Y;
     }
 
-    private static Vector2 GetBounce(ref MobileInfoComponent mobileInfo, ref SupportComponent support)
+    public static Vector2 GetBounce(ref MobileInfoComponent mobileInfo, ref SupportComponent support)
     {
         Vector2 overrideBounciness = support.OverrideBounciness;
         return new(overrideBounciness.X >= 0 ? overrideBounciness.X : mobileInfo.Bounciness.X, overrideBounciness.Y >= 0 ? overrideBounciness.Y : mobileInfo.Bounciness.Y);
@@ -253,7 +245,7 @@ public class PhysicsSystem : BaseSystem
 
         if (Input.KeyDown(Key.Space) && !mobile.InAir)
         {
-            mobile.Velocity.Y = -playerControlled.JumpStrength;
+            mobile.Velocity.Y -= playerControlled.JumpStrength;
             mobile.SupportingEntityId = -1;
         }
     }

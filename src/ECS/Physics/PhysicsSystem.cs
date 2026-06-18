@@ -233,9 +233,20 @@ public class PhysicsSystem : BaseSystem
     public static void ApplyBounce(ref Vector2 vector, Vector2 collisionDirection, Vector2 bounce)
     {
         if (collisionDirection.X != 0)
-            vector.X *= -bounce.X;
+        {
+            if (Math.Abs(vector.X) < 0.0001f)
+                vector.X = 0;
+            else
+                vector.X *= -bounce.X;
+        }
+
         if (collisionDirection.Y != 0)
-            vector.Y *= -bounce.Y;
+        {
+            if (Math.Abs(vector.Y) < 0.0001f)
+                vector.Y = 0;
+            else
+                vector.Y *= -bounce.Y;
+        }
     }
 
     public static Vector2 GetRestitution(ref MobileInfoComponent mobileInfo, ref SupportComponent support)

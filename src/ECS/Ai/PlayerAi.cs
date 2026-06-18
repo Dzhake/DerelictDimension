@@ -16,9 +16,9 @@ public struct PlayerAi : IComponent, IAi
     {
     }
 
-    public readonly void PostUpdate(Entity entity, EntityStore store) { }
+    public readonly void PostUpdate(Entity entity, EntityStore store, CommandBuffer _) { }
 
-    public readonly void PreUpdate(Entity entity, EntityStore store)
+    public readonly void PreUpdate(Entity entity, EntityStore store, CommandBuffer _)
     {
         var data = entity.Data;
         if (!data.Has<MobileComponent>()) return;

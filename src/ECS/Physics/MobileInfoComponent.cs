@@ -7,7 +7,6 @@ public struct MobileInfoComponent : IComponent
 {
     public bool AffectedByGravity = true;
     public bool CanBounce;
-    public bool Bounceable;
     public bool FlipOnEdge;
     public Vector2 Bounciness = Vector2.One;
     public float FrictionMult = 1f;

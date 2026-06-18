@@ -3,7 +3,6 @@ using DerelictDimension.ECS.Physics.Collisions;
 using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
-using Monod.InputModule;
 using Monod.MathModule;
 using Monod.TimeModule;
 
@@ -57,7 +56,6 @@ public class PhysicsSystem : BaseSystem
 
                 if (mobileInfo.AffectedByGravity)
                     mobile.Velocity += GravityAccel * dt;
-                HandlePlayerInput(mobileData, ref mobile);
 
                 AABB worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
 
@@ -220,33 +218,4 @@ public class PhysicsSystem : BaseSystem
     }
 
     private static AABB GetWorldHitbox(ref HitboxComponent hitbox, ref Position2D mobilePos) => new(hitbox.Value.CenterX + mobilePos.X, hitbox.Value.CenterY + mobilePos.Y, hitbox.Value.HalfWidth, hitbox.Value.HalfHeight);
-
-    private static void HandlePlayerInput(EntityData mobileData, ref MobileComponent mobile)
-    {
-        if (!mobileData.Has<PlayerControlledComponent>()) return;
-
-        ref var playerControlled = ref mobileData.Get<PlayerControlledComponent>();
-
-        bool left = Input.KeyDown(Key.Left);
-        bool right = Input.KeyDown(Key.Right);
-
-        ref float xvel = ref mobile.Velocity.X;
-        float xAccel = mobile.InAir ? playerControlled.AirAcceleration : playerControlled.Acceleration;
-        float targetX = xvel;
-        if (left && right)
-            targetX = 0;
-        else if (left)
-            targetX = -playerControlled.TargetXVel;
-        else if (right)
-            targetX = playerControlled.TargetXVel;
-
-        float frameAccel = xAccel * Time.DeltaTime;
-        MathM.LerpFloat(ref xvel, targetX, frameAccel);
-
-        if (Input.KeyDown(Key.Space) && !mobile.InAir)
-        {
-            mobile.Velocity.Y -= playerControlled.JumpStrength;
-            mobile.SupportingEntityId = -1;
-        }
-    }
 }

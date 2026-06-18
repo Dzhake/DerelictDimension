@@ -49,9 +49,11 @@ public class PhysicsSystem : BaseSystem
                 {
                     var supportEnt = Store.GetEntityById(mobile.SupportingEntityId);
                     //entity/component were removed for some reason
-                    if (supportEnt.IsNull || !supportEnt.HasComponent<SupportComponent>()) return;
-                    mobile.Velocity.X *= supportEnt.GetComponent<SupportComponent>().FrictionSpeedMultPerFrame * mobileInfo.FrictionMult;
-                    if (Math.Abs(mobile.Velocity.X) < 0.01f) mobile.Velocity.X = 0;
+                    if (!supportEnt.IsNull && supportEnt.HasComponent<SupportComponent>())
+                    {
+                        mobile.Velocity.X *= supportEnt.GetComponent<SupportComponent>().FrictionSpeedMultPerFrame * mobileInfo.FrictionMult;
+                        if (Math.Abs(mobile.Velocity.X) < 0.01f) mobile.Velocity.X = 0;
+                    }
                 }
 
                 if (mobileInfo.AffectedByGravity)
@@ -72,7 +74,7 @@ public class PhysicsSystem : BaseSystem
                     /*if (Collide.CheckAABBToAABB(ref worldMobileHitbox, ref worldSupportHitbox, out Vector2 mtv))
                     {
                         mobilePos.Value += mtv;
-                        ApplyBounce(ref mobile.Velocity, mtv, GetBounce(ref mobileInfo, ref supportC));
+                        ApplyBounce(ref mobile.Velocity, mtv, GetRestitution(ref mobileInfo, ref supportC));
                         worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
                     }*/
                 }
@@ -80,15 +82,14 @@ public class PhysicsSystem : BaseSystem
                 MoveMobileEntity(mobile.Velocity * dt, ref mobile, ref mobileInfo, ref mobilePos, ref mobileHitbox, ref worldMobileHitbox);
             }
 
-
             if (mobileData.Has<TimelessComponent>() && !mobileData.Has<TemporaryTimeless>()) continue;
             bool shouldBeTempTimeless = false;
             if (mobile.SupportingEntityId != -1)
             {
-                Entity ridingEntity = Store.GetEntityById(mobile.SupportingEntityId);
-                var ridingEntityData = ridingEntity.Data;
-                ref var ridingEntitySupportC = ref ridingEntityData.Get<SupportComponent>();
-                shouldBeTempTimeless = ridingEntitySupportC.MakeTimeless;
+                Entity supportingEnt = Store.GetEntityById(mobile.SupportingEntityId);
+                var supportingData = supportingEnt.Data;
+                ref var support = ref supportingData.Get<SupportComponent>();
+                shouldBeTempTimeless = support.MakeTimeless;
             }
             if (shouldBeTempTimeless) MakeTimeless(mobileData, cb);
             else UnmakeTimeless(mobileData, cb);
@@ -165,7 +166,7 @@ public class PhysicsSystem : BaseSystem
                         if (collision is not VirtualCollision virtualCollision) virtualCollision = new();
 
                         virtualCollision.Normal = new(-Math.Sign(movement.X), 0);
-                        virtualCollision.Bounce = new(1, 0);
+                        virtualCollision.Restitution = new(1, 0);
                         collision = virtualCollision;
                     }
                 }
@@ -200,10 +201,10 @@ public class PhysicsSystem : BaseSystem
             vector.Y *= -bounce.Y;
     }
 
-    public static Vector2 GetBounce(ref MobileInfoComponent mobileInfo, ref SupportComponent support)
+    public static Vector2 GetRestitution(ref MobileInfoComponent mobileInfo, ref SupportComponent support)
     {
-        Vector2 overrideBounciness = support.OverrideBounciness;
-        return new(overrideBounciness.X >= 0 ? overrideBounciness.X : mobileInfo.Bounciness.X, overrideBounciness.Y >= 0 ? overrideBounciness.Y : mobileInfo.Bounciness.Y);
+        Vector2 overrideRestitution = support.OverrideRestitution;
+        return new(overrideRestitution.X >= 0 ? overrideRestitution.X : mobileInfo.Restitution.X, overrideRestitution.Y >= 0 ? overrideRestitution.Y : mobileInfo.Restitution.Y);
     }
 
     private void UnmakeTimeless(EntityData data, CommandBuffer cb)

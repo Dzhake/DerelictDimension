@@ -9,11 +9,11 @@ public interface IAi
     /// Called in <see cref="AiPreUpdateSystem"/>, before physics update.
     /// </summary>
     /// <param name="entity">Entity with this component.</param>
-    void PreUpdate(Entity entity);
+    void PreUpdate(Entity entity, EntityStore store);
 
     /// <summary>
     /// Called in <see cref="AiPostUpdateSystem"/>, before physics update.
     /// </summary>
     /// <param name="entity">Entity with this component.</param>
-    void PostUpdate(Entity entity);
+    void PostUpdate(Entity entity, EntityStore store);
 }

@@ -16,9 +16,9 @@ public struct PlayerAi : IComponent, IAi
     {
     }
 
-    public readonly void PostUpdate(Entity entity) { }
+    public readonly void PostUpdate(Entity entity, EntityStore store) { }
 
-    public readonly void PreUpdate(Entity entity)
+    public readonly void PreUpdate(Entity entity, EntityStore store)
     {
         var data = entity.Data;
         if (!data.Has<MobileComponent>()) return;
@@ -30,6 +30,18 @@ public struct PlayerAi : IComponent, IAi
 
         ref float xvel = ref mobile.Velocity.X;
         float xAccel = mobile.InAir ? AirAcceleration : Acceleration;
+
+        if (mobile.SupportingEntityId != -1)
+        {
+            var supportingEnt = store.GetEntityById(mobile.SupportingEntityId);
+            var supportingData = supportingEnt.Data;
+            if (!supportingEnt.IsNull && supportingData.Has<SupportComponent>())
+            {
+                ref var support = ref supportingData.Get<SupportComponent>();
+                xAccel *= support.AccelerationMult;
+            }
+        }
+
         float targetX = xvel;
         if (left && right)
             targetX = 0;

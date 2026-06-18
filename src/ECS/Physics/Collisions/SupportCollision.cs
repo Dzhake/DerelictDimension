@@ -26,8 +26,8 @@ public class SupportCollision : ICollision
             mobile.SupportingEntityId = -1;
         }
 
-        Vector2 bounce = PhysicsSystem.GetBounce(ref mobileInfo, ref support);
-        PhysicsSystem.ApplyBounce(ref mobile.Velocity, Normal, bounce);
-        PhysicsSystem.ApplyBounce(ref movement, Normal, bounce);
+        Vector2 restitution = PhysicsSystem.GetRestitution(ref mobileInfo, ref support);
+        PhysicsSystem.ApplyBounce(ref mobile.Velocity, Normal, restitution);
+        PhysicsSystem.ApplyBounce(ref movement, Normal, restitution);
     }
 }

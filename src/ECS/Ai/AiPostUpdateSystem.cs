@@ -5,11 +5,13 @@ namespace DerelictDimension.ECS.Ai;
 public class AiPostUpdateSystem : BaseSystem
 {
     public ArchetypeQuery<PlayerAi> PlayerControlledQuery;
+    public EntityStore Store;
 
     protected override void OnAddStore(EntityStore store)
     {
         base.OnAddStore(store);
         PlayerControlledQuery = store.Query<PlayerAi>();
+        Store = store;
     }
 
     protected override void OnUpdateGroup()
@@ -18,5 +20,5 @@ public class AiPostUpdateSystem : BaseSystem
         PlayerControlledQuery.ForEachEntity(UpdatePlayer);
     }
 
-    private void UpdatePlayer(ref PlayerAi ai, Entity entity) => ai.PostUpdate(entity);
+    private void UpdatePlayer(ref PlayerAi ai, Entity entity) => ai.PostUpdate(entity, Store);
 }

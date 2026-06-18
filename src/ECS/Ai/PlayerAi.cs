@@ -1,4 +1,4 @@
-﻿using DerelictDimension.ECS.Physics;
+﻿using DerelictDimension.ECS.Physics.Components;
 using Monod.InputModule;
 using Monod.MathModule;
 using Monod.TimeModule;

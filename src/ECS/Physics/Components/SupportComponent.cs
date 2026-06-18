@@ -1,6 +1,6 @@
 ﻿using Monod.MathModule;
 
-namespace DerelictDimension.ECS.Physics;
+namespace DerelictDimension.ECS.Physics.Components;
 
 public struct SupportComponent : IComponent
 {

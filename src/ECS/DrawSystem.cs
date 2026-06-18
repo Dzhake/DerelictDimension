@@ -1,4 +1,4 @@
-﻿using DerelictDimension.ECS.Physics;
+﻿using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
 using Monod.AssetsModule;
@@ -86,7 +86,7 @@ public class DrawSystem : BaseSystem
         Renderer.Begin(effect: isTimeless || !Rewind.Active ? null : RewindEffect);
         Renderer.DrawRect((Rectangle)rect, color);
         Renderer.DrawLine(rect.Center, rect.Center + (mobile.Velocity * Time.DeltaTime), Color.Red, 5);
-        Renderer.DrawLine(new(0, mobile.HighestPoint), new(Renderer.WindowSize.X, mobile.HighestPoint), Color.LightBlue, 1);
+        //Renderer.DrawLine(new(0, mobile.HighestPoint), new(Renderer.WindowSize.X, mobile.HighestPoint), Color.LightBlue, 1);
         GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{mobile.Velocity.X}\n{mobile.Velocity.Y}\n{mobile.SupportingEntityId}", rect.Center, Color.Black);
         Renderer.End();
     }

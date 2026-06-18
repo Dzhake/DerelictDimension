@@ -7,6 +7,7 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>preview</LangVersion>
         <!-- 
         Hmm who ever needs comments.
         I sure will write comments when some things become much more stable. Currently it falls apart :)

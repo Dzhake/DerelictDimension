@@ -1,6 +1,6 @@
 ﻿using DerelictDimension.ECS;
 using DerelictDimension.ECS.Ai;
-using DerelictDimension.ECS.Physics;
+using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
 using MLEM.Extended.Font;
@@ -93,7 +93,7 @@ public class TheGame : MonodGame
 
         Store.CreateEntity(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Position2D(300, 550));
         Store.CreateEntity(new SupportComponent() { OverrideRestitution = new(0, 1) }, new HitboxComponent(0, 0, 250, 50), new Position2D(810, 550.5f));
-        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0), FlipOnEdge = true }, new HitboxComponent(0, 0, 50, 50), new Position2D(300, 100), new PlayerAi());
+        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0), FlipOnEdge = true }, new HitboxComponent(0, 0, 30, 50), new Position2D(300, 100), new PlayerAi(), new BounceableComponent(100, 200, 50));
 
         InitializeSystems();
     }
@@ -191,7 +191,7 @@ public class TheGame : MonodGame
         }
         else if (Input.KeyPressed(Key.Mouse2))
         {
-            Entity ent = Store.CreateEntity(new MobileComponent(), new HitboxComponent(0, 0, 50, 50), new Position2D(mousepos));
+            Entity ent = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent(restitution: Vector2.Zero), new HitboxComponent(0, 0, 30, 15), new Position2D(mousepos), new BouncyComponent());
             Rewind.Keep(ent);
         }
         else if (Input.KeyPressed(Key.Mouse3))

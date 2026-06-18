@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DerelictDimension.ECS.Physics;
+namespace DerelictDimension.ECS.Physics.Components;
 
 [ComponentKey("HitboxComponent")]
 [ComponentSymbol("H")]

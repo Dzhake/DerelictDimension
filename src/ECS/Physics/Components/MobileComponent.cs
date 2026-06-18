@@ -1,4 +1,4 @@
-﻿namespace DerelictDimension.ECS.Physics;
+﻿namespace DerelictDimension.ECS.Physics.Components;
 
 public struct MobileComponent : IComponent
 {

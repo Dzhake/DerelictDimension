@@ -1,4 +1,5 @@
-﻿using Monod.ECS.DefaultComponents;
+﻿using DerelictDimension.ECS.Physics.Components;
+using Monod.ECS.DefaultComponents;
 using Monod.MathModule;
 
 namespace DerelictDimension.ECS.Physics.Collisions;
@@ -8,7 +9,7 @@ public class VirtualCollision : ICollision
     public Vector2 Normal;
     public Vector2 Restitution;
 
-    public void Apply(ref Vector2 movement, float timeRemaining, float collisionTime, ref MobileComponent mobile, ref Position2D mobilePos, ref MobileInfoComponent mobileInfo)
+    public void Apply(EntityData _, ref Vector2 movement, float timeRemaining, float collisionTime, ref MobileComponent mobile, ref Position2D mobilePos, ref MobileInfoComponent mobileInfo)
     {
         float timeToMove = Math.Max(0.0f, collisionTime - MathM.Epsilon);
         Vector2 currentFrameMovement = movement * timeRemaining;

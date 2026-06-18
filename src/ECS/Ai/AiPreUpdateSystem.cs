@@ -1,4 +1,5 @@
-﻿using Friflo.Engine.ECS.Systems;
+﻿using DerelictDimension.ECS.Rewinding;
+using Friflo.Engine.ECS.Systems;
 
 namespace DerelictDimension.ECS.Ai;
 
@@ -20,5 +21,9 @@ public class AiPreUpdateSystem : BaseSystem
         PlayerControlledQuery.ForEachEntity(UpdatePlayer);
     }
 
-    private void UpdatePlayer(ref PlayerAi ai, Entity entity) => ai.PreUpdate(entity, Store);
+    private void UpdatePlayer(ref PlayerAi ai, Entity entity)
+    {
+        if (!Rewind.Active || entity.HasComponent<TimelessComponent>())
+            ai.PreUpdate(entity, Store);
+    }
 }

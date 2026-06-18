@@ -1,5 +1,6 @@
 ﻿using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Physics.Collisions;
+using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
@@ -8,10 +9,11 @@ using Monod.TimeModule;
 
 public class PhysicsSystem : BaseSystem
 {
-    public readonly Vector2 GravityAccel = new(0, 1000);
+    public static readonly Vector2 GravityAccel = new(0, 1000);
 
     public ArchetypeQuery<MobileComponent, MobileInfoComponent> MobilesQuery;
     public ArchetypeQuery<SupportComponent> SupportsQuery;
+    public ArchetypeQuery<BouncyComponent> BouncyQuery;
     public EntityStore Store;
 
     protected override void OnAddStore(EntityStore store)
@@ -19,6 +21,7 @@ public class PhysicsSystem : BaseSystem
         base.OnAddStore(store);
         MobilesQuery = store.Query<MobileComponent, MobileInfoComponent>();
         SupportsQuery = store.Query<SupportComponent>();
+        BouncyQuery = store.Query<BouncyComponent>();
         Store = store;
     }
 
@@ -36,8 +39,8 @@ public class PhysicsSystem : BaseSystem
             ref var mobileInfo = ref mobileData.Get<MobileInfoComponent>();
             ref var mobilePos = ref mobileData.Get<Position2D>();
             ref var mobileHitbox = ref mobileData.Get<HitboxComponent>();
-            bool isTimeless = mobileData.Has<TimelessComponent>();
             bool temporaryTimeless = mobileData.Has<TemporaryTimeless>();
+            bool isTimeless = mobileData.Has<TimelessComponent>();
 
             if (!Rewind.Active || isTimeless)
             {
@@ -61,6 +64,8 @@ public class PhysicsSystem : BaseSystem
 
                 AABB worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
 
+                //should probably check 'inside solid' in sweep check instead?
+                /*
                 foreach (Entity supportEnt in SupportsQuery.Entities)
                 {
                     var supportData = supportEnt.Data;
@@ -70,16 +75,16 @@ public class PhysicsSystem : BaseSystem
                     ref SupportComponent supportC = ref supportData.Get<SupportComponent>();
                     AABB worldSupportHitbox = GetWorldHitbox(ref supportData.Get<HitboxComponent>(), ref supportPos);
 
-                    //should probably check this in sweep check instead?
-                    /*if (Collide.CheckAABBToAABB(ref worldMobileHitbox, ref worldSupportHitbox, out Vector2 mtv))
+                    if (Collide.CheckAABBToAABB(ref worldMobileHitbox, ref worldSupportHitbox, out Vector2 mtv))
                     {
                         mobilePos.Value += mtv;
                         ApplyBounce(ref mobile.Velocity, mtv, GetRestitution(ref mobileInfo, ref supportC));
                         worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
-                    }*/
+                    }
                 }
+                */
 
-                MoveMobileEntity(mobile.Velocity * dt, ref mobile, ref mobileInfo, ref mobilePos, ref mobileHitbox, ref worldMobileHitbox);
+                MoveMobileEntity(mobile.Velocity * dt, mobileData);
             }
 
             if (mobileData.Has<TimelessComponent>() && !mobileData.Has<TemporaryTimeless>()) continue;
@@ -97,8 +102,16 @@ public class PhysicsSystem : BaseSystem
         cb.Playback();
     }
 
-    private void MoveMobileEntity(Vector2 movement, ref MobileComponent mobile, ref MobileInfoComponent mobileInfo, ref Position2D mobilePos, ref HitboxComponent mobileHitbox, ref AABB worldMobileHitbox, bool force = false)
+    private void MoveMobileEntity(Vector2 movement, EntityData mobileData, bool force = false)
     {
+        ref var mobile = ref mobileData.Get<MobileComponent>();
+        ref var mobileInfo = ref mobileData.Get<MobileInfoComponent>();
+        ref var mobilePos = ref mobileData.Get<Position2D>();
+        ref var mobileHitbox = ref mobileData.Get<HitboxComponent>();
+        bool isBounceable = mobileData.Has<BounceableComponent>();
+
+        AABB worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobilePos);
+
         int maxIterations = 5;
         float timeRemaining = 1.0f;
 
@@ -132,6 +145,29 @@ public class PhysicsSystem : BaseSystem
                     supportCollision.Normal = normal;
                     supportCollision.SupportEntity = supportEnt;
                     collision = supportCollision;
+                }
+            }
+
+            if (isBounceable)
+            {
+                foreach (Entity bouncyEnt in BouncyQuery.Entities)
+                {
+                    var bouncyData = bouncyEnt.Data;
+                    if (!bouncyData.Has<Position2D>() || !bouncyData.Has<HitboxComponent>()) continue;
+
+                    ref var bouncyPos = ref bouncyData.Get<Position2D>();
+                    AABB worldBouncyHitbox = GetWorldHitbox(ref bouncyData.Get<HitboxComponent>(), ref bouncyPos);
+
+                    if (!Collide.QuickCheckAABBToAABB(ref quickCheckHitbox, ref worldBouncyHitbox)) continue;
+
+                    if (Collide.SweptCheck(ref worldMobileHitbox, ref worldBouncyHitbox, ref currentFrameMovement, out float collisionTime, out Vector2 normal) && collisionTime < minCollisionTime && (normal == MathM.VectorUp))
+                    {
+                        minCollisionTime = collisionTime;
+                        if (collision is not BounceCollision bounce) bounce = new();
+
+                        bounce.BouncyEntity = bouncyEnt;
+                        collision = bounce;
+                    }
                 }
             }
 
@@ -173,10 +209,11 @@ public class PhysicsSystem : BaseSystem
             }
 
 
+
             //apply collision
             if (collision != null)
             {
-                collision.Apply(ref movement, timeRemaining, minCollisionTime, ref mobile, ref mobilePos, ref mobileInfo);
+                collision.Apply(mobileData, ref movement, timeRemaining, minCollisionTime, ref mobile, ref mobilePos, ref mobileInfo);
                 timeRemaining -= timeRemaining * minCollisionTime;
 
                 mobile.HighestPoint = Math.Min(mobile.HighestPoint, mobilePos.Value.Y);

@@ -1,4 +1,5 @@
-﻿using Monod.ECS.DefaultComponents;
+﻿using DerelictDimension.ECS.Physics.Components;
+using Monod.ECS.DefaultComponents;
 using Monod.MathModule;
 
 namespace DerelictDimension.ECS.Physics.Collisions;
@@ -9,7 +10,7 @@ public class SupportCollision : ICollision
     public Vector2 Normal;
     public Entity SupportEntity;
 
-    public void Apply(ref Vector2 movement, float timeRemaining, float collisionTime, ref MobileComponent mobile, ref Position2D mobilePos, ref MobileInfoComponent mobileInfo)
+    public void Apply(EntityData _, ref Vector2 movement, float timeRemaining, float collisionTime, ref MobileComponent mobile, ref Position2D mobilePos, ref MobileInfoComponent mobileInfo)
     {
         var data = SupportEntity.Data;
         float timeToMove = Math.Max(0.0f, collisionTime - MathM.Epsilon);

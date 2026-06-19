@@ -1,6 +1,8 @@
-﻿namespace DerelictDimension.ECS;
+﻿namespace DerelictDimension.ECS.Drawing;
 
-public record struct SingleSpriteComponent : IComponent
+[ComponentKey("SpriteComponent")]
+[ComponentSymbol("S")]
+public record struct SpriteComponent : IComponent
 {
     public Vector2 Offset = Vector2.Zero;
     public Vector2? Origin;
@@ -10,11 +12,9 @@ public record struct SingleSpriteComponent : IComponent
     public float Rotation;
     public SpriteEffects spriteEffects;
     public Color ColorScale = Color.White;
-    public string TexturePath;
     public Texture2D? Texture;
 
-    public SingleSpriteComponent(string texturePath)
+    public SpriteComponent()
     {
-        TexturePath = texturePath;
     }
 }

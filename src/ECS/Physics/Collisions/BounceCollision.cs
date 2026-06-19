@@ -1,6 +1,7 @@
 ﻿using DerelictDimension.ECS.Physics.Components;
 using Monod.ECS.DefaultComponents;
 using Monod.MathModule;
+using System;
 
 namespace DerelictDimension.ECS.Physics.Collisions;
 
@@ -8,9 +9,11 @@ public class BounceCollision : ICollision
 {
     public Entity BouncyEntity;
 
-    public void Apply(EntityData mobileData, ref Vector2 movement, float timeRemaining, float collisionTime, ref MobileComponent mobile, ref Position2D mobilePos, ref MobileInfoComponent mobileInfo)
+    public void Apply(EntityData mobileData, ref Vector2 movement, float timeRemaining, float collisionTime, ref MobileComponent mobile, ref Transform2D mobilePos, ref MobileInfoComponent mobileInfo)
     {
-        if (!mobileData.Has<BounceableComponent>()) return;
+        var bouncyData = BouncyEntity.Data;
+        if (!mobileData.Has<BounceableComponent>() || !bouncyData.Has<BouncyComponent>()) return;
+        ref var bouncy = ref bouncyData.Get<BouncyComponent>();
         ref var bounceable = ref mobileData.Get<BounceableComponent>();
 
         if (mobile.Velocity.Y <= 0) return;
@@ -24,13 +27,26 @@ public class BounceCollision : ICollision
         float targetHeight = Math.Clamp(currentHeight + bounceable.AddHeight, bounceable.MinHeight, bounceable.MaxHeight);
 
         // v = sqrt(2gH)
-        float targetVelocity = (float)Math.Sqrt(2f * gravity * targetHeight);
+        float targetVelocity = MathF.Sqrt(2f * gravity * targetHeight);
 
         float bounceY = mobile.Velocity.Y > 0.001f ? targetVelocity / mobile.Velocity.Y : 0f;
 
         Vector2 bounce = new(0, bounceY);
 
-        // TODO: i'm not sure if this is how the speed should be set. Might get very incosistent behaviour with different framerate.
+        if (bouncy.DieOnBounce && bouncyData.Has<MortalComponent>())
+        {
+            ref var mortal = ref bouncyData.Get<MortalComponent>();
+            mortal.Dead = true;
+            if (bouncyData.Has<HitboxComponent>())
+                bouncyData.Get<HitboxComponent>().Collidable = false;
+            if (bouncyData.Has<MobileComponent>())
+            {
+                ref var bouncyMobile = ref bouncyData.Get<MobileComponent>();
+                bouncyMobile.Velocity = (bouncyMobile.Velocity + mobile.Velocity) / 2;
+            }
+        }
+
+        // TODO (probably fps-based bug, medium priority): i'm not sure if this is how the speed should be set, because it looks like goal height is based only on speed, so speed+movement will be higher than intended. Might get very incosistent behaviour with different framerate.
         PhysicsSystem.ApplyBounce(ref movement, MathM.VectorUp, bounce);
         PhysicsSystem.ApplyBounce(ref mobile.Velocity, MathM.VectorUp, bounce);
     }

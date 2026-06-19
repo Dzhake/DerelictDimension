@@ -38,4 +38,9 @@ public static class Rewind
             StoredComponents.Add(key, (component, false));
         }
     }
+
+    public static bool ShouldUpdateEntity(EntityData data)
+    {
+        return !Active || data.Has<TimelessComponent>();
+    }
 }

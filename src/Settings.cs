@@ -1,6 +1,4 @@
-using DerelictDimension.ECS;
 using Hexa.NET.ImGui;
-using Microsoft.Xna.Framework;
 using Monod.AssetsModule;
 using Monod.Graphics.Settings;
 using Monod.ModsModule;
@@ -145,11 +143,6 @@ public static class Settings
         if (ImGui.Button("Reload enabled mods"u8))
             ModManager.EnqueueLoadEnabledMods();
 
-        ImGui.InputFloat("Center X", ref DrawSystem.X);
-        ImGui.InputFloat("Center Y", ref DrawSystem.Y);
-        ImGui.InputFloat("Width", ref DrawSystem.width);
-        ImGui.InputFloat("Height", ref DrawSystem.height);
-        ImGui.InputFloat("Angle", ref DrawSystem.angle);
 
         ImGui.End();
     }

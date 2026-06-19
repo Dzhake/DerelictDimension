@@ -1,5 +1,5 @@
-﻿using DerelictDimension.ECS;
-using DerelictDimension.ECS.Ai;
+﻿using DerelictDimension.ECS.Ai;
+using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
@@ -75,15 +75,6 @@ public class TheGame : MonodGame
         Renderer.DefaultBlendState = Renderer.NonPremultipliedBlend;
         Assets.OnReload += LoadFont;
 
-        Monod.Utils.Enums.ExtEnumInfo<InputActionIndex> actionsInfo = InputActionIndex.Info;
-        UpdateCardSystem.LeanLeft = actionsInfo.AddOrGetValue("Lean left");
-        UpdateCardSystem.LeanRight = actionsInfo.AddOrGetValue("Lean right");
-        Input.DefaultMap = new()
-        {
-            {UpdateCardSystem.LeanLeft, new([new(Key.A), new(Key.Left)]) },
-            {UpdateCardSystem.LeanRight, new([new(Key.D), new(Key.Right)]) },
-        };
-
         InitWorld();
     }
 
@@ -91,9 +82,9 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        Store.CreateEntity(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Position2D(300, 550));
-        Store.CreateEntity(new SupportComponent() { OverrideRestitution = new(0, 1) }, new HitboxComponent(0, 0, 250, 50), new Position2D(810, 550.5f));
-        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0), FlipOnEdge = true }, new HitboxComponent(0, 0, 30, 50), new Position2D(300, 100), new PlayerAi(), new BounceableComponent(100, 200, 50));
+        Store.CreateEntity(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Monod.ECS.DefaultComponents.Transform2D(300, 550));
+        Store.CreateEntity(new SupportComponent() { OverrideRestitution = new(0, 1) }, new HitboxComponent(0, 0, 250, 50), new Monod.ECS.DefaultComponents.Transform2D(810, 550.5f));
+        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0), FlipOnEdge = true }, new HitboxComponent(0, 0, 30, 50), new Monod.ECS.DefaultComponents.Transform2D(300, 100), new PlayerAi(), new BounceableComponent(100, 200, 50));
 
         InitializeSystems();
     }
@@ -184,19 +175,19 @@ public class TheGame : MonodGame
         if (Input.KeyDown(Key.Mouse1))
         {
             var data = entity.Data;
-            ref var pos = ref data.Get<Position2D>();
-            pos.Value = mousepos;
+            ref var pos = ref data.Get<Monod.ECS.DefaultComponents.Transform2D>();
+            pos.Position = mousepos;
             ref var mobile = ref data.Get<MobileComponent>();
             mobile.Velocity = Vector2.Zero;
         }
         else if (Input.KeyPressed(Key.Mouse2))
         {
-            Entity ent = Store.CreateEntity(new HitboxComponent(0, 0, 30, 15), new Position2D(mousepos), new BouncyComponent(), new MonstarAi());
+            Entity ent = Store.CreateEntity(new HitboxComponent(0, 0, 30, 15), new Transform2D(mousepos), new BouncyComponent(), new MonstarAi(), new MortalComponent());
             Rewind.Keep(ent);
         }
         else if (Input.KeyPressed(Key.Mouse3))
         {
-            //Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Position2D(mousepos), new TimelessComponent());
+            //Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Transform(mousepos), new TimelessComponent());
             entity.AddComponent(new TemporaryTimeless());
         }
 

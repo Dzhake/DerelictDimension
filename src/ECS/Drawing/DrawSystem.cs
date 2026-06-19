@@ -4,13 +4,11 @@ using Friflo.Engine.ECS.Systems;
 using Monod.AssetsModule;
 using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
-using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
-using Monod.InputModule;
 using Monod.TimeModule;
 using Monod.Utils.Extensions;
 
-namespace DerelictDimension.ECS;
+namespace DerelictDimension.ECS.Drawing;
 
 public class DrawSystem : BaseSystem
 {
@@ -25,11 +23,6 @@ public class DrawSystem : BaseSystem
 
     public ArchetypeQuery<MobileComponent> MobilesQuery;
     public ArchetypeQuery<SupportComponent> SupportsQuery;
-    public static float X;
-    public static float Y;
-    public static float width;
-    public static float height;
-    public static float angle;
 
 
     protected override void OnAddStore(EntityStore store)
@@ -44,7 +37,7 @@ public class DrawSystem : BaseSystem
         Point renderSize = Renderer.RenderSize;
         LoadMissingAssets();
         Upscale = new(renderSize.X / TheGame.GameSize.X, renderSize.Y / TheGame.GameSize.Y);
-        UpdateShaders(renderSize, out float cardSide, out float lean);
+        UpdateShaders(renderSize, out float cardSide);
 
         RenderTarget2D? currentRT = Renderer.RenderTarget;
         Renderer.SetRenderTarget(MainRT);
@@ -52,31 +45,24 @@ public class DrawSystem : BaseSystem
         DrawGame();
         //DrawInCard(renderSize, cardSide, lean);
         Renderer.SetRenderTarget(currentRT);
-        DrawFinal(renderSize, cardSide, lean);
+        DrawFinal();
     }
 
     private void DrawGame()
     {
         MobilesQuery.ForEachEntity(DrawMobile);
         SupportsQuery.ForEachEntity(DrawSupport);
-        Renderer.Begin();
-        Renderer.DrawRotRect(X, Y, width, height, angle, Color.White);
-        Renderer.End();
     }
 
     private void DrawMobile(ref MobileComponent mobile, Entity entity)
     {
         var data = entity.Data;
-        if (!data.Has<HitboxComponent>()) return;
-        Vector2 pos;
-        if (data.Has<Position2D>())
-            pos = data.Get<Position2D>().Value;
-        else
-            pos = Vector2.Zero;
+        if (!data.Has<HitboxComponent>() || !data.Has<Transform2D>()) return;
         bool isTimeless = data.Has<TimelessComponent>();
+        ref var transform = ref data.Get<Transform2D>();
 
-        AABB rect = data.Get<HitboxComponent>().Value;
-        rect.Center += pos;
+        AABB rect = PhysicsSystem.GetWorldHitbox(ref data.Get<HitboxComponent>(), ref transform);
+
         rect.CenterX *= Upscale.X;
         rect.CenterY *= Upscale.Y;
         rect.Width *= Upscale.X;
@@ -84,7 +70,7 @@ public class DrawSystem : BaseSystem
         Color color = new(176 / 255f, 176 / 255f, 39 / 255f);
         if (isTimeless) color = Color.Lime;
         Renderer.Begin(effect: isTimeless || !Rewind.Active ? null : RewindEffect);
-        Renderer.DrawRect((Rectangle)rect, color);
+        RendererExt.DrawRotRect(rect, transform.GetFlippedRotation(), color);
         Renderer.DrawLine(rect.Center, rect.Center + (mobile.Velocity * Time.DeltaTime), Color.Red, 5);
         //Renderer.DrawLine(new(0, mobile.HighestPoint), new(Renderer.WindowSize.X, mobile.HighestPoint), Color.LightBlue, 1);
         GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{mobile.Velocity.X}\n{mobile.Velocity.Y}\n{mobile.SupportingEntityId}", rect.Center, Color.Black);
@@ -94,14 +80,9 @@ public class DrawSystem : BaseSystem
     private void DrawSupport(ref SupportComponent support, Entity entity)
     {
         var data = entity.Data;
-        if (!data.Has<HitboxComponent>()) return;
-        Vector2 pos;
-        if (data.Has<Position2D>())
-            pos = data.Get<Position2D>().Value;
-        else
-            pos = Vector2.Zero;
-        AABB rect = data.Get<HitboxComponent>().Value;
-        rect.Center += pos;
+        if (!data.Has<HitboxComponent>() || !data.Has<Transform2D>()) return;
+        ref var transform = ref data.Get<Transform2D>();
+        AABB rect = PhysicsSystem.GetWorldHitbox(ref data.Get<HitboxComponent>(), ref transform);
         rect.CenterX *= Upscale.X;
         rect.CenterY *= Upscale.Y;
         rect.Width *= Upscale.X;
@@ -110,11 +91,11 @@ public class DrawSystem : BaseSystem
         Color color = new(48 / 255f, 37 / 255f, 138 / 255f);
         if (support.MakeTimeless && Rewind.CurrentFrame % 60 < 20) color.AddRgb(25);
         Renderer.Begin(effect: Rewind.Active ? RewindEffect : null);
-        Renderer.DrawRotRect(rect.Center.X, rect.Center.Y, rect.Width, rect.Height, 0, color);
+        RendererExt.DrawRotRect(rect, transform.GetFlippedRotation(), color);
         Renderer.End();
     }
 
-    private void DrawFinal(Point renderSize, float cardSide, float lean)
+    private void DrawFinal()
     {
         Vector2 renderOffset = Renderer.RenderOffset;
         /*Renderer.Begin();
@@ -126,14 +107,13 @@ public class DrawSystem : BaseSystem
         Renderer.End();
 
         Renderer.Begin();
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Target:{UpdateCardSystem.Target}\nTime:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nRewinding:{Rewind.Active}\nRewind Speed:{Rewind.RewindSpeed}\nLast Valid Frame: {RewindPostUpdateSystem.LastValidFrame}", renderOffset, Color.White);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Time:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nRewinding:{Rewind.Active}\nRewind Speed:{Rewind.RewindSpeed}\nLast Valid Frame: {RewindPostUpdateSystem.LastValidFrame}", renderOffset, Color.White);
         Renderer.End();
     }
 
-    private void UpdateShaders(Point renderSize, out float cardSide, out float lean)
+    private void UpdateShaders(Point renderSize, out float cardSide)
     {
         cardSide = 320 * Upscale.X;
-        lean = UpdateCardSystem.GetActualLean();
         float halfSideX = cardSide / renderSize.X / 2;
         float halfSideY = cardSide / renderSize.Y / 2;
 
@@ -142,44 +122,6 @@ public class DrawSystem : BaseSystem
         InCardEffect!.Parameters["HalfSideX"]?.SetValue(halfSideX);
         InCardEffect.Parameters["HalfSideY"]?.SetValue(halfSideY);
         InCardEffect.Parameters["CardRadius"]?.SetValue(CardRadius);
-    }
-
-    private void DrawGameLayerSprite(ref Sprite2D sprite, Entity entity)
-    {
-        var data = entity.Data;
-        if (sprite.Texture is null) return;
-        GetDrawInfo(sprite, data, out var pos, out var scale, out var depth, out var rotation, out var origin);
-        scale ??= Vector2.One;
-
-        Vector2 mousePos = Input.MousePos();
-        Vector2 realPosition = pos * Upscale ?? new(mousePos.X, mousePos.Y);
-        Renderer.DrawTexture(sprite.Texture, realPosition, sprite.color, null, rotation ?? 0, origin, scale * Upscale, sprite.spriteEffects, depth ?? 0);
-    }
-
-    private static void GetDrawInfo(Sprite2D sprite, EntityData data, out Vector2? pos, out Vector2? scale, out float? depth, out float? rotation, out Vector2? origin)
-    {
-        if (data.TryGet<Position2D>(out var position2D))
-            pos = position2D.Value;
-        else
-            pos = null;
-
-        if (data.TryGet<Scale2D>(out var scale2D))
-            scale = scale2D.Value;
-        else
-            scale = null;
-
-        if (data.TryGet<RenderDepth>(out var renderDepth))
-            depth = renderDepth.Depth;
-        else
-            depth = null;
-
-        if (data.TryGet<Rotation2D>(out var rotation2d))
-            rotation = rotation2d.Angle;
-        else
-            rotation = null;
-
-        if (sprite.Texture is null) origin = null;
-        else origin = new(sprite.Texture.Width / 2f, sprite.Texture.Height / 2f);
     }
 
     private void LoadMissingAssets()

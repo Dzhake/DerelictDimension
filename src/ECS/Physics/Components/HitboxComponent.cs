@@ -7,6 +7,7 @@ namespace DerelictDimension.ECS.Physics.Components;
 public struct HitboxComponent : IComponent, IEquatable<HitboxComponent>
 {
     public AABB Value;
+    public bool Collidable = true;
 
     public readonly override string? ToString() => Value.ToString();
 
@@ -17,8 +18,8 @@ public struct HitboxComponent : IComponent, IEquatable<HitboxComponent>
 
     public HitboxComponent(float centerX, float centerY, float halfWidth, float halfHeight) : this(new(centerX, centerY, halfWidth, halfHeight)) { }
 
-    public static bool operator ==(in HitboxComponent p1, in HitboxComponent p2) => p1.Value == p2.Value;
-    public static bool operator !=(in HitboxComponent p1, in HitboxComponent p2) => p1.Value != p2.Value;
+    public static bool operator ==(in HitboxComponent h1, in HitboxComponent h2) => h1.Value == h2.Value;
+    public static bool operator !=(in HitboxComponent h1, in HitboxComponent h2) => h1.Value != h2.Value;
 
     public override readonly int GetHashCode() => Value.GetHashCode();
     public readonly bool Equals(HitboxComponent other) => Value == other.Value;

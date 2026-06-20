@@ -2,12 +2,12 @@
 
 namespace DerelictDimension.ECS.Physics.Components;
 
-public struct SupportComponent : IComponent
+public record struct SupportComponent : IComponent
 {
     /// <summary>
     /// Speed multiplier, applied to mobiles which are supported by this entity. Applied once per frame, at the beginning of physics update.
     /// </summary>
-    public float FrictionSpeedMultPerFrame;
+    public float Friction;
 
     /// <summary>
     /// Whether mobiles supported by this entity should become timeless.
@@ -42,7 +42,7 @@ public struct SupportComponent : IComponent
     /// <param name="accelerationMult">Multiplier to X acceleration of mobiles which are supported by this entity.</param>
     public SupportComponent(Direction4 normals = Direction4.Up, float friction = 0.95f, bool makeTimeless = false, Vector2? overrideRestitution = null, float accelerationMult = 1)
     {
-        FrictionSpeedMultPerFrame = friction;
+        Friction = friction;
         MakeTimeless = makeTimeless;
         Normals = normals;
         OverrideRestitution = overrideRestitution ?? new(-1, -1);

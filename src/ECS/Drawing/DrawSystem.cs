@@ -61,7 +61,8 @@ public class DrawSystem : BaseSystem
         bool isTimeless = data.Has<TimelessComponent>();
         ref var transform = ref data.Get<Transform2D>();
 
-        AABB rect = PhysicsSystem.GetWorldHitbox(ref data.Get<HitboxComponent>(), ref transform);
+        ref var hitbox = ref data.Get<HitboxComponent>();
+        AABB rect = PhysicsSystem.GetWorldHitbox(ref hitbox, ref transform);
 
         rect.CenterX *= Upscale.X;
         rect.CenterY *= Upscale.Y;
@@ -69,6 +70,7 @@ public class DrawSystem : BaseSystem
         rect.Height *= Upscale.Y;
         Color color = new(176 / 255f, 176 / 255f, 39 / 255f);
         if (isTimeless) color = Color.Lime;
+        if (!hitbox.Collidable) color.A /= 2;
         Renderer.Begin(effect: isTimeless || !Rewind.Active ? null : RewindEffect);
         RendererExt.DrawRotRect(rect, transform.GetFlippedRotation(), color);
         Renderer.DrawLine(rect.Center, rect.Center + (mobile.Velocity * Time.DeltaTime), Color.Red, 5);
@@ -82,7 +84,9 @@ public class DrawSystem : BaseSystem
         var data = entity.Data;
         if (!data.Has<HitboxComponent>() || !data.Has<Transform2D>()) return;
         ref var transform = ref data.Get<Transform2D>();
-        AABB rect = PhysicsSystem.GetWorldHitbox(ref data.Get<HitboxComponent>(), ref transform);
+        ref var hitbox = ref data.Get<HitboxComponent>();
+
+        AABB rect = PhysicsSystem.GetWorldHitbox(ref hitbox, ref transform);
         rect.CenterX *= Upscale.X;
         rect.CenterY *= Upscale.Y;
         rect.Width *= Upscale.X;

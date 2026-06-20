@@ -82,9 +82,9 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        Store.CreateEntity(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Monod.ECS.DefaultComponents.Transform2D(300, 550));
-        Store.CreateEntity(new SupportComponent() { OverrideRestitution = new(0, 1) }, new HitboxComponent(0, 0, 250, 50), new Monod.ECS.DefaultComponents.Transform2D(810, 550.5f));
-        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0), FlipOnEdge = true }, new HitboxComponent(0, 0, 30, 50), new Monod.ECS.DefaultComponents.Transform2D(300, 100), new PlayerAi(), new BounceableComponent(100, 200, 50));
+        Store.CreateEntity(new SupportComponent() { Friction = -0.05f }, new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 550));
+        Store.CreateEntity(new SupportComponent() { Friction = -0.05f, OverrideRestitution = new(0, 1) }, new HitboxComponent(0, 0, 250, 50), new Transform2D(810, 550.5f));
+        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0), FlipOnEdge = true }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new PlayerAi(), new BounceableComponent(100, 200, 50));
 
         InitializeSystems();
     }
@@ -175,7 +175,7 @@ public class TheGame : MonodGame
         if (Input.KeyDown(Key.Mouse1))
         {
             var data = entity.Data;
-            ref var pos = ref data.Get<Monod.ECS.DefaultComponents.Transform2D>();
+            ref var pos = ref data.Get<Transform2D>();
             pos.Position = mousepos;
             ref var mobile = ref data.Get<MobileComponent>();
             mobile.Velocity = Vector2.Zero;

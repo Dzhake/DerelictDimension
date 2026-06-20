@@ -1,6 +1,6 @@
 ﻿namespace DerelictDimension.ECS.Physics.Components;
 
-public struct BouncyComponent : IComponent
+public record struct BouncyComponent : IComponent
 {
     public bool DieOnBounce = true;
 

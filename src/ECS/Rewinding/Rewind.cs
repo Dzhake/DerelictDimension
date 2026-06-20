@@ -23,7 +23,7 @@ public static class Rewind
         StoredComponents.Add(key, (null, false));
     }
 
-    public static void Keep<T>(Entity entity, in T component) where T : IComponent
+    public static void Keep<T>(Entity entity, ref T component) where T : IComponent
     {
         if (Active) return;
         ComponentRef key = new(entity.Id, typeof(T));

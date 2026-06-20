@@ -1,4 +1,5 @@
 ﻿using DerelictDimension.ECS.Physics.Components;
+using DerelictDimension.ECS.Rewinding;
 using Monod.ECS.DefaultComponents;
 using Monod.MathModule;
 using System;
@@ -36,12 +37,18 @@ public class BounceCollision : ICollision
         if (bouncy.DieOnBounce && bouncyData.Has<MortalComponent>())
         {
             ref var mortal = ref bouncyData.Get<MortalComponent>();
+            Rewind.Keep(BouncyEntity, ref mortal);
             mortal.Dead = true;
             if (bouncyData.Has<HitboxComponent>())
-                bouncyData.Get<HitboxComponent>().Collidable = false;
+            {
+                ref HitboxComponent hitbox = ref bouncyData.Get<HitboxComponent>();
+                Rewind.Keep(BouncyEntity, ref hitbox);
+                hitbox.Collidable = false;
+            }
             if (bouncyData.Has<MobileComponent>())
             {
                 ref var bouncyMobile = ref bouncyData.Get<MobileComponent>();
+                Rewind.Keep(BouncyEntity, ref bouncyMobile);
                 bouncyMobile.Velocity = (bouncyMobile.Velocity + mobile.Velocity) / 2;
             }
         }

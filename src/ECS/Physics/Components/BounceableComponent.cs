@@ -2,7 +2,7 @@
 
 namespace DerelictDimension.ECS.Physics.Components;
 
-public struct BounceableComponent : IComponent
+public record struct BounceableComponent : IComponent
 {
     public float MinHeight;
     public float MaxHeight;

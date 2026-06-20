@@ -45,8 +45,8 @@ public class PhysicsSystem : BaseSystem
 
             if (!Rewind.Active || isTimeless)
             {
-                Rewind.Keep(mobileEnt, in mobile);
-                Rewind.Keep(mobileEnt, in mobileTransform);
+                Rewind.Keep(mobileEnt, ref mobile);
+                Rewind.Keep(mobileEnt, ref mobileTransform);
 
                 // Apply forces
                 if (mobile.Grounded)
@@ -55,7 +55,7 @@ public class PhysicsSystem : BaseSystem
 
                     if (!supportEnt.IsNull && supportEnt.HasComponent<SupportComponent>())
                     {
-                        mobile.Velocity.X *= supportEnt.GetComponent<SupportComponent>().FrictionSpeedMultPerFrame * mobileInfo.FrictionMult;
+                        mobile.Velocity.X *= 1 + supportEnt.GetComponent<SupportComponent>().Friction * mobileInfo.FrictionMult;
                         if (Math.Abs(mobile.Velocity.X) < 0.01f) mobile.Velocity.X = 0;
                     }
                 }
@@ -163,25 +163,21 @@ public class PhysicsSystem : BaseSystem
         foreach (Entity supportEnt in SupportsQuery.Entities)
         {
             var supportData = supportEnt.Data;
-            if (!supportData.Has<Transform2D>() || !supportData.Has<HitboxComponent>()) continue;
-
-            ref var supportHitbox = ref supportData.Get<HitboxComponent>();
-            if (!supportHitbox.Collidable) continue;
-            ref var supportPos = ref supportData.Get<Transform2D>();
-            bool supportIsSolid = supportData.Has<SolidComponent>();
-            AABB worldSupportHitbox = GetWorldHitbox(ref supportHitbox, ref supportPos);
-
-            if (!Collide.QuickCheckAABBToAABB(ref quickCheckHitbox, ref worldSupportHitbox)) continue;
-
             ref var supportC = ref supportData.Get<SupportComponent>();
-            if (Collide.SweptCheck(ref worldMobileHitbox, ref worldSupportHitbox, ref currentFrameMovement, out float collisionTime, out Vector2 normal) && collisionTime < minCollisionTime && (supportIsSolid || supportC.Normals.Matches(normal)))
-            {
-                minCollisionTime = collisionTime;
-                if (collision is not SupportCollision supportCollision) supportCollision = new();
 
-                supportCollision.Normal = normal;
-                supportCollision.SupportEntity = supportEnt;
-                collision = supportCollision;
+            float collisionTime = CheckSweepCollision(ref worldMobileHitbox, ref quickCheckHitbox, currentFrameMovement, minCollisionTime, supportEnt, out Vector2 normal);
+            if (collisionTime != 1)
+            {
+                bool supportIsSolid = supportData.Has<SolidComponent>();
+                if (supportIsSolid || supportC.Normals.Matches(normal))
+                {
+                    minCollisionTime = collisionTime;
+                    if (collision is not SupportCollision supportCollision) supportCollision = new();
+
+                    supportCollision.Normal = normal;
+                    supportCollision.SupportEntity = supportEnt;
+                    collision = supportCollision;
+                }
             }
         }
 
@@ -190,18 +186,8 @@ public class PhysicsSystem : BaseSystem
         {
             foreach (Entity bouncyEnt in BouncyQuery.Entities)
             {
-                var bouncyData = bouncyEnt.Data;
-                if (!bouncyData.Has<Transform2D>() || !bouncyData.Has<HitboxComponent>()) continue;
-
-                ref var bouncyHitbox = ref bouncyData.Get<HitboxComponent>();
-                if (!bouncyHitbox.Collidable) continue;
-
-                ref var bouncyPos = ref bouncyData.Get<Transform2D>();
-                AABB worldBouncyHitbox = GetWorldHitbox(ref bouncyHitbox, ref bouncyPos);
-
-                if (!Collide.QuickCheckAABBToAABB(ref quickCheckHitbox, ref worldBouncyHitbox)) continue;
-
-                if (Collide.SweptCheck(ref worldMobileHitbox, ref worldBouncyHitbox, ref currentFrameMovement, out float collisionTime, out Vector2 normal) && collisionTime < minCollisionTime && (normal == MathM.VectorUp))
+                float collisionTime = CheckSweepCollision(ref worldMobileHitbox, ref quickCheckHitbox, currentFrameMovement, minCollisionTime, bouncyEnt, out Vector2 normal);
+                if (normal == MathM.VectorUp && collisionTime != 1)
                 {
                     minCollisionTime = collisionTime;
                     if (collision is not BounceCollision bounce) bounce = new();
@@ -250,6 +236,25 @@ public class PhysicsSystem : BaseSystem
         }
 
         return collision;
+    }
+
+    private static float CheckSweepCollision(ref AABB worldMobileHitbox, ref AABB quickCheckHitbox, Vector2 movement, float minCollisionTime, Entity collisionEnt, out Vector2 normal)
+    {
+        normal = default;
+        var data = collisionEnt.Data;
+        if (!data.Has<Transform2D>() || !data.Has<HitboxComponent>()) return 1;
+
+        ref var hitbox = ref data.Get<HitboxComponent>();
+        if (!hitbox.Collidable) return 1;
+
+        ref var bouncyPos = ref data.Get<Transform2D>();
+        AABB worldHitbox = GetWorldHitbox(ref hitbox, ref bouncyPos);
+
+        if (!Collide.QuickCheckAABBToAABB(ref quickCheckHitbox, ref worldHitbox)) return 1;
+
+        if (Collide.SweptCheck(ref worldMobileHitbox, ref worldHitbox, ref movement, out float collisionTime, out normal) && collisionTime < minCollisionTime)
+            return collisionTime;
+        return 1;
     }
 
     public static void ApplyBounce(ref Vector2 vector, Vector2 collisionDirection, Vector2 bounce)

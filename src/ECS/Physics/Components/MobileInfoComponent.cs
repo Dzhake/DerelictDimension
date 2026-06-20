@@ -3,7 +3,7 @@
 /// <summary>
 /// Component for storing info about <see cref="MobileComponent"/> that doesn't change often.
 /// </summary>
-public struct MobileInfoComponent : IComponent
+public record struct MobileInfoComponent : IComponent
 {
     public bool AffectedByGravity = true;
     public bool FlipOnEdge;

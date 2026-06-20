@@ -1,5 +1,5 @@
 ﻿namespace DerelictDimension.ECS.Physics.Components;
 
-public struct SolidComponent : IComponent
+public record struct SolidComponent : IComponent
 {
 }

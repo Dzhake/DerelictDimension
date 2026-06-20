@@ -1,10 +1,9 @@
 ﻿namespace DerelictDimension.ECS.Physics.Components;
 
-public struct MobileComponent : IComponent
+public record struct MobileComponent : IComponent
 {
     public Vector2 Velocity;
     public int SupportingEntityId = -1;
-    public bool LooksLeft;
 
     //probably don't need this one?
     public float HighestPoint = float.MaxValue;

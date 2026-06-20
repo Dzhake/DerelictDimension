@@ -1,4 +1,5 @@
 ﻿using DerelictDimension.ECS.Physics.Components;
+using DerelictDimension.ECS.Rewinding;
 using Monod.ECS.DefaultComponents;
 using Monod.InputModule;
 using Monod.MathModule;
@@ -26,6 +27,9 @@ public struct PlayerAi : IComponent, IAi
 
         ref var mobile = ref data.Get<MobileComponent>();
         ref var transform = ref data.Get<Transform2D>();
+
+        Rewind.Keep(entity, ref transform);
+        Rewind.Keep(entity, ref mobile);
 
         bool left = Input.KeyDown(Key.Left);
         bool right = Input.KeyDown(Key.Right);

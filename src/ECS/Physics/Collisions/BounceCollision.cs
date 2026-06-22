@@ -10,8 +10,14 @@ public class BounceCollision : ICollision
 {
     public Entity BouncyEntity;
 
-    public void Apply(EntityData mobileData, ref Vector2 movement, float timeRemaining, float collisionTime, ref MobileComponent mobile, ref Transform2D mobilePos, ref MobileInfoComponent mobileInfo)
+    public void Apply(EntityData mobileData, ref Vector2 movement, float timeRemaining, float collisionTime, ref MobileComponent mobile, ref Transform2D mobileTransform, ref MobileInfoComponent mobileInfo)
     {
+        float timeToMove = Math.Max(0.0f, collisionTime - MathM.Epsilon);
+        Vector2 currentFrameMovement = movement * timeRemaining;
+        mobileTransform.Position += currentFrameMovement * timeToMove;
+        if (currentFrameMovement.Y != 0)
+            mobile.SupportingEntityId = -1;
+
         var bouncyData = BouncyEntity.Data;
         if (!mobileData.Has<BounceableComponent>() || !bouncyData.Has<BouncyComponent>()) return;
         ref var bouncy = ref bouncyData.Get<BouncyComponent>();

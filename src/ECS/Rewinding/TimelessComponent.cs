@@ -1,6 +1,6 @@
 ﻿namespace DerelictDimension.ECS.Rewinding;
 
-public struct TimelessComponent : IComponent
+public record struct TimelessComponent : IComponent
 {
 
 }

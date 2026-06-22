@@ -40,7 +40,7 @@ public class PhysicsSystem : BaseSystem
             ref var mobileInfo = ref mobileData.Get<MobileInfoComponent>();
             ref var mobileTransform = ref mobileData.Get<Transform2D>();
             ref var mobileHitbox = ref mobileData.Get<HitboxComponent>();
-            bool temporaryTimeless = mobileData.Has<TemporaryTimeless>();
+            bool isTemporaryTimeless = mobileData.Has<TemporaryTimeless>();
             bool isTimeless = mobileData.Has<TimelessComponent>();
 
             if (!Rewind.Active || isTimeless)
@@ -88,7 +88,7 @@ public class PhysicsSystem : BaseSystem
                 MoveMobileEntity(mobile.Velocity * dt, mobileData);
             }
 
-            if (mobileData.Has<TimelessComponent>() && !mobileData.Has<TemporaryTimeless>()) continue;
+            if (isTimeless && !isTemporaryTimeless) continue;
             bool shouldBeTempTimeless = false;
             if (mobile.SupportingEntityId != -1)
             {
@@ -97,6 +97,7 @@ public class PhysicsSystem : BaseSystem
                 ref var support = ref supportingData.Get<SupportComponent>();
                 shouldBeTempTimeless = support.MakeTimeless;
             }
+
             if (shouldBeTempTimeless) MakeTimeless(mobileData, cb);
             else UnmakeTimeless(mobileData, cb);
         }
@@ -127,10 +128,8 @@ public class PhysicsSystem : BaseSystem
             AABB quickCheckHitbox = worldMobileHitbox.Union(worldMobileHitbox with { Center = worldMobileHitbox.Center + currentFrameMovement });
 
             float minCollisionTime = 1.0f;
-            // find most recent collision
             ICollision? collision = FindCollision(ref movement, force, ref mobile, ref mobileInfo, isBounceable, ref worldMobileHitbox, ref currentFrameMovement, ref quickCheckHitbox, ref minCollisionTime);
 
-            //apply collision
             if (collision != null)
             {
                 collision.Apply(mobileData, ref movement, timeRemaining, minCollisionTime, ref mobile, ref mobileTransform, ref mobileInfo);

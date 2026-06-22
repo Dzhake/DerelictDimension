@@ -82,7 +82,14 @@ public class PhysicsSystem : BaseSystem
         cb.Playback();
     }
 
-    private void MoveMobileEntity(Vector2 movement, EntityData mobileData, bool force = false)
+    /// <summary>
+    /// Try to move the specified <paramref name="mobileData"/> the given <paramref name="movement"/>.
+    /// </summary>
+    /// <param name="movement"></param>
+    /// <param name="mobileData"></param>
+    /// <param name="force"></param>
+    /// <returns>Whether entity successfully moved without collisions.</returns>
+    private bool MoveMobileEntity(Vector2 movement, EntityData mobileData, bool force = false)
     {
         ref var mobileHitbox = ref mobileData.Get<HitboxComponent>();
         ref var mobile = ref mobileData.Get<MobileComponent>();
@@ -91,7 +98,7 @@ public class PhysicsSystem : BaseSystem
         if (!mobileHitbox.Collidable)
         {
             FreeMoveMobile(ref mobile, ref mobileTransform, movement);
-            return;
+            return true;
         }
 
         ref var mobileInfo = ref mobileData.Get<MobileInfoComponent>();
@@ -102,6 +109,7 @@ public class PhysicsSystem : BaseSystem
 
         int maxIterations = 5;
         float timeRemaining = 1.0f;
+        bool collided = false;
 
         for (int i = 0; i < maxIterations && timeRemaining > 0; i++)
         {
@@ -115,6 +123,8 @@ public class PhysicsSystem : BaseSystem
 
             if (collision != null)
             {
+                collided = true;
+
                 collision.Apply(mobileData, ref movement, timeRemaining, minCollisionTime, ref mobile, ref mobileTransform, ref mobileInfo);
                 timeRemaining -= timeRemaining * minCollisionTime;
 
@@ -135,6 +145,8 @@ public class PhysicsSystem : BaseSystem
                 PushMobiles(mobileData, ref originalHitboxBeforeStep, ref worldMobileHitbox, movedThisStep);
             }
         }
+
+        return !collided;
     }
 
     private void PushMobiles(EntityData supportData, ref AABB supportOriginalHitbox, ref AABB supportNewHitbox, Vector2 movedThisStep)
@@ -162,7 +174,11 @@ public class PhysicsSystem : BaseSystem
 
             if (mobileC.SupportingEntityId == supportData.Id)
             {
-                mobileTransform.Position.Y = supportNewHitbox.Top - mobileHitbox.Value.HalfHeight - MathM.Epsilon;
+                if (MoveMobileEntity(movedThisStep, mobileData, true))
+                {
+                    mobileTransform.Position.Y = supportNewHitbox.Top - mobileHitbox.Value.HalfHeight - MathM.Epsilon;
+                }
+
                 mobileC.SupportingEntityId = supportData.Id;
                 continue;
             }
@@ -175,32 +191,17 @@ public class PhysicsSystem : BaseSystem
             {
                 Vector2 pushAmount = movedThisStep * MathF.Max(0f, 1.0f - collisionTime);
 
-                // Сохраняем позицию до движения
-                Vector2 preMovePos = mobileTransform.Position;
-
-                MoveMobileEntity(pushAmount, mobileData, true);
-
-                // Вычисляем фактическое смещение
-                Vector2 actualMove = mobileTransform.Position - preMovePos;
-
-                // Если объект сдвинулся на всё расстояние (не встретил стену)
-                if (MathF.Abs(actualMove.X - pushAmount.X) < 0.001f && MathF.Abs(actualMove.Y - pushAmount.Y) < 0.001f)
+                if (MoveMobileEntity(pushAmount, mobileData, true))
                 {
-                    // Актуализируем хитбокс после движения
-                    AABB postMoveHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
+                    AABB mobileNewHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
                     Vector2 snapOffset = Vector2.Zero;
 
-                    // Небольшой отступ, чтобы математически гарантировать отсутствие пересечений с платформой
-                    const float snapEpsilon = 0.001f;
+                    if (normal.X > 0.5f) snapOffset.X = supportNewHitbox.Right - mobileNewHitbox.Left + MathM.Epsilon;
+                    else if (normal.X < -0.5f) snapOffset.X = supportNewHitbox.Left - mobileNewHitbox.Right - MathM.Epsilon;
 
-                    // Снапинг по осям в зависимости от нормали столкновения
-                    if (normal.X > 0.5f) snapOffset.X = supportNewHitbox.Right - postMoveHitbox.Left + snapEpsilon;
-                    else if (normal.X < -0.5f) snapOffset.X = supportNewHitbox.Left - postMoveHitbox.Right - snapEpsilon;
+                    if (normal.Y > 0.5f) snapOffset.Y = supportNewHitbox.Bottom - mobileNewHitbox.Top + MathM.Epsilon;
+                    else if (normal.Y < -0.5f) snapOffset.Y = supportNewHitbox.Top - mobileNewHitbox.Bottom - MathM.Epsilon;
 
-                    if (normal.Y > 0.5f) snapOffset.Y = supportNewHitbox.Bottom - postMoveHitbox.Top + snapEpsilon;
-                    else if (normal.Y < -0.5f) snapOffset.Y = supportNewHitbox.Top - postMoveHitbox.Bottom - snapEpsilon;
-
-                    // Применяем смещение
                     mobileTransform.Position += snapOffset;
                 }
 

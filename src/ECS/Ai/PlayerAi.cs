@@ -2,7 +2,6 @@
 using DerelictDimension.ECS.Rewinding;
 using Monod.ECS.DefaultComponents;
 using Monod.InputModule;
-using Monod.MathModule;
 using Monod.TimeModule;
 
 namespace DerelictDimension.ECS.Ai;
@@ -36,6 +35,7 @@ public struct PlayerAi : IComponent, IAi
 
         ref float xvel = ref mobile.Velocity.X;
         float xAccel = mobile.InAir ? AirAcceleration : Acceleration;
+        xAccel *= Time.DeltaTime;
 
         if (mobile.SupportingEntityId != -1)
         {
@@ -48,28 +48,37 @@ public struct PlayerAi : IComponent, IAi
             }
         }
 
-        float targetX = xvel;
-        if (left && right)
+        if (left && !right)
         {
-            targetX = 0;
-        }
-        else if (left)
-        {
-            targetX = -TargetXVel;
+            float targetX = -TargetXVel;
             transform.FlipX = true;
+            if (targetX < xvel)
+            {
+                xvel -= xAccel;
+                if (xvel < targetX) xvel = targetX;
+            }
         }
-        else if (right)
+        else if (right && !left)
         {
-            targetX = TargetXVel;
+            float targetX = TargetXVel;
             transform.FlipX = false;
+            if (targetX > xvel)
+            {
+                xvel += xAccel;
+                if (xvel > targetX) xvel = targetX;
+            }
         }
-
-        float frameAccel = xAccel * Time.DeltaTime;
-        MathM.LerpFloat(ref xvel, targetX, frameAccel);
 
         if (Input.KeyDown(Key.Space) && !mobile.InAir)
         {
             mobile.Velocity.Y -= JumpStrength;
+            if (mobile.SupportingEntityId != -1)
+            {
+                var supportingEnt = store.GetEntityById(mobile.SupportingEntityId);
+                var supportingData = supportingEnt.Data;
+                if (!supportingEnt.IsNull && supportingData.Has<MobileComponent>())
+                    mobile.Velocity += supportingData.Get<MobileComponent>().Velocity;
+            }
             mobile.SupportingEntityId = -1;
         }
     }

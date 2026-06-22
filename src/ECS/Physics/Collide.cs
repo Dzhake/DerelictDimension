@@ -210,7 +210,7 @@ public static class Collide
         // a collision occurs if the entry time is before the exit time,
         // and the entry time is within the bounds of the current frame [0.0, 1.0].
         // entryTime < 0.0f ignores objects that are already intersecting.
-        if (entryTime > exitTime || entryTime < 0.0f || entryTime > 1.0f)
+        if (MathF.Abs(entryTime - exitTime) < MathM.Epsilon || entryTime < 0.001f || entryTime > 1.0f)
         {
             //return 1 because that means object can fully move (no collision prevents movement).
             time = 1.0f;

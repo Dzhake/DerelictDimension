@@ -55,35 +55,13 @@ public class PhysicsSystem : BaseSystem
 
                     if (!supportEnt.IsNull && supportEnt.HasComponent<SupportComponent>())
                     {
-                        mobile.Velocity.X *= 1 + supportEnt.GetComponent<SupportComponent>().Friction * mobileInfo.FrictionMult;
+                        mobile.Velocity.X *= 1 + (supportEnt.GetComponent<SupportComponent>().Friction * mobileInfo.FrictionMult);
                         if (Math.Abs(mobile.Velocity.X) < 0.01f) mobile.Velocity.X = 0;
                     }
                 }
 
                 if (mobileInfo.AffectedByGravity)
                     mobile.Velocity += GravityAccel * dt;
-
-                AABB worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
-
-                //should probably check 'inside solid' in sweep check instead?
-                /*
-                foreach (Entity supportEnt in SupportsQuery.Entities)
-                {
-                    var supportData = supportEnt.Data;
-                    if (!supportData.Has<Transform2D>() || !supportData.Has<HitboxComponent>() || !supportData.Has<SolidComponent>()) continue;
-
-                    ref var supportPos = ref supportData.Get<Transform2D>();
-                    ref SupportComponent supportC = ref supportData.Get<SupportComponent>();
-                    AABB worldSupportHitbox = GetWorldHitbox(ref supportData.Get<HitboxComponent>(), ref supportPos);
-
-                    if (Collide.CheckAABBToAABB(ref worldMobileHitbox, ref worldSupportHitbox, out Vector2 mtv))
-                    {
-                        mobileTransform.Value += mtv;
-                        ApplyBounce(ref mobile.Velocity, mtv, GetRestitution(ref mobileInfo, ref supportC));
-                        worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
-                    }
-                }
-                */
 
                 MoveMobileEntity(mobile.Velocity * dt, mobileData);
             }
@@ -109,13 +87,16 @@ public class PhysicsSystem : BaseSystem
         ref var mobileHitbox = ref mobileData.Get<HitboxComponent>();
         ref var mobile = ref mobileData.Get<MobileComponent>();
         ref var mobileTransform = ref mobileData.Get<Transform2D>();
+
         if (!mobileHitbox.Collidable)
         {
             FreeMoveMobile(ref mobile, ref mobileTransform, movement);
             return;
         }
+
         ref var mobileInfo = ref mobileData.Get<MobileInfoComponent>();
         bool isBounceable = mobileData.Has<BounceableComponent>();
+        bool isSupport = mobileData.Has<SupportComponent>();
 
         AABB worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
 
@@ -129,19 +110,101 @@ public class PhysicsSystem : BaseSystem
 
             float minCollisionTime = 1.0f;
             ICollision? collision = FindCollision(ref movement, force, ref mobile, ref mobileInfo, isBounceable, ref worldMobileHitbox, ref currentFrameMovement, ref quickCheckHitbox, ref minCollisionTime);
+            AABB originalHitboxBeforeStep = worldMobileHitbox;
+            Vector2 movedThisStep;
 
             if (collision != null)
             {
                 collision.Apply(mobileData, ref movement, timeRemaining, minCollisionTime, ref mobile, ref mobileTransform, ref mobileInfo);
                 timeRemaining -= timeRemaining * minCollisionTime;
 
+                movedThisStep = currentFrameMovement * minCollisionTime;
                 mobile.HighestPoint = Math.Min(mobile.HighestPoint, mobileTransform.Position.Y);
-                worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
             }
             else
             {
                 FreeMoveMobile(ref mobile, ref mobileTransform, currentFrameMovement);
                 timeRemaining = 0;
+                movedThisStep = currentFrameMovement;
+            }
+
+            worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
+
+            if (isSupport && movedThisStep != Vector2.Zero)
+            {
+                PushMobiles(mobileData, ref originalHitboxBeforeStep, ref worldMobileHitbox, movedThisStep);
+            }
+        }
+    }
+
+    private void PushMobiles(EntityData supportData, ref AABB supportOriginalHitbox, ref AABB supportNewHitbox, Vector2 movedThisStep)
+    {
+        ref var support = ref supportData.Get<SupportComponent>();
+        Vector2 relativeMovement = -movedThisStep;
+        AABB supportUnion = supportOriginalHitbox.Union(supportNewHitbox);
+        bool isSolid = supportData.Has<SolidComponent>();
+
+        foreach (Entity mobileEnt in MobilesQuery.Entities)
+        {
+            if (mobileEnt.Id == supportData.Id) continue;
+
+            var mobileData = mobileEnt.Data;
+
+            // important weakness: this physics system doesn't support entities with 'support' component pushing each other while moving. Just colliding works fine.
+            if (mobileData.Has<SupportComponent>()) continue;
+
+            if (!mobileData.Has<HitboxComponent>() || !mobileData.Has<Transform2D>()) continue;
+            ref var mobileHitbox = ref mobileData.Get<HitboxComponent>();
+            if (!mobileHitbox.Collidable) continue;
+
+            ref var mobileC = ref mobileData.Get<MobileComponent>();
+            if (mobileC.SupportingEntityId == supportData.Id)
+            {
+                MoveMobileEntity(movedThisStep, mobileData, true);
+                mobileC.SupportingEntityId = supportData.Id;
+                continue;
+            }
+
+            ref var mobileTransform = ref mobileData.Get<Transform2D>();
+            AABB worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
+
+            if (!Collide.QuickCheckAABBToAABB(ref supportUnion, ref worldMobileHitbox)) continue;
+
+            if (Collide.SweptCheck(ref worldMobileHitbox, ref supportOriginalHitbox, ref relativeMovement, out float collisionTime, out Vector2 normal) && collisionTime >= 0.0f && collisionTime < 1.0f && (isSolid || support.Normals.Matches(normal)))
+            {
+                Vector2 pushAmount = movedThisStep * MathF.Max(0f, 1.0f - collisionTime);
+
+                // Сохраняем позицию до движения
+                Vector2 preMovePos = mobileTransform.Position;
+
+                MoveMobileEntity(pushAmount, mobileData, true);
+
+                // Вычисляем фактическое смещение
+                Vector2 actualMove = mobileTransform.Position - preMovePos;
+
+                // Если объект сдвинулся на всё расстояние (не встретил стену)
+                if (MathF.Abs(actualMove.X - pushAmount.X) < 0.001f && MathF.Abs(actualMove.Y - pushAmount.Y) < 0.001f)
+                {
+                    // Актуализируем хитбокс после движения
+                    AABB postMoveHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
+                    Vector2 snapOffset = Vector2.Zero;
+
+                    // Небольшой отступ, чтобы математически гарантировать отсутствие пересечений с платформой
+                    const float snapEpsilon = 0.0001f;
+
+                    // Снапинг по осям в зависимости от нормали столкновения
+                    if (normal.X > 0.5f) snapOffset.X = supportNewHitbox.Right - postMoveHitbox.Left + snapEpsilon;
+                    else if (normal.X < -0.5f) snapOffset.X = supportNewHitbox.Left - postMoveHitbox.Right - snapEpsilon;
+
+                    if (normal.Y > 0.5f) snapOffset.Y = supportNewHitbox.Bottom - postMoveHitbox.Top + snapEpsilon;
+                    else if (normal.Y < -0.5f) snapOffset.Y = supportNewHitbox.Top - postMoveHitbox.Bottom - snapEpsilon;
+
+                    // Применяем смещение
+                    mobileTransform.Position += snapOffset;
+                }
+
+                if (normal == MathM.VectorUp)
+                    mobileC.SupportingEntityId = supportData.Id;
             }
         }
     }
@@ -205,19 +268,19 @@ public class PhysicsSystem : BaseSystem
             if (supportingData.Has<HitboxComponent>() && supportingData.Has<Transform2D>())
             {
                 ref var supportingHitbox = ref supportingData.Get<HitboxComponent>();
-                ref var supportingPos = ref supportingData.Get<Transform2D>().Position;
+                ref var supportingTransform = ref supportingData.Get<Transform2D>().Position;
                 float collisionTime;
                 if (movement.X > 0)
                 {
                     float startRight = worldMobileHitbox.Right;
-                    float platformRight = supportingHitbox.Value.Right + supportingPos.X;
+                    float platformRight = supportingHitbox.Value.Right + supportingTransform.X;
                     float endRight = startRight + currentFrameMovement.X;
                     collisionTime = (platformRight - startRight) / (endRight - startRight);
                 }
                 else
                 {
                     float startLeft = worldMobileHitbox.Left;
-                    float platformLeft = supportingHitbox.Value.Left + supportingPos.X;
+                    float platformLeft = supportingHitbox.Value.Left + supportingTransform.X;
                     float endLeft = startLeft + currentFrameMovement.X;
                     collisionTime = (startLeft - platformLeft) / (startLeft - endLeft);
                 }
@@ -252,7 +315,10 @@ public class PhysicsSystem : BaseSystem
         if (!Collide.QuickCheckAABBToAABB(ref quickCheckHitbox, ref worldHitbox)) return 1;
 
         if (Collide.SweptCheck(ref worldMobileHitbox, ref worldHitbox, ref movement, out float collisionTime, out normal) && collisionTime < minCollisionTime)
+        {
+            Log.Information($"{worldMobileHitbox.Bottom}, {worldHitbox.Top}, {collisionTime}");
             return collisionTime;
+        }
         return 1;
     }
 

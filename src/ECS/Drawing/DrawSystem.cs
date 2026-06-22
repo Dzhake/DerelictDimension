@@ -63,6 +63,7 @@ public class DrawSystem : BaseSystem
 
         ref var hitbox = ref data.Get<HitboxComponent>();
         AABB rect = PhysicsSystem.GetWorldHitbox(ref hitbox, ref transform);
+        rect.CenterY += 200;
 
         rect.CenterX *= Upscale.X;
         rect.CenterY *= Upscale.Y;
@@ -87,6 +88,8 @@ public class DrawSystem : BaseSystem
         ref var hitbox = ref data.Get<HitboxComponent>();
 
         AABB rect = PhysicsSystem.GetWorldHitbox(ref hitbox, ref transform);
+        rect.CenterY += 200;
+
         rect.CenterX *= Upscale.X;
         rect.CenterY *= Upscale.Y;
         rect.Width *= Upscale.X;

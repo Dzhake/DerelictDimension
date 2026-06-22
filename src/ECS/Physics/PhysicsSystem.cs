@@ -158,14 +158,15 @@ public class PhysicsSystem : BaseSystem
             if (!mobileHitbox.Collidable) continue;
 
             ref var mobileC = ref mobileData.Get<MobileComponent>();
+            ref var mobileTransform = ref mobileData.Get<Transform2D>();
+
             if (mobileC.SupportingEntityId == supportData.Id)
             {
-                MoveMobileEntity(movedThisStep, mobileData, true);
+                mobileTransform.Position.Y = supportNewHitbox.Top - mobileHitbox.Value.HalfHeight - MathM.Epsilon;
                 mobileC.SupportingEntityId = supportData.Id;
                 continue;
             }
 
-            ref var mobileTransform = ref mobileData.Get<Transform2D>();
             AABB worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
 
             if (!Collide.QuickCheckAABBToAABB(ref supportUnion, ref worldMobileHitbox)) continue;
@@ -190,7 +191,7 @@ public class PhysicsSystem : BaseSystem
                     Vector2 snapOffset = Vector2.Zero;
 
                     // Небольшой отступ, чтобы математически гарантировать отсутствие пересечений с платформой
-                    const float snapEpsilon = 0.0001f;
+                    const float snapEpsilon = 0.001f;
 
                     // Снапинг по осям в зависимости от нормали столкновения
                     if (normal.X > 0.5f) snapOffset.X = supportNewHitbox.Right - postMoveHitbox.Left + snapEpsilon;
@@ -315,10 +316,7 @@ public class PhysicsSystem : BaseSystem
         if (!Collide.QuickCheckAABBToAABB(ref quickCheckHitbox, ref worldHitbox)) return 1;
 
         if (Collide.SweptCheck(ref worldMobileHitbox, ref worldHitbox, ref movement, out float collisionTime, out normal) && collisionTime < minCollisionTime)
-        {
-            Log.Information($"{worldMobileHitbox.Bottom}, {worldHitbox.Top}, {collisionTime}");
             return collisionTime;
-        }
         return 1;
     }
 

@@ -82,8 +82,8 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        Store.CreateEntity(new SupportComponent() { Friction = -0.05f }, new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 0));
-        Store.CreateEntity(new SupportComponent() { Friction = -0.05f }, new MobileComponent() { Velocity = new(0, -100) }, new MobileInfoComponent() { AffectedByGravity = false }, new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 800));
+        Store.CreateEntity(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 0));
+        Store.CreateEntity(new SupportComponent(), new MobileComponent() { Velocity = new(0, -100) }, new MobileInfoComponent() { AffectedByGravity = false }, new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 800));
         Store.CreateEntity(new SupportComponent() { Friction = -0.05f, OverrideRestitution = new(0, 1) }, new HitboxComponent(0, 0, 250, 50), new Transform2D(810, 550.5f));
         entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new PlayerAi(), new BounceableComponent(100, 200, 50), new MortalComponent());
 
@@ -104,10 +104,10 @@ public class TheGame : MonodGame
         DrawSystemRoot.RemoveAllSystems();
 
         LogicSystemRoot.Add(new RewindPreUpdateSystem());
+        LogicSystemRoot.Add(new AiPreUpdateSystem());
         LogicSystemRoot.Add(new PhysicsSystem());
         LogicSystemRoot.Add(new RewindPostUpdateSystem());
         LogicSystemRoot.Add(new AiPostUpdateSystem());
-        LogicSystemRoot.Add(new AiPreUpdateSystem());
 
         DrawSystemRoot.Add(new DrawSystem());
         //DrawSystemRoot.Add(new DrawSpriteSystem());
@@ -116,7 +116,7 @@ public class TheGame : MonodGame
     public void Reload()
     {
         InitWorld();
-        Rewind.StoredComponents.Clear();
+        Rewind.RecordedComponents.Clear();
         Rewind.CurrentFrame = 0;
     }
 

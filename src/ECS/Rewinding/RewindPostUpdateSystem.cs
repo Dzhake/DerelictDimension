@@ -52,34 +52,33 @@ public class RewindPostUpdateSystem : BaseSystem
                 StoredComponents[Rewind.CurrentFrame].Clear();
             }
 
-            foreach (var (componentRef, stored) in Rewind.StoredComponents)
+            List<ComponentRef> forceRecordNextFrame = new();
+
+            foreach (var (componentRef, recorded) in Rewind.RecordedComponents)
             {
                 // entity added/deleted
                 if (componentRef.ComponentType == null)
                 {
                     StoreComponent(componentRef.EntityId, null);
-                    Rewind.StoredComponents.Remove(componentRef);
-                    return;
+                    continue;
                 }
 
                 IComponent? currentValue = componentRef.Get(Store);
-                bool store = stored.forceStore;
-                IComponent storedComponent = stored.component ?? currentValue;
+                bool store = recorded.forceStore;
+                IComponent recordedComponent = recorded.component ?? currentValue;
                 // component/entity changed
-                if (!storedComponent.Equals(currentValue))
+                if (!recordedComponent.Equals(currentValue))
                 {
                     store = true;
-                    // force store next frame
-                    Rewind.StoredComponents[componentRef] = (null, true);
-                }
-                else
-                {
-                    Rewind.StoredComponents.Remove(componentRef);
+                    forceRecordNextFrame.Add(componentRef);
                 }
 
-                if (store) StoreComponent(componentRef.EntityId, storedComponent);
+                if (store) StoreComponent(componentRef.EntityId, recordedComponent);
             }
 
+            Rewind.RecordedComponents.Clear();
+            foreach (var componentRef in forceRecordNextFrame)
+                Rewind.RecordedComponents[componentRef] = (null, true);
 
             Rewind.CurrentFrame++;
         }

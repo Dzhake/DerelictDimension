@@ -4,7 +4,7 @@ namespace DerelictDimension.ECS.Rewinding;
 
 public static class Rewind
 {
-    public static Dictionary<ComponentRef, (IComponent? component, bool forceStore)> StoredComponents = new();
+    public static Dictionary<ComponentRef, (IComponent? component, bool forceStore)> RecordedComponents = new();
     public static bool Active;
     public static int CurrentFrame = 0;
     public static int RewindSpeed = -1;
@@ -19,8 +19,8 @@ public static class Rewind
         if (Active) return;
         ComponentRef key = new(entity.Id, null);
         // this method is for toggling entity state, so if it was toggled earlier this frame we toggle it back.
-        if (StoredComponents.Remove(key)) return;
-        StoredComponents.Add(key, (null, false));
+        if (RecordedComponents.Remove(key)) return;
+        RecordedComponents.Add(key, (null, false));
     }
 
     public static void Keep<T>(Entity entity, ref T component) where T : IComponent
@@ -28,14 +28,14 @@ public static class Rewind
         if (Active) return;
         ComponentRef key = new(entity.Id, typeof(T));
         //if there's already a value at this ref, but component is null, that means that we explicitly saved 'forceStore', so we need to store the component with that 'forceStore' value.
-        if (StoredComponents.TryGetValue(key, out var stored))
+        if (RecordedComponents.TryGetValue(key, out var recorded))
         {
-            if (stored.component is not null) return;
-            StoredComponents[key] = (component, stored.forceStore);
+            if (recorded.component is not null) return;
+            RecordedComponents[key] = (component, recorded.forceStore);
         }
         else //just store the component
         {
-            StoredComponents.Add(key, (component, false));
+            RecordedComponents.Add(key, (component, false));
         }
     }
 

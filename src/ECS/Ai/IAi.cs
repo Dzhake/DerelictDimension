@@ -8,12 +8,12 @@ public interface IAi
     /// <summary>
     /// Called in <see cref="AiPreUpdateSystem"/>, before physics update.
     /// </summary>
-    /// <param name="entity">Entity with this component.</param>
+    /// <param name="entity">Entity with this Component.</param>
     void PreUpdate(Entity entity, EntityStore store, CommandBuffer cb);
 
     /// <summary>
     /// Called in <see cref="AiPostUpdateSystem"/>, before physics update.
     /// </summary>
-    /// <param name="entity">Entity with this component.</param>
+    /// <param name="entity">Entity with this Component.</param>
     void PostUpdate(Entity entity, EntityStore store, CommandBuffer cb);
 }

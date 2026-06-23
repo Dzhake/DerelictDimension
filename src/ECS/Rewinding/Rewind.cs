@@ -4,7 +4,7 @@ namespace DerelictDimension.ECS.Rewinding;
 
 public static class Rewind
 {
-    public static Dictionary<ComponentRef, (IComponent? component, bool forceStore)> RecordedComponents = new();
+    public static Dictionary<ComponentRef, RecordedComponent> RecordedComponents = new();
     public static bool Active;
     public static int CurrentFrame = 0;
     public static int RewindSpeed = -1;
@@ -14,28 +14,35 @@ public static class Rewind
         return Math.Sign(Rewind.RewindSpeed) * 0.8f;
     }
 
-    public static void Keep(Entity entity)
+    public static void Keep(Entity entity, bool wasEnabled)
     {
         if (Active) return;
         ComponentRef key = new(entity.Id, null);
-        // this method is for toggling entity state, so if it was toggled earlier this frame we toggle it back.
-        if (RecordedComponents.Remove(key)) return;
-        RecordedComponents.Add(key, (null, false));
+
+        if (RecordedComponents.TryGetValue(key, out var recorded))
+        {
+            recorded.EnableEntity = wasEnabled;
+            RecordedComponents[key] = recorded;
+            return;
+        }
+
+        RecordedComponents.Add(key, new(null, false, wasEnabled));
     }
 
     public static void Keep<T>(Entity entity, ref T component) where T : IComponent
     {
         if (Active) return;
         ComponentRef key = new(entity.Id, typeof(T));
-        //if there's already a value at this ref, but component is null, that means that we explicitly saved 'forceStore', so we need to store the component with that 'forceStore' value.
+
         if (RecordedComponents.TryGetValue(key, out var recorded))
         {
-            if (recorded.component is not null) return;
-            RecordedComponents[key] = (component, recorded.forceStore);
+            if (recorded.Component is not null) return;
+            recorded.Component = component;
+            RecordedComponents[key] = recorded;
         }
-        else //just store the component
+        else
         {
-            RecordedComponents.Add(key, (component, false));
+            RecordedComponents.Add(key, new(component, false, null));
         }
     }
 

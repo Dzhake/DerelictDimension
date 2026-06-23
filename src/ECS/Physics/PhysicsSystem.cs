@@ -162,7 +162,7 @@ public class PhysicsSystem : BaseSystem
 
             var mobileData = mobileEnt.Data;
 
-            // important weakness: this physics system doesn't support entities with 'support' component pushing each other while moving. Just colliding works fine.
+            // important weakness: this physics system doesn't support entities with 'support' Component pushing each other while moving. Just colliding works fine.
             if (mobileData.Has<SupportComponent>()) continue;
 
             if (!mobileData.Has<HitboxComponent>() || !mobileData.Has<Transform2D>()) continue;

@@ -12,7 +12,6 @@ public class RewindPostUpdateSystem : BaseSystem
 
     public RewindPostUpdateSystem()
     {
-        //need to reset these values on world reset.
         LastValidFrame = 0;
         Rewind.RewindSpeed = -1;
     }
@@ -56,42 +55,57 @@ public class RewindPostUpdateSystem : BaseSystem
 
             foreach (var (componentRef, recorded) in Rewind.RecordedComponents)
             {
-                // entity added/deleted
+                // entity disabled/enabled
                 if (componentRef.ComponentType == null)
                 {
-                    StoreComponent(componentRef.EntityId, null);
+                    Entity entity = Store.GetEntityById(componentRef.EntityId);
+                    bool currentEnabled = !entity.IsNull && entity.Enabled;
+                    bool recordedEnabled = recorded.EnableEntity ?? currentEnabled;
+                    bool store = recorded.ForceStore;
+
+                    if (currentEnabled != recordedEnabled)
+                    {
+                        store = true;
+                        forceRecordNextFrame.Add(componentRef);
+                    }
+
+                    if (store)
+                        StoreComponent(componentRef.EntityId, null, recordedEnabled);
+
                     continue;
                 }
 
+                // component value changed
                 IComponent? currentValue = componentRef.Get(Store);
-                bool store = recorded.forceStore;
-                IComponent recordedComponent = recorded.component ?? currentValue;
-                // component/entity changed
+                bool storeComp = recorded.ForceStore;
+                IComponent recordedComponent = recorded.Component ?? currentValue;
+
                 if (!recordedComponent.Equals(currentValue))
                 {
-                    store = true;
+                    storeComp = true;
                     forceRecordNextFrame.Add(componentRef);
                 }
 
-                if (store) StoreComponent(componentRef.EntityId, recordedComponent);
+                if (storeComp) StoreComponent(componentRef.EntityId, recordedComponent, true);
             }
 
             Rewind.RecordedComponents.Clear();
             foreach (var componentRef in forceRecordNextFrame)
-                Rewind.RecordedComponents[componentRef] = (null, true);
+                Rewind.RecordedComponents[componentRef] = new(null, true, null);
 
             Rewind.CurrentFrame++;
         }
         base.OnUpdateGroup();
     }
 
-    private void StoreComponent(int entityId, IComponent? component)
+    private void StoreComponent(int entityId, IComponent? component, bool enableEntity = true)
     {
         StoredComponent storedComponent;
         if (component is not null)
-            storedComponent = new(entityId, component);
+            storedComponent = new(entityId, component, false);
         else
-            storedComponent = new(entityId, null);
+            storedComponent = new(entityId, null, enableEntity);
+
         StoredComponents[Rewind.CurrentFrame].Add(storedComponent);
     }
 }

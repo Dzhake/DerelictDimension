@@ -2,17 +2,8 @@
 
 namespace DerelictDimension.ECS.Rewinding;
 
-public record struct StoredComponent
+public record struct StoredComponent(int EntityId, IComponent? Component, bool EnableEntity)
 {
-    public int EntityId;
-    public IComponent? Component;
-
-    public StoredComponent(int entityId, IComponent? component)
-    {
-        EntityId = entityId;
-        Component = component;
-    }
-
     public readonly void Set(EntityStore store)
     {
         if (EntityId == -1) Guard.Exception($"Tried to apply invalid StoredComponent: {this}");
@@ -22,7 +13,7 @@ public record struct StoredComponent
             return;
         if (Component is null)
         {
-            entity.Enabled = !entity.Enabled;
+            entity.Enabled = EnableEntity;
             return;
         }
         EntitySchema schema = EntityStore.GetEntitySchema();
@@ -30,5 +21,5 @@ public record struct StoredComponent
         EntityUtils.AddEntityComponentValue(entity, componentType, Component);
     }
 
-    public readonly override string ToString() => $"EntityId: {EntityId}, Component: {(Component != null ? Component : "<null>")}";
+    public readonly override string ToString() => $"EntityId: {EntityId}, Component: {Component?.ToString() ?? "<null>"}";
 }

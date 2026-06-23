@@ -33,7 +33,7 @@ public record struct SupportComponent : IComponent
     public SupportComponent() : this(Direction4.Up) { }
 
     /// <summary>
-    /// Create a new instance of support component with the specified values.
+    /// Create a new instance of support Component with the specified values.
     /// </summary>
     /// <param name="normals">In which directions this platform should be able to collide.</param>
     /// <param name="friction">Speed multiplier, applied to mobiles which are supported by this entity. Applied once per frame, at the beginning of physics update.</param>

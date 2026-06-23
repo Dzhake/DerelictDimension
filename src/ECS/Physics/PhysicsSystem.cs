@@ -178,6 +178,18 @@ public class PhysicsSystem : BaseSystem
                 {
                     mobileTransform.Position.Y = supportNewHitbox.Top - mobileHitbox.Value.HalfHeight - MathM.Epsilon;
                 }
+                else if (mobileData.Has<MortalComponent>())
+                {
+                    ref var mobileMortal = ref mobileData.Get<MortalComponent>();
+                    Rewind.Keep(mobileEnt, ref mobileMortal);
+                    mobileMortal.Dead = true;
+                    if (mobileData.Has<HitboxComponent>())
+                    {
+                        ref HitboxComponent hitbox = ref mobileData.Get<HitboxComponent>();
+                        Rewind.Keep(mobileEnt, ref hitbox);
+                        hitbox.Collidable = false;
+                    }
+                }
 
                 mobileC.SupportingEntityId = supportData.Id;
                 continue;
@@ -203,6 +215,18 @@ public class PhysicsSystem : BaseSystem
                     else if (normal.Y < -0.5f) snapOffset.Y = supportNewHitbox.Top - mobileNewHitbox.Bottom - MathM.Epsilon;
 
                     mobileTransform.Position += snapOffset;
+                }
+                else if (mobileData.Has<MortalComponent>())
+                {
+                    ref var mobileMortal = ref mobileData.Get<MortalComponent>();
+                    Rewind.Keep(mobileEnt, ref mobileMortal);
+                    mobileMortal.Dead = true;
+                    if (mobileData.Has<HitboxComponent>())
+                    {
+                        ref HitboxComponent hitbox = ref mobileData.Get<HitboxComponent>();
+                        Rewind.Keep(mobileEnt, ref hitbox);
+                        hitbox.Collidable = false;
+                    }
                 }
 
                 if (normal == MathM.VectorUp)

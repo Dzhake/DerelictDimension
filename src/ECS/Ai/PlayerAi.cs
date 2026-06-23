@@ -6,7 +6,7 @@ using Monod.TimeModule;
 
 namespace DerelictDimension.ECS.Ai;
 
-public struct PlayerAi : IComponent, IAi
+public record struct PlayerAi : IComponent, IAi
 {
     public float TargetXVel = 200;
     public float Acceleration = 2000;

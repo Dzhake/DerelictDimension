@@ -1,4 +1,6 @@
-﻿using DerelictDimension.ECS.Physics.Components;
+﻿using DerelictDimension.ECS.Ai;
+using DerelictDimension.ECS.Physics;
+using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
 using Monod.AssetsModule;
@@ -70,6 +72,7 @@ public class DrawSystem : BaseSystem
         rect.Height *= Upscale.Y;
         Color color = new(176 / 255f, 176 / 255f, 39 / 255f);
         if (isTimeless) color = Color.Lime;
+        if (data.Has<PlayerAi>()) color = Color.Orange;
         if (!hitbox.Collidable) color.A /= 2;
         Renderer.Begin(effect: isTimeless || !Rewind.Active ? null : RewindEffect);
         RendererExt.DrawRotRect(rect, transform.GetFlippedRotation(), color);

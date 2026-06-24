@@ -1,5 +1,4 @@
-﻿using DerelictDimension.ECS.Physics;
-using DerelictDimension.ECS.Physics.Collisions;
+﻿using DerelictDimension.ECS.Physics.Collisions;
 using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
@@ -7,6 +6,8 @@ using Monod.ECS.DefaultComponents;
 using Monod.MathModule;
 using Monod.TimeModule;
 using System;
+
+namespace DerelictDimension.ECS.Physics;
 
 public class PhysicsSystem : BaseSystem
 {
@@ -45,8 +46,8 @@ public class PhysicsSystem : BaseSystem
 
             if (!Rewind.Active || isTimeless)
             {
-                Rewind.Keep(mobileEnt, ref mobile);
-                Rewind.Keep(mobileEnt, ref mobileTransform);
+                Rewind.StoreComponentUpdated(mobileEnt, ref mobile);
+                Rewind.StoreComponentUpdated(mobileEnt, ref mobileTransform);
 
                 // Apply forces
                 if (mobile.Grounded)
@@ -181,12 +182,12 @@ public class PhysicsSystem : BaseSystem
                 else if (mobileData.Has<MortalComponent>())
                 {
                     ref var mobileMortal = ref mobileData.Get<MortalComponent>();
-                    Rewind.Keep(mobileEnt, ref mobileMortal);
+                    Rewind.StoreComponentUpdated(mobileEnt, ref mobileMortal);
                     mobileMortal.Dead = true;
                     if (mobileData.Has<HitboxComponent>())
                     {
                         ref HitboxComponent hitbox = ref mobileData.Get<HitboxComponent>();
-                        Rewind.Keep(mobileEnt, ref hitbox);
+                        Rewind.StoreComponentUpdated(mobileEnt, ref hitbox);
                         hitbox.Collidable = false;
                     }
                 }
@@ -219,12 +220,12 @@ public class PhysicsSystem : BaseSystem
                 else if (mobileData.Has<MortalComponent>())
                 {
                     ref var mobileMortal = ref mobileData.Get<MortalComponent>();
-                    Rewind.Keep(mobileEnt, ref mobileMortal);
+                    Rewind.StoreComponentUpdated(mobileEnt, ref mobileMortal);
                     mobileMortal.Dead = true;
                     if (mobileData.Has<HitboxComponent>())
                     {
                         ref HitboxComponent hitbox = ref mobileData.Get<HitboxComponent>();
-                        Rewind.Keep(mobileEnt, ref hitbox);
+                        Rewind.StoreComponentUpdated(mobileEnt, ref hitbox);
                         hitbox.Collidable = false;
                     }
                 }

@@ -14,7 +14,7 @@ public record struct ComponentRef
         ComponentType = componentType;
     }
 
-    public readonly IComponent Get(EntityStore store)
+    public readonly IComponent? Get(EntityStore store)
     {
         if (EntityId == -1 || ComponentType == null) Guard.Exception($"Tried to get Component of invalid ComponentRef: {this}");
         Entity entity = store.GetEntityById(EntityId);

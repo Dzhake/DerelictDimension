@@ -14,7 +14,7 @@ public static class Rewind
         return Math.Sign(Rewind.RewindSpeed) * 0.8f;
     }
 
-    public static void Keep(Entity entity, bool wasEnabled)
+    public static void StoreEntityUpdated(Entity entity, bool wasEnabled)
     {
         if (Active) return;
         ComponentRef key = new(entity.Id, null);
@@ -26,10 +26,10 @@ public static class Rewind
             return;
         }
 
-        RecordedComponents.Add(key, new(null, false, wasEnabled));
+        RecordedComponents.Add(key, new(null, wasEnabled));
     }
 
-    public static void Keep<T>(Entity entity, ref T component) where T : IComponent
+    public static void StoreComponentUpdated<T>(Entity entity, ref T component) where T : IComponent
     {
         if (Active) return;
         ComponentRef key = new(entity.Id, typeof(T));
@@ -42,8 +42,17 @@ public static class Rewind
         }
         else
         {
-            RecordedComponents.Add(key, new(component, false, null));
+            RecordedComponents.Add(key, new(component, null));
         }
+    }
+
+    public static void StoreComponentRemoved<T>(Entity entity) where T : IComponent
+    {
+        if (Active) return;
+        ComponentRef key = new(entity.Id, typeof(T));
+
+        if (!RecordedComponents.ContainsKey(key))
+            RecordedComponents.Add(key, new(null, null));
     }
 
     public static bool ShouldUpdateEntity(EntityData data)

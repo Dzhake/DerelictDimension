@@ -1,5 +1,6 @@
 ﻿using DerelictDimension.ECS.Ai;
 using DerelictDimension.ECS.Drawing;
+using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
@@ -85,7 +86,7 @@ public class TheGame : MonodGame
         Store.CreateEntity(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 0));
         Store.CreateEntity(new SupportComponent(), new MobileComponent() { Velocity = new(0, -100) }, new MobileInfoComponent() { AffectedByGravity = false }, new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 800));
         Store.CreateEntity(new SupportComponent() { Friction = -0.05f, OverrideRestitution = new(0, 1) }, new HitboxComponent(0, 0, 250, 50), new Transform2D(810, 550.5f));
-        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new PlayerAi(), new BounceableComponent(100, 200, 50), new MortalComponent());
+        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new BounceableComponent(100, 200, 50), new MortalComponent());
 
         InitializeSystems();
     }
@@ -184,12 +185,15 @@ public class TheGame : MonodGame
         else if (Input.KeyPressed(Key.Mouse2))
         {
             Entity ent = Store.CreateEntity(new HitboxComponent(0, 0, 30, 15), new Transform2D(mousepos), new BouncyComponent(), new MonstarAi(), new MortalComponent());
-            Rewind.Keep(ent, false);
+            Rewind.StoreEntityUpdated(ent, false);
         }
         else if (Input.KeyPressed(Key.Mouse3))
         {
             //Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Transform(mousepos), new TimelessComponent());
-            entity.AddComponent(new TemporaryTimeless());
+            Rewind.StoreComponentRemoved<PlayerAi>(entity);
+            StoredComponent stored = StoredComponent.ComponentChangedOrAdded(entity.Id, new PlayerAi());
+            stored.Set(Store);
+            //entity.AddComponent(new PlayerAi());
         }
 
 

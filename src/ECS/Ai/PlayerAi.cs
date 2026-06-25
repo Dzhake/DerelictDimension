@@ -22,6 +22,7 @@ public record struct PlayerAi : IComponent, IAi
     public readonly void PreUpdate(Entity entity, EntityStore store, CommandBuffer _)
     {
         var data = entity.Data;
+        if (!Rewind.ShouldUpdateEntity(data)) return;
         if (!data.Has<MobileComponent>() || !data.Has<Transform2D>()) return;
 
         ref var mobile = ref data.Get<MobileComponent>();

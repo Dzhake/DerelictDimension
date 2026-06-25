@@ -6,7 +6,7 @@ using System;
 
 namespace DerelictDimension.ECS.Ai;
 
-public struct MonstarAi : IComponent, IAi
+public record struct MonstarAi : IComponent, IAi
 {
     public float Speed = 150;
     public float RotationSpeedWhileDead = -MathF.PI;
@@ -20,10 +20,11 @@ public struct MonstarAi : IComponent, IAi
     public void PreUpdate(Entity entity, EntityStore store, CommandBuffer cb)
     {
         var data = entity.Data;
+        if (!Rewind.ShouldUpdateEntity(data)) return;
         if (!data.Has<Transform2D>()) return;
         ref var transform = ref data.Get<Transform2D>();
 
-        if (Rewind.ShouldUpdateEntity(data) && data.Has<MortalComponent>())
+        if (data.Has<MortalComponent>())
         {
             ref var mortal = ref data.Get<MortalComponent>();
             if (mortal.Dead)
@@ -44,7 +45,7 @@ public struct MonstarAi : IComponent, IAi
 
         if (!hasMobileInfo)
         {
-            MobileInfoComponent defaultMobileInfo = new(flipOnEdge: FlipOnEdge, restitution: new(1, 0.2f), frictionMult: 0, restitutionMinimumResultingVelocity: new(0, 1));
+            MobileInfoComponent defaultMobileInfo = new(flipOnEdge: FlipOnEdge, restitution: new(1, 0.2f), restitutionMinimumResultingVelocity: new(0, 1), frictionMult: 0);
             Rewind.StoreComponentBeforeAdd<MobileInfoComponent>(entity.Id);
             cb.AddComponent(data.Id, defaultMobileInfo);
         }

@@ -184,7 +184,7 @@ public class TheGame : MonodGame
         }
         else if (Input.KeyPressed(Key.Mouse2))
         {
-            Entity ent = Store.CreateEntity(new HitboxComponent(0, 0, 30, 15), new Transform2D(mousepos), new BouncyComponent(), new MonstarAi(), new MortalComponent() { DiesToLethal = false }, new LethalComponent(), new BounceableComponent(10, 300, 20));
+            Entity ent = Store.CreateEntity(new HitboxComponent(0, 0, 30, 30), new Transform2D(mousepos), new BouncyComponent(), new BunnyAi(), new MortalComponent() { DiesToLethal = false }, new LethalComponent(), new BounceableComponent(10, 300, 20));
             Rewind.StoreEntityUpdated(ent, false);
         }
         else if (Input.KeyPressed(Key.Mouse3))

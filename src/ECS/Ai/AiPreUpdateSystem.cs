@@ -7,6 +7,7 @@ public class AiPreUpdateSystem : BaseSystem
 {
     public ArchetypeQuery<PlayerAi> PlayerControlledQuery;
     public ArchetypeQuery<MonstarAi> MonstarControlledQuery;
+    public ArchetypeQuery<BunnyAi> BunnyControlledQuery;
     public EntityStore Store;
     public CommandBuffer cb;
 
@@ -15,6 +16,7 @@ public class AiPreUpdateSystem : BaseSystem
         base.OnAddStore(store);
         PlayerControlledQuery = store.Query<PlayerAi>();
         MonstarControlledQuery = store.Query<MonstarAi>();
+        BunnyControlledQuery = store.Query<BunnyAi>();
         Store = store;
         cb = store.GetCommandBuffer();
         cb.ReuseBuffer = true;
@@ -23,20 +25,15 @@ public class AiPreUpdateSystem : BaseSystem
     protected override void OnUpdateGroup()
     {
         base.OnUpdateGroup();
-        PlayerControlledQuery.ForEachEntity(UpdatePlayer);
-        MonstarControlledQuery.ForEachEntity(UpdateMonstar);
+        PlayerControlledQuery.ForEachEntity(UpdateAi);
+        MonstarControlledQuery.ForEachEntity(UpdateAi);
+        BunnyControlledQuery.ForEachEntity(UpdateAi);
         cb.Playback();
     }
 
-    public void UpdatePlayer(ref PlayerAi ai, Entity entity)
+    public void UpdateAi<T>(ref T ai, Entity entity) where T : IAi
     {
-        if (!Rewind.Active || entity.HasComponent<TimelessComponent>())
-            ai.PreUpdate(entity, Store, cb);
-    }
-
-    public void UpdateMonstar(ref MonstarAi ai, Entity entity)
-    {
-        if (!Rewind.Active || entity.HasComponent<TimelessComponent>())
+        if (Rewind.ShouldUpdateEntity(entity.Data))
             ai.PreUpdate(entity, Store, cb);
     }
 }

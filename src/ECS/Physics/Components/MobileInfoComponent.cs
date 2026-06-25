@@ -8,6 +8,8 @@ public record struct MobileInfoComponent : IComponent
     public bool AffectedByGravity = true;
     public bool FlipOnEdge;
     public Vector2 Restitution = Vector2.One;
+    public Vector2 RestitutionRequiredVelocity = Vector2.Zero;
+    public Vector2 RestitutionMinimumResultingVelocity = Vector2.Zero;
     public float FrictionMult = 1f;
 
 
@@ -22,11 +24,13 @@ public record struct MobileInfoComponent : IComponent
     /// <param name="flipOnEdge"></param>
     /// <param name="restitution"><see cref="Vector2.One"/> by default.</param>
     /// <param name="frictionMult"></param>
-    public MobileInfoComponent(bool affectedByGravity = true, bool flipOnEdge = false, Vector2? restitution = null, float frictionMult = 1)
+    public MobileInfoComponent(bool affectedByGravity = true, bool flipOnEdge = false, Vector2? restitution = null, Vector2? restitutionRequiredVelocity = null, Vector2? restitutionMinimumResultingVelocity = null, float frictionMult = 1)
     {
         AffectedByGravity = affectedByGravity;
         FlipOnEdge = flipOnEdge;
         Restitution = restitution ?? Vector2.One;
+        RestitutionRequiredVelocity = restitutionRequiredVelocity ?? Vector2.Zero;
+        RestitutionMinimumResultingVelocity = restitutionMinimumResultingVelocity ?? Vector2.Zero;
         FrictionMult = frictionMult;
     }
 }

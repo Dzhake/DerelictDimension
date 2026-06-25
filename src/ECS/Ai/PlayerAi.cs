@@ -27,8 +27,8 @@ public record struct PlayerAi : IComponent, IAi
         ref var mobile = ref data.Get<MobileComponent>();
         ref var transform = ref data.Get<Transform2D>();
 
-        Rewind.StoreComponentUpdated(entity, ref transform);
-        Rewind.StoreComponentUpdated(entity, ref mobile);
+        Rewind.StoreComponentUpdated(entity.Id, ref transform);
+        Rewind.StoreComponentUpdated(entity.Id, ref mobile);
 
         bool left = Input.KeyDown(Key.Left);
         bool right = Input.KeyDown(Key.Right);

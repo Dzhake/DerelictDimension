@@ -31,7 +31,29 @@ public class SupportCollision : ICollision
         if (Math.Abs(restitution.X) < 0.001f) restitution.X = 0;
         if (Math.Abs(restitution.Y) < 0.001f) restitution.Y = 0;
 
-        PhysicsSystem.ApplyBounce(ref mobile.Velocity, Normal, restitution);
-        PhysicsSystem.ApplyBounce(ref movement, Normal, restitution);
+        if (Normal.X != 0)
+        {
+            ApplyBounce(ref mobile.Velocity.X, mobileInfo.RestitutionRequiredVelocity.X, mobileInfo.RestitutionMinimumResultingVelocity.X, restitution);
+            ApplyBounce(ref movement.X, mobileInfo.RestitutionRequiredVelocity.X, mobileInfo.RestitutionMinimumResultingVelocity.X, restitution);
+        }
+
+        if (Normal.Y != 0)
+        {
+            ApplyBounce(ref mobile.Velocity.Y, mobileInfo.RestitutionRequiredVelocity.Y, mobileInfo.RestitutionMinimumResultingVelocity.Y, restitution);
+            ApplyBounce(ref movement.Y, mobileInfo.RestitutionRequiredVelocity.Y, mobileInfo.RestitutionMinimumResultingVelocity.Y, restitution);
+        }
+    }
+
+    private void ApplyBounce(ref float value, float required, float minimumResulting, Vector2 restitution)
+    {
+        if (Math.Abs(value) > required)
+        {
+            PhysicsSystem.ApplyBounce(ref value, restitution.Y);
+            if (Math.Abs(value) < minimumResulting) value = 0;
+        }
+        else
+        {
+            value = 0;
+        }
     }
 }

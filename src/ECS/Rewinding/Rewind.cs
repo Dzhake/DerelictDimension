@@ -29,10 +29,10 @@ public static class Rewind
         RecordedComponents.Add(key, new(null, wasEnabled));
     }
 
-    public static void StoreComponentUpdated<T>(Entity entity, ref T component) where T : IComponent
+    public static void StoreComponentUpdated<T>(int entityId, ref T component) where T : IComponent
     {
         if (Active) return;
-        ComponentRef key = new(entity.Id, typeof(T));
+        ComponentRef key = new(entityId, typeof(T));
 
         if (RecordedComponents.TryGetValue(key, out var recorded))
         {
@@ -46,10 +46,10 @@ public static class Rewind
         }
     }
 
-    public static void StoreComponentRemoved<T>(Entity entity) where T : IComponent
+    public static void StoreComponentBeforeAdd<T>(int entityId) where T : IComponent
     {
         if (Active) return;
-        ComponentRef key = new(entity.Id, typeof(T));
+        ComponentRef key = new(entityId, typeof(T));
 
         if (!RecordedComponents.ContainsKey(key))
             RecordedComponents.Add(key, new(null, null));

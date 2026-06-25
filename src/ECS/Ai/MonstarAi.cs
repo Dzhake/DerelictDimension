@@ -28,7 +28,7 @@ public struct MonstarAi : IComponent, IAi
             ref var mortal = ref data.Get<MortalComponent>();
             if (mortal.Dead)
             {
-                Rewind.StoreComponentUpdated(entity, ref transform);
+                Rewind.StoreComponentUpdated(entity.Id, ref transform);
                 transform.Rotation += RotationSpeedWhileDead * Time.DeltaTime;
             }
         }
@@ -38,14 +38,14 @@ public struct MonstarAi : IComponent, IAi
         if (!hasMobile)
         {
             MobileComponent defaultMobile = new() { Velocity = new(Speed, 0) };
-            //TODO Rewind.StoreComponentUpdated
+            Rewind.StoreComponentBeforeAdd<MobileComponent>(entity.Id);
             cb.AddComponent(data.Id, defaultMobile);
         }
 
         if (!hasMobileInfo)
         {
-            MobileInfoComponent defaultMobileInfo = new(flipOnEdge: FlipOnEdge, restitution: new(1, 0.2f), frictionMult: 0);
-            //TODO Rewind.StoreComponentUpdated
+            MobileInfoComponent defaultMobileInfo = new(flipOnEdge: FlipOnEdge, restitution: new(1, 0.2f), frictionMult: 0, restitutionMinimumResultingVelocity: new(0, 1));
+            Rewind.StoreComponentBeforeAdd<MobileInfoComponent>(entity.Id);
             cb.AddComponent(data.Id, defaultMobileInfo);
         }
 
@@ -54,7 +54,7 @@ public struct MonstarAi : IComponent, IAi
         ref var mobile = ref data.Get<MobileComponent>();
         if (mobile.Grounded)
         {
-            Rewind.StoreComponentUpdated(entity, ref mobile);
+            Rewind.StoreComponentUpdated(entity.Id, ref mobile);
             mobile.Velocity.X = Math.Sign(mobile.Velocity.X) * Speed;
         }
     }

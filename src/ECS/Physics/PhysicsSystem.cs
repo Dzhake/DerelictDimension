@@ -17,6 +17,7 @@ public class PhysicsSystem : BaseSystem
     public ArchetypeQuery<SupportComponent> SupportsQuery;
     public ArchetypeQuery<SolidComponent> SolidsQuery;
     public ArchetypeQuery<BouncyComponent> BouncyQuery;
+    public ArchetypeQuery<LethalComponent> LethalsQuery;
     public EntityStore Store;
 
     protected override void OnAddStore(EntityStore store)
@@ -26,6 +27,7 @@ public class PhysicsSystem : BaseSystem
         SupportsQuery = store.Query<SupportComponent>();
         BouncyQuery = store.Query<BouncyComponent>();
         SolidsQuery = store.Query<SolidComponent>();
+        LethalsQuery = store.Query<LethalComponent>();
         Store = store;
     }
 
@@ -48,8 +50,8 @@ public class PhysicsSystem : BaseSystem
 
             if (!Rewind.Active || isTimeless)
             {
-                Rewind.StoreComponentUpdated(mobileEnt, ref mobile);
-                Rewind.StoreComponentUpdated(mobileEnt, ref mobileTransform);
+                Rewind.StoreComponentUpdated(mobileEnt.Id, ref mobile);
+                Rewind.StoreComponentUpdated(mobileEnt.Id, ref mobileTransform);
 
                 // Apply forces
                 if (mobile.Grounded)
@@ -111,22 +113,20 @@ public class PhysicsSystem : BaseSystem
 
         int maxIterations = 5;
         float timeRemaining = 1.0f;
-        bool collided = false;
 
         for (int i = 0; i < maxIterations && timeRemaining > 0; i++)
         {
             Vector2 currentFrameMovement = movement * timeRemaining;
+            worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
             AABB quickCheckHitbox = worldMobileHitbox.Union(worldMobileHitbox with { Center = worldMobileHitbox.Center + currentFrameMovement });
 
             float minCollisionTime = 1.0f;
-            ICollision? collision = FindCollision(ref movement, force, ref mobile, ref mobileInfo, isBounceable, ref worldMobileHitbox, ref currentFrameMovement, ref quickCheckHitbox, ref minCollisionTime);
-            AABB originalHitboxBeforeStep = worldMobileHitbox;
+            ICollision? collision = FindCollision(ref mobileData, ref movement, force, ref mobile, ref mobileInfo, ref currentFrameMovement, ref quickCheckHitbox, ref minCollisionTime);
+            AABB worldHitboxBeforeStep = worldMobileHitbox;
             Vector2 movedThisStep;
 
             if (collision != null)
             {
-                collided = true;
-
                 collision.Apply(mobileData, ref movement, timeRemaining, minCollisionTime, ref mobile, ref mobileTransform, ref mobileInfo);
                 timeRemaining -= timeRemaining * minCollisionTime;
 
@@ -140,11 +140,11 @@ public class PhysicsSystem : BaseSystem
                 movedThisStep = currentFrameMovement;
             }
 
-            worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
 
             if (isSupport && movedThisStep != Vector2.Zero)
             {
-                PushMobiles(mobileData, ref originalHitboxBeforeStep, ref worldMobileHitbox, movedThisStep);
+                worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
+                PushMobiles(mobileData, ref worldHitboxBeforeStep, ref worldMobileHitbox, movedThisStep);
             }
         }
     }
@@ -175,6 +175,7 @@ public class PhysicsSystem : BaseSystem
             if (mobileC.SupportingEntityId == supportData.Id)
             {
                 MoveMobileEntity(movedThisStep, mobileData, true);
+                if (!IsAlive(ref mobileData)) continue;
                 mobileTransform.Position.Y = supportNewHitbox.Top - mobileHitbox.Value.HalfHeight - MathM.Epsilon;
                 AABB mobileNewHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
                 if (IsCrushed(ref mobileNewHitbox))
@@ -193,6 +194,7 @@ public class PhysicsSystem : BaseSystem
                 Vector2 pushAmount = movedThisStep * MathF.Max(0f, 1.0f - collisionTime);
 
                 MoveMobileEntity(pushAmount, mobileData, true);
+                if (!IsAlive(ref mobileData)) continue;
                 AABB mobileNewHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
                 Vector2 snapOffset = Vector2.Zero;
 
@@ -214,6 +216,12 @@ public class PhysicsSystem : BaseSystem
         }
     }
 
+    private void TryKillMortal(Entity mobileEnt, ref EntityData mobileData)
+    {
+        if (!mobileData.Has<MortalComponent>()) return;
+        mobileData.Get<MortalComponent>().Kill(mobileData.Id, ref mobileData);
+    }
+
     private bool IsCrushed(ref AABB worldHitbox)
     {
         foreach (Entity solidEnt in SolidsQuery.Entities)
@@ -228,22 +236,6 @@ public class PhysicsSystem : BaseSystem
         return false;
     }
 
-    private static void TryKillMortal(Entity mobileEnt, ref EntityData mobileData)
-    {
-        if (mobileData.Has<MortalComponent>())
-        {
-            ref var mobileMortal = ref mobileData.Get<MortalComponent>();
-            Rewind.StoreComponentUpdated(mobileEnt, ref mobileMortal);
-            mobileMortal.Dead = true;
-            if (mobileData.Has<HitboxComponent>())
-            {
-                ref HitboxComponent hitbox = ref mobileData.Get<HitboxComponent>();
-                Rewind.StoreComponentUpdated(mobileEnt, ref hitbox);
-                hitbox.Collidable = false;
-            }
-        }
-    }
-
     private static void FreeMoveMobile(ref MobileComponent mobile, ref Transform2D mobileTransform, Vector2 movement)
     {
         if (movement.Y != 0)
@@ -252,50 +244,60 @@ public class PhysicsSystem : BaseSystem
         mobile.HighestPoint = Math.Min(mobile.HighestPoint, mobileTransform.Position.Y);
     }
 
-    private ICollision? FindCollision(ref Vector2 movement, bool force, ref MobileComponent mobile, ref MobileInfoComponent mobileInfo, bool isBounceable, ref AABB worldMobileHitbox, ref Vector2 currentFrameMovement, ref AABB quickCheckHitbox, ref float minCollisionTime)
+    private ICollision? FindCollision(ref EntityData data, ref Vector2 movement, bool force, ref MobileComponent mobile, ref MobileInfoComponent mobileInfo, ref Vector2 currentFrameMovement, ref AABB quickCheckHitbox, ref float minCollisionTime)
     {
         ICollision? collision = null;
+        bool isBounceable = data.Has<BounceableComponent>();
+        bool isMortal = data.Has<MortalComponent>();
+        ref var hitbox = ref data.Get<HitboxComponent>();
+        ref var transform = ref data.Get<Transform2D>();
+        AABB worldMobileHitbox = GetWorldHitbox(ref hitbox, ref transform);
 
-        // collision with support/solid
-        foreach (Entity supportEnt in SupportsQuery.Entities)
+        FindCollisionWithSupport(ref data, currentFrameMovement, ref quickCheckHitbox, ref minCollisionTime, ref collision, ref worldMobileHitbox);
+        FindCollisionWithBouncy(ref data, currentFrameMovement, ref quickCheckHitbox, ref minCollisionTime, ref collision, isBounceable, ref worldMobileHitbox);
+        FindCollisionWithEdge(movement, force, ref mobile, ref mobileInfo, currentFrameMovement, ref minCollisionTime, ref collision, worldMobileHitbox);
+        FindCollisionWithLethal(ref data, currentFrameMovement, ref quickCheckHitbox, ref minCollisionTime, ref collision, ref worldMobileHitbox, isMortal);
+
+        return collision;
+    }
+
+    private void FindCollisionWithLethal(ref EntityData data, Vector2 currentFrameMovement, ref AABB quickCheckHitbox, ref float minCollisionTime, ref ICollision? collision, ref AABB worldMobileHitbox, bool isMortal)
+    {
+        if (!isMortal) return;
+        ref var mortal = ref data.Get<MortalComponent>();
+        if (!mortal.DiesToLethal) return;
+
+        foreach (Entity lethalEnt in LethalsQuery.Entities)
         {
-            var supportData = supportEnt.Data;
-            ref var supportC = ref supportData.Get<SupportComponent>();
+            if (lethalEnt.Id == data.Id) continue;
+            var lethalData = lethalEnt.Data;
+            if (!lethalData.Has<HitboxComponent>() || !lethalData.Has<Transform2D>()) continue;
+            ref var lethalHitbox = ref lethalData.Get<HitboxComponent>();
+            if (!lethalHitbox.Collidable) return;
 
-            float collisionTime = CheckSweepCollision(ref worldMobileHitbox, ref quickCheckHitbox, currentFrameMovement, minCollisionTime, supportEnt, out Vector2 normal);
+            ref var lethalTransform = ref lethalData.Get<Transform2D>();
+            ref var lethalC = ref lethalData.Get<LethalComponent>();
+            var lethalWorldHitbox = GetWorldHitbox(ref lethalHitbox, ref lethalTransform);
+            if (Collide.QuickCheckAABBToAABB(ref worldMobileHitbox, ref lethalWorldHitbox))
+            {
+                minCollisionTime = 0;
+                if (collision is not LethalCollision lethalCollision) lethalCollision = new();
+                collision = lethalCollision;
+                continue;
+            }
+
+            float collisionTime = CheckSweepCollision(ref worldMobileHitbox, ref quickCheckHitbox, currentFrameMovement, minCollisionTime, lethalEnt, out Vector2 normal);
             if (collisionTime != 1)
             {
-                bool supportIsSolid = supportData.Has<SolidComponent>();
-                if (supportIsSolid || supportC.Normals.Matches(normal))
-                {
-                    minCollisionTime = collisionTime;
-                    if (collision is not SupportCollision supportCollision) supportCollision = new();
-
-                    supportCollision.Normal = normal;
-                    supportCollision.SupportEntity = supportEnt;
-                    collision = supportCollision;
-                }
+                minCollisionTime = collisionTime;
+                if (collision is not LethalCollision lethalCollision) lethalCollision = new();
+                collision = lethalCollision;
             }
         }
+    }
 
-        // bouncing off bouncy entity
-        if (isBounceable)
-        {
-            foreach (Entity bouncyEnt in BouncyQuery.Entities)
-            {
-                float collisionTime = CheckSweepCollision(ref worldMobileHitbox, ref quickCheckHitbox, currentFrameMovement, minCollisionTime, bouncyEnt, out Vector2 normal);
-                if (normal == MathM.VectorUp && collisionTime != 1)
-                {
-                    minCollisionTime = collisionTime;
-                    if (collision is not BounceCollision bounce) bounce = new();
-
-                    bounce.BouncyEntity = bouncyEnt;
-                    collision = bounce;
-                }
-            }
-        }
-
-        // flip on edge
+    private void FindCollisionWithEdge(Vector2 movement, bool force, ref MobileComponent mobile, ref MobileInfoComponent mobileInfo, Vector2 currentFrameMovement, ref float minCollisionTime, ref ICollision? collision, AABB worldMobileHitbox)
+    {
         if (!force && mobileInfo.FlipOnEdge && currentFrameMovement.X != 0 && mobile.SupportingEntityId >= 0)
         {
             var supportingEntity = Store.GetEntityById(mobile.SupportingEntityId);
@@ -331,8 +333,51 @@ public class PhysicsSystem : BaseSystem
                 }
             }
         }
+    }
 
-        return collision;
+    private void FindCollisionWithBouncy(ref EntityData data, Vector2 currentFrameMovement, ref AABB quickCheckHitbox, ref float minCollisionTime, ref ICollision? collision, bool isBounceable, ref AABB worldMobileHitbox)
+    {
+        if (isBounceable)
+        {
+            foreach (Entity bouncyEnt in BouncyQuery.Entities)
+            {
+                if (bouncyEnt.Id == data.Id) continue;
+                float collisionTime = CheckSweepCollision(ref worldMobileHitbox, ref quickCheckHitbox, currentFrameMovement, minCollisionTime, bouncyEnt, out Vector2 normal);
+                if (normal == MathM.VectorUp && collisionTime != 1)
+                {
+                    minCollisionTime = collisionTime;
+                    if (collision is not BounceCollision bounce) bounce = new();
+
+                    bounce.BouncyEntity = bouncyEnt;
+                    collision = bounce;
+                }
+            }
+        }
+    }
+
+    private void FindCollisionWithSupport(ref EntityData data, Vector2 currentFrameMovement, ref AABB quickCheckHitbox, ref float minCollisionTime, ref ICollision? collision, ref AABB worldMobileHitbox)
+    {
+        foreach (Entity supportEnt in SupportsQuery.Entities)
+        {
+            if (supportEnt.Id == data.Id) continue;
+            var supportData = supportEnt.Data;
+            ref var supportC = ref supportData.Get<SupportComponent>();
+
+            float collisionTime = CheckSweepCollision(ref worldMobileHitbox, ref quickCheckHitbox, currentFrameMovement, minCollisionTime, supportEnt, out Vector2 normal);
+            if (collisionTime != 1)
+            {
+                bool supportIsSolid = supportData.Has<SolidComponent>();
+                if (supportIsSolid || supportC.Normals.Matches(normal))
+                {
+                    minCollisionTime = collisionTime;
+                    if (collision is not SupportCollision supportCollision) supportCollision = new();
+
+                    supportCollision.Normal = normal;
+                    supportCollision.SupportEntity = supportEnt;
+                    collision = supportCollision;
+                }
+            }
+        }
     }
 
     private static float CheckSweepCollision(ref AABB worldMobileHitbox, ref AABB quickCheckHitbox, Vector2 movement, float minCollisionTime, Entity collisionEnt, out Vector2 normal)
@@ -354,23 +399,25 @@ public class PhysicsSystem : BaseSystem
         return 1;
     }
 
+    public static void ApplyBounce(ref float value, float bounce)
+    {
+        if (Math.Abs(value) < 0.1f)
+            value = 0;
+        else
+            value *= -bounce;
+    }
+
     public static void ApplyBounce(ref Vector2 vector, Vector2 collisionDirection, Vector2 bounce)
     {
         if (collisionDirection.X != 0)
-        {
-            if (Math.Abs(vector.X) < 0.1f)
-                vector.X = 0;
-            else
-                vector.X *= -bounce.X;
-        }
-
+            ApplyBounce(ref vector.X, bounce.X);
         if (collisionDirection.Y != 0)
-        {
-            if (Math.Abs(vector.Y) < 0.1f)
-                vector.Y = 0;
-            else
-                vector.Y *= -bounce.Y;
-        }
+            ApplyBounce(ref vector.Y, bounce.Y);
+    }
+
+    private bool IsAlive(ref EntityData data)
+    {
+        return !data.Has<MortalComponent>() || !data.Get<MortalComponent>().Dead;
     }
 
     public static Vector2 GetRestitution(ref MobileInfoComponent mobileInfo, ref SupportComponent support)

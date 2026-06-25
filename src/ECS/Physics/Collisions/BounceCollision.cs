@@ -43,18 +43,18 @@ public class BounceCollision : ICollision
         if (bouncy.DieOnBounce && bouncyData.Has<MortalComponent>())
         {
             ref var mortal = ref bouncyData.Get<MortalComponent>();
-            Rewind.StoreComponentUpdated(BouncyEntity, ref mortal);
+            Rewind.StoreComponentUpdated(BouncyEntity.Id, ref mortal);
             mortal.Dead = true;
             if (bouncyData.Has<HitboxComponent>())
             {
                 ref HitboxComponent hitbox = ref bouncyData.Get<HitboxComponent>();
-                Rewind.StoreComponentUpdated(BouncyEntity, ref hitbox);
+                Rewind.StoreComponentUpdated(BouncyEntity.Id, ref hitbox);
                 hitbox.Collidable = false;
             }
             if (bouncyData.Has<MobileComponent>())
             {
                 ref var bouncyMobile = ref bouncyData.Get<MobileComponent>();
-                Rewind.StoreComponentUpdated(BouncyEntity, ref bouncyMobile);
+                Rewind.StoreComponentUpdated(BouncyEntity.Id, ref bouncyMobile);
                 bouncyMobile.Velocity = (bouncyMobile.Velocity + mobile.Velocity) / 2;
             }
         }

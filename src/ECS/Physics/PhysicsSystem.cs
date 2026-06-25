@@ -15,6 +15,7 @@ public class PhysicsSystem : BaseSystem
 
     public ArchetypeQuery<MobileComponent, MobileInfoComponent> MobilesQuery;
     public ArchetypeQuery<SupportComponent> SupportsQuery;
+    public ArchetypeQuery<SolidComponent> SolidsQuery;
     public ArchetypeQuery<BouncyComponent> BouncyQuery;
     public EntityStore Store;
 
@@ -24,6 +25,7 @@ public class PhysicsSystem : BaseSystem
         MobilesQuery = store.Query<MobileComponent, MobileInfoComponent>();
         SupportsQuery = store.Query<SupportComponent>();
         BouncyQuery = store.Query<BouncyComponent>();
+        SolidsQuery = store.Query<SolidComponent>();
         Store = store;
     }
 
@@ -90,7 +92,7 @@ public class PhysicsSystem : BaseSystem
     /// <param name="mobileData"></param>
     /// <param name="force"></param>
     /// <returns>Whether entity successfully moved without collisions.</returns>
-    private bool MoveMobileEntity(Vector2 movement, EntityData mobileData, bool force = false)
+    private void MoveMobileEntity(Vector2 movement, EntityData mobileData, bool force = false)
     {
         ref var mobileHitbox = ref mobileData.Get<HitboxComponent>();
         ref var mobile = ref mobileData.Get<MobileComponent>();
@@ -99,7 +101,6 @@ public class PhysicsSystem : BaseSystem
         if (!mobileHitbox.Collidable)
         {
             FreeMoveMobile(ref mobile, ref mobileTransform, movement);
-            return true;
         }
 
         ref var mobileInfo = ref mobileData.Get<MobileInfoComponent>();
@@ -146,8 +147,6 @@ public class PhysicsSystem : BaseSystem
                 PushMobiles(mobileData, ref originalHitboxBeforeStep, ref worldMobileHitbox, movedThisStep);
             }
         }
-
-        return !collided;
     }
 
     private void PushMobiles(EntityData supportData, ref AABB supportOriginalHitbox, ref AABB supportNewHitbox, Vector2 movedThisStep)
@@ -175,22 +174,11 @@ public class PhysicsSystem : BaseSystem
 
             if (mobileC.SupportingEntityId == supportData.Id)
             {
-                if (MoveMobileEntity(movedThisStep, mobileData, true))
-                {
-                    mobileTransform.Position.Y = supportNewHitbox.Top - mobileHitbox.Value.HalfHeight - MathM.Epsilon;
-                }
-                else if (mobileData.Has<MortalComponent>())
-                {
-                    ref var mobileMortal = ref mobileData.Get<MortalComponent>();
-                    Rewind.StoreComponentUpdated(mobileEnt, ref mobileMortal);
-                    mobileMortal.Dead = true;
-                    if (mobileData.Has<HitboxComponent>())
-                    {
-                        ref HitboxComponent hitbox = ref mobileData.Get<HitboxComponent>();
-                        Rewind.StoreComponentUpdated(mobileEnt, ref hitbox);
-                        hitbox.Collidable = false;
-                    }
-                }
+                MoveMobileEntity(movedThisStep, mobileData, true);
+                mobileTransform.Position.Y = supportNewHitbox.Top - mobileHitbox.Value.HalfHeight - MathM.Epsilon;
+                AABB mobileNewHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
+                if (IsCrushed(ref mobileNewHitbox))
+                    TryKillMortal(mobileEnt, ref mobileData);
 
                 mobileC.SupportingEntityId = supportData.Id;
                 continue;
@@ -204,34 +192,54 @@ public class PhysicsSystem : BaseSystem
             {
                 Vector2 pushAmount = movedThisStep * MathF.Max(0f, 1.0f - collisionTime);
 
-                if (MoveMobileEntity(pushAmount, mobileData, true))
-                {
-                    AABB mobileNewHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
-                    Vector2 snapOffset = Vector2.Zero;
+                MoveMobileEntity(pushAmount, mobileData, true);
+                AABB mobileNewHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
+                Vector2 snapOffset = Vector2.Zero;
 
-                    if (normal.X > 0.5f) snapOffset.X = supportNewHitbox.Right - mobileNewHitbox.Left + MathM.Epsilon;
-                    else if (normal.X < -0.5f) snapOffset.X = supportNewHitbox.Left - mobileNewHitbox.Right - MathM.Epsilon;
+                if (normal.X > 0.5f) snapOffset.X = supportNewHitbox.Right - mobileNewHitbox.Left + MathM.Epsilon;
+                else if (normal.X < -0.5f) snapOffset.X = supportNewHitbox.Left - mobileNewHitbox.Right - MathM.Epsilon;
 
-                    if (normal.Y > 0.5f) snapOffset.Y = supportNewHitbox.Bottom - mobileNewHitbox.Top + MathM.Epsilon;
-                    else if (normal.Y < -0.5f) snapOffset.Y = supportNewHitbox.Top - mobileNewHitbox.Bottom - MathM.Epsilon;
+                if (normal.Y > 0.5f) snapOffset.Y = supportNewHitbox.Bottom - mobileNewHitbox.Top + MathM.Epsilon;
+                else if (normal.Y < -0.5f) snapOffset.Y = supportNewHitbox.Top - mobileNewHitbox.Bottom - MathM.Epsilon;
 
-                    mobileTransform.Position += snapOffset;
-                }
-                else if (mobileData.Has<MortalComponent>())
-                {
-                    ref var mobileMortal = ref mobileData.Get<MortalComponent>();
-                    Rewind.StoreComponentUpdated(mobileEnt, ref mobileMortal);
-                    mobileMortal.Dead = true;
-                    if (mobileData.Has<HitboxComponent>())
-                    {
-                        ref HitboxComponent hitbox = ref mobileData.Get<HitboxComponent>();
-                        Rewind.StoreComponentUpdated(mobileEnt, ref hitbox);
-                        hitbox.Collidable = false;
-                    }
-                }
+                mobileTransform.Position += snapOffset;
+                mobileNewHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
+
+                if (IsCrushed(ref mobileNewHitbox))
+                    TryKillMortal(mobileEnt, ref mobileData);
 
                 if (normal == MathM.VectorUp)
                     mobileC.SupportingEntityId = supportData.Id;
+            }
+        }
+    }
+
+    private bool IsCrushed(ref AABB worldHitbox)
+    {
+        foreach (Entity solidEnt in SolidsQuery.Entities)
+        {
+            var solidData = solidEnt.Data;
+            if (!solidData.Has<HitboxComponent>() || !solidData.Has<Transform2D>()) continue;
+            ref var hitbox = ref solidData.Get<HitboxComponent>();
+            if (!hitbox.Collidable) continue;
+            var solidWorldHitbox = GetWorldHitbox(ref hitbox, ref solidData.Get<Transform2D>());
+            if (Collide.QuickCheckAABBToAABB(ref worldHitbox, ref solidWorldHitbox)) return true;
+        }
+        return false;
+    }
+
+    private static void TryKillMortal(Entity mobileEnt, ref EntityData mobileData)
+    {
+        if (mobileData.Has<MortalComponent>())
+        {
+            ref var mobileMortal = ref mobileData.Get<MortalComponent>();
+            Rewind.StoreComponentUpdated(mobileEnt, ref mobileMortal);
+            mobileMortal.Dead = true;
+            if (mobileData.Has<HitboxComponent>())
+            {
+                ref HitboxComponent hitbox = ref mobileData.Get<HitboxComponent>();
+                Rewind.StoreComponentUpdated(mobileEnt, ref hitbox);
+                hitbox.Collidable = false;
             }
         }
     }

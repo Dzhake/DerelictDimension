@@ -83,9 +83,9 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        Store.CreateEntity(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 0));
-        Store.CreateEntity(new SupportComponent(), new MobileComponent() { Velocity = new(0, -100) }, new MobileInfoComponent() { AffectedByGravity = false }, new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 800));
-        Store.CreateEntity(new SupportComponent() { Friction = -0.05f, OverrideRestitution = new(0, 1) }, new HitboxComponent(0, 0, 250, 50), new Transform2D(810, 550.5f));
+        Store.CreateEntity(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 0), new SolidComponent());
+        Store.CreateEntity(new SupportComponent(), new MobileComponent() { Velocity = new(0, -100) }, new MobileInfoComponent() { AffectedByGravity = false }, new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 800), new SolidComponent());
+        Store.CreateEntity(new SupportComponent() { Friction = -0.05f, OverrideRestitution = new(0, 1) }, new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(810, 550.5f));
         entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new BounceableComponent(100, 200, 50), new MortalComponent());
 
         InitializeSystems();

@@ -16,7 +16,7 @@ public class BounceCollision : ICollision
         Vector2 currentFrameMovement = movement * timeRemaining;
         mobileTransform.Position += currentFrameMovement * timeToMove;
         if (currentFrameMovement.Y != 0)
-            mobile.SupportingEntityId = -1;
+            mobile.SupportingEntityPid = -1;
 
         var bouncyData = BouncyEntity.Data;
         if (!mobileData.Has<BounceableComponent>() || !bouncyData.Has<BouncyComponent>()) return;

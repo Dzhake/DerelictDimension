@@ -15,7 +15,7 @@ public class FlipCollision : ICollision
         Vector2 currentFrameMovement = movement * timeRemaining;
         mobileTransform.Position += currentFrameMovement * timeToMove;
         if (currentFrameMovement.Y != 0)
-            mobile.SupportingEntityId = -1;
+            mobile.SupportingEntityPid = -1;
 
         PhysicsSystem.ApplyBounce(ref mobile.Velocity, Normal, Restitution);
         PhysicsSystem.ApplyBounce(ref movement, Normal, Restitution);

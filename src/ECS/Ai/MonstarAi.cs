@@ -39,14 +39,14 @@ public record struct MonstarAi : IComponent, IAi
         if (!hasMobile)
         {
             MobileComponent defaultMobile = new() { Velocity = new(Speed, 0) };
-            Rewind.StoreComponentBeforeAdd<MobileComponent>(entity.Id);
+            Rewind.StoreComponentNonExisting<MobileComponent>(entity.Id);
             cb.AddComponent(data.Id, defaultMobile);
         }
 
         if (!hasMobileInfo)
         {
             MobileInfoComponent defaultMobileInfo = new(flipOnEdge: FlipOnEdge, restitution: new(1, 0.2f), restitutionMinimumResultingVelocity: new(0, 1), frictionMult: 0);
-            Rewind.StoreComponentBeforeAdd<MobileInfoComponent>(entity.Id);
+            Rewind.StoreComponentNonExisting<MobileInfoComponent>(entity.Id);
             cb.AddComponent(data.Id, defaultMobileInfo);
         }
 

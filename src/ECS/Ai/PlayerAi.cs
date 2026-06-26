@@ -38,9 +38,9 @@ public record struct PlayerAi : IComponent, IAi
         float xAccel = mobile.InAir ? AirAcceleration : Acceleration;
         xAccel *= Time.DeltaTime;
 
-        if (mobile.SupportingEntityId != -1)
+        if (mobile.SupportingEntityPid != -1)
         {
-            var supportingEnt = store.GetEntityById(mobile.SupportingEntityId);
+            var supportingEnt = store.GetEntityByPid(mobile.SupportingEntityPid);
             var supportingData = supportingEnt.Data;
             if (!supportingEnt.IsNull && supportingData.Has<SupportComponent>())
             {
@@ -73,14 +73,14 @@ public record struct PlayerAi : IComponent, IAi
         if (Input.KeyDown(Key.Space) && !mobile.InAir)
         {
             mobile.Velocity.Y -= JumpStrength;
-            if (mobile.SupportingEntityId != -1)
+            if (mobile.SupportingEntityPid != -1)
             {
-                var supportingEnt = store.GetEntityById(mobile.SupportingEntityId);
+                var supportingEnt = store.GetEntityByPid(mobile.SupportingEntityPid);
                 var supportingData = supportingEnt.Data;
                 if (!supportingEnt.IsNull && supportingData.Has<MobileComponent>())
                     mobile.Velocity += supportingData.Get<MobileComponent>().Velocity;
             }
-            mobile.SupportingEntityId = -1;
+            mobile.SupportingEntityPid = -1;
         }
     }
 }

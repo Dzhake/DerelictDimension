@@ -65,6 +65,8 @@ public class TheGame : MonodGame
         base.Initialize();
     }
 
+    public override void CreateStore() => Store = new(PidType.RandomPids);
+
     ///<inheritdoc/>
     protected override void LoadContent()
     {
@@ -190,7 +192,7 @@ public class TheGame : MonodGame
         else if (Input.KeyPressed(Key.Mouse3))
         {
             //Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Transform(mousepos), new TimelessComponent());
-            Rewind.StoreComponentBeforeAdd<PlayerAi>(entity.Id);
+            Rewind.StoreComponentNonExisting<PlayerAi>(entity.Id);
             StoredComponent stored = StoredComponent.ComponentChangedOrAdded(entity.Id, new PlayerAi());
             stored.Set(Store);
             //entity.AddComponent(new PlayerAi());

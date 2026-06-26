@@ -46,7 +46,7 @@ public static class Rewind
         }
     }
 
-    public static void StoreComponentBeforeAdd<T>(int entityId) where T : IComponent
+    public static void StoreComponentNonExisting<T>(int entityId) where T : IComponent
     {
         if (Active) return;
         ComponentRef key = new(entityId, typeof(T));

@@ -56,7 +56,7 @@ public class PhysicsSystem : BaseSystem
                 // Apply forces
                 if (mobile.Grounded)
                 {
-                    var supportEnt = Store.GetEntityById(mobile.SupportingEntityId);
+                    var supportEnt = Store.GetEntityByPid(mobile.SupportingEntityPid);
 
                     if (!supportEnt.IsNull && supportEnt.HasComponent<SupportComponent>())
                     {
@@ -73,9 +73,9 @@ public class PhysicsSystem : BaseSystem
 
             if (isTimeless && !isTemporaryTimeless) continue;
             bool shouldBeTempTimeless = false;
-            if (mobile.SupportingEntityId != -1)
+            if (mobile.SupportingEntityPid != -1)
             {
-                Entity supportingEnt = Store.GetEntityById(mobile.SupportingEntityId);
+                Entity supportingEnt = Store.GetEntityByPid(mobile.SupportingEntityPid);
                 var supportingData = supportingEnt.Data;
                 ref var support = ref supportingData.Get<SupportComponent>();
                 shouldBeTempTimeless = support.MakeTimeless;
@@ -172,7 +172,7 @@ public class PhysicsSystem : BaseSystem
             ref var mobileC = ref mobileData.Get<MobileComponent>();
             ref var mobileTransform = ref mobileData.Get<Transform2D>();
 
-            if (mobileC.SupportingEntityId == supportData.Id)
+            if (mobileC.SupportingEntityPid == Store.IdToPid(mobileData.Id))
             {
                 MoveMobileEntity(movedThisStep, mobileData, true);
                 if (!IsAlive(ref mobileData)) continue;
@@ -181,7 +181,7 @@ public class PhysicsSystem : BaseSystem
                 if (IsCrushed(ref mobileNewHitbox))
                     TryKillMortal(mobileEnt, ref mobileData);
 
-                mobileC.SupportingEntityId = supportData.Id;
+                mobileC.SupportingEntityPid = Store.IdToPid(mobileData.Id);
                 continue;
             }
 
@@ -211,7 +211,7 @@ public class PhysicsSystem : BaseSystem
                     TryKillMortal(mobileEnt, ref mobileData);
 
                 if (normal == MathM.VectorUp)
-                    mobileC.SupportingEntityId = supportData.Id;
+                    mobileC.SupportingEntityPid = Store.IdToPid(mobileData.Id);
             }
         }
     }
@@ -239,7 +239,7 @@ public class PhysicsSystem : BaseSystem
     private static void FreeMoveMobile(ref MobileComponent mobile, ref Transform2D mobileTransform, Vector2 movement)
     {
         if (movement.Y != 0)
-            mobile.SupportingEntityId = -1;
+            mobile.SupportingEntityPid = -1;
         mobileTransform.Position += movement;
         mobile.HighestPoint = Math.Min(mobile.HighestPoint, mobileTransform.Position.Y);
     }
@@ -298,9 +298,9 @@ public class PhysicsSystem : BaseSystem
 
     private void FindCollisionWithEdge(Vector2 movement, bool force, ref MobileComponent mobile, ref MobileInfoComponent mobileInfo, Vector2 currentFrameMovement, ref float minCollisionTime, ref ICollision? collision, AABB worldMobileHitbox)
     {
-        if (!force && mobileInfo.FlipOnEdge && currentFrameMovement.X != 0 && mobile.SupportingEntityId >= 0)
+        if (!force && mobileInfo.FlipOnEdge && currentFrameMovement.X != 0 && mobile.SupportingEntityPid >= 0)
         {
-            var supportingEntity = Store.GetEntityById(mobile.SupportingEntityId);
+            var supportingEntity = Store.GetEntityByPid(mobile.SupportingEntityPid);
             var supportingData = supportingEntity.Data;
             if (supportingData.Has<HitboxComponent>() && supportingData.Has<Transform2D>())
             {

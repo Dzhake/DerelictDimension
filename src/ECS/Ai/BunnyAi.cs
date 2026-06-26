@@ -12,7 +12,9 @@ public record struct BunnyAi : IComponent, IAi
     public Vector2 BigJumpStrength = new(400);
     public int SmallJumpsBeforeBigJump = 3;
     public float TimeBeforeSmallJump = 0.5f;
-    public float TimeBeforeBigJump = 1f;
+    public float TimeBeforeBigJump = 2f;
+    public float DelayAfterSmallJump = 0;
+    public float DelayAfterBigJump = 1f;
     public float RotationSpeedWhileDead = MathF.PI;
 
     public float TimeGroundedSinceJump;
@@ -45,14 +47,14 @@ public record struct BunnyAi : IComponent, IAi
         if (!hasMobile)
         {
             MobileComponent defaultMobile = new();
-            Rewind.StoreComponentBeforeAdd<MobileComponent>(entity.Id);
+            Rewind.StoreComponentNonExisting<MobileComponent>(entity.Id);
             cb.AddComponent(data.Id, defaultMobile);
         }
 
         if (!hasMobileInfo)
         {
             MobileInfoComponent defaultMobileInfo = new(restitution: new(1, 0), restitutionMinimumResultingVelocity: new(0, 1), frictionMult: 3);
-            Rewind.StoreComponentBeforeAdd<MobileInfoComponent>(entity.Id);
+            Rewind.StoreComponentNonExisting<MobileInfoComponent>(entity.Id);
             cb.AddComponent(data.Id, defaultMobileInfo);
         }
 
@@ -68,14 +70,14 @@ public record struct BunnyAi : IComponent, IAi
         {
             if (TimeGroundedSinceJump < TimeBeforeBigJump) return;
             SmallJumpsDone -= SmallJumpsBeforeBigJump;
-            TimeGroundedSinceJump -= TimeBeforeBigJump;
+            TimeGroundedSinceJump -= TimeBeforeBigJump + DelayAfterBigJump;
             Rewind.StoreComponentUpdated(data.Id, ref mobile);
             DoBigJump(ref mobile);
         }
         else
         {
             if (TimeGroundedSinceJump < TimeBeforeSmallJump) return;
-            TimeGroundedSinceJump -= TimeBeforeSmallJump;
+            TimeGroundedSinceJump -= TimeBeforeSmallJump + DelayAfterSmallJump;
             Rewind.StoreComponentUpdated(data.Id, ref mobile);
             DoSmallJump(ref mobile);
             SmallJumpsDone++;
@@ -84,12 +86,14 @@ public record struct BunnyAi : IComponent, IAi
 
     private void DoSmallJump(ref MobileComponent mobile)
     {
+        //TODO: target nearest player
         mobile.Velocity.X += SmallJumpStrength.X;
         mobile.Velocity.Y -= SmallJumpStrength.Y;
     }
 
     private void DoBigJump(ref MobileComponent mobile)
     {
+        //TODO: target nearest player
         mobile.Velocity.X += BigJumpStrength.X;
         mobile.Velocity.Y -= BigJumpStrength.Y;
     }

@@ -19,12 +19,12 @@ public class SupportCollision : ICollision
         mobilePos.Position += currentFrameMovement * timeToMove;
         if (Normal == MathM.VectorUp)
         {
-            mobile.SupportingEntityId = SupportEntity.Id;
+            mobile.SupportingEntityPid = SupportEntity.Pid;
             mobile.HighestPoint = float.MaxValue;
         }
         else if (currentFrameMovement.Y != 0)
         {
-            mobile.SupportingEntityId = -1;
+            mobile.SupportingEntityPid = -1;
         }
 
         Vector2 restitution = PhysicsSystem.GetRestitution(ref mobileInfo, ref support);

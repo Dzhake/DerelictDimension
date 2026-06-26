@@ -42,7 +42,7 @@ public class RewindPostUpdateSystem : BaseSystem
         }
         else
         {
-            if (Rewind.CurrentFrame >= StoredComponents.Count - 1)
+            if (Rewind.CurrentFrame >= StoredComponents.Count)
             {
                 StoredComponents.Add(new());
             }

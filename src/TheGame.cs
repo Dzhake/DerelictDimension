@@ -4,6 +4,7 @@ using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
+using Friflo.Engine.ECS.Serialize;
 using MLEM.Extended.Font;
 using MLEM.Font;
 using Monod;
@@ -17,7 +18,9 @@ using Monod.Utils.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace DerelictDimension;
 
@@ -46,6 +49,8 @@ public class TheGame : MonodGame
     public static Entity entity;
     public static float WantedFPS = 60;
 
+    public EntityStore PrefabsStore;
+
     /// <summary>
     /// Creates a new <see cref="TheGame"/>.
     /// </summary>
@@ -62,6 +67,7 @@ public class TheGame : MonodGame
 
     protected override void Initialize()
     {
+        PrefabsStore = new(PidType.RandomPids);
         base.Initialize();
     }
 
@@ -77,7 +83,6 @@ public class TheGame : MonodGame
         Renderer.deviceManager.PreferMultiSampling = true;
         Renderer.DefaultBlendState = Renderer.NonPremultipliedBlend;
         Assets.OnReload += LoadFont;
-
         InitWorld();
     }
 
@@ -85,10 +90,38 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        Store.CreateEntity(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 0), new SolidComponent());
+        Entity platformPrefab = PrefabsStore.CreateEntity();
+        platformPrefab.Add(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 0), new SolidComponent());
+        Entity mobilePrefab = PrefabsStore.CreateEntity();
+        mobilePrefab.Add(new MobileComponent(), new MobileInfoComponent());
+
+        Entity platform1 = PrefabsStore.CreateEntity();
+        EntityStore.MergeEntity(platformPrefab, platform1);
+        EntityStore.MergeEntity(mobilePrefab, platform1);
+
+        EntitySerializer serializer = new();
+        var mem = new MemoryStream();
+        //serializer.WriteEntities(Enumerable.Repeat(platform1, 1), mem);
+        var json = serializer.WriteEntity(platform1);
+        /*var json = "{\r\n    \r\n    \"components\": {\r\n        \"HitboxComponent\": {\"Value\":{\"Center\":{\"X\":0,\"Y\":0},\"HalfSize\":{\"X\":250,\"Y\":50},\"Size\":{\"X\":500,\"Y\":100},\"X\":-250,\"Y\":-50,\"Width\":500,\"Height\":100,\"Bottom\":50,\"Top\":-50,\"Right\":250,\"Left\":-250,\"CenterX\":0,\"CenterY\":0,\"HalfWidth\":250,\"HalfHeight\":50},\"Collidable\":true},\r\n        \"MobileComponent\": {\"Velocity\":{\"X\":0,\"Y\":0},\"SupportingEntityPid\":-1,\"HighestPoint\":3.4028235E+38},\r\n        \"MobileInfoComponent\": {\"AffectedByGravity\":true,\"FlipOnEdge\":false,\"Restitution\":{\"X\":1,\"Y\":1},\"RestitutionRequiredVelocity\":{\"X\":0,\"Y\":0},\"RestitutionMinimumResultingVelocity\":{\"X\":0,\"Y\":0},\"FrictionMult\":1},\r\n        \"SolidComponent\": {},\r\n        \"SupportComponent\": {\"Friction\":0,\"MakeTimeless\":false,\"Normals\":\"Up\",\"OverrideRestitution\":{\"X\":-1,\"Y\":-1},\"AccelerationMult\":1},\r\n        \"Transform2D\": {\"PosX\":300,\"PosY\":0,\"ScaleX\":1,\"ScaleY\":1,\"FlipX\":false,\"FlipY\":false,\"Rotation\":0}\r\n    }\r\n}";*/
+        var s = $"[{json}]";
+        Log.Information("{Value}", s);
+        var byteArr = Encoding.UTF8.GetBytes(s);
+        var result = serializer.ReadIntoStore(Store, new MemoryStream(byteArr));
+        serializer.ReadIntoStore(Store, new MemoryStream(byteArr));
+        serializer.ReadIntoStore(Store, new MemoryStream(byteArr));
+        //Log.Information("{Mem}", Encoding.mem.ToArray());
+        //var result = serializer.ReadIntoStore(Store, mem);
+        Log.Information("{Count}: {Error}", result.entityCount, result.error);
+
+        Entity platform2 = Store.CreateEntity();
+        platformPrefab.CopyEntity(platform2);
+        platform2.GetComponent<Transform2D>().PosY = 700;
+        /*
         Store.CreateEntity(new SupportComponent(), new MobileComponent() { Velocity = new(0, 0) }, new MobileInfoComponent() { AffectedByGravity = false }, new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 600), new SolidComponent());
         Store.CreateEntity(new SupportComponent() { Friction = -0.05f, OverrideRestitution = new(0, 1) }, new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(810, 550.5f));
         entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new BounceableComponent(100, 200, 50), new MortalComponent());
+        */
 
         InitializeSystems();
     }

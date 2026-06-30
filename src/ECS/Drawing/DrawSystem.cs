@@ -26,7 +26,6 @@ public class DrawSystem : BaseSystem
     public ArchetypeQuery<MobileComponent> MobilesQuery;
     public ArchetypeQuery<SupportComponent> SupportsQuery;
 
-
     protected override void OnAddStore(EntityStore store)
     {
         base.OnAddStore(store);

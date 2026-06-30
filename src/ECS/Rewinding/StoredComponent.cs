@@ -1,4 +1,5 @@
-﻿using Monod.Shared.Exceptions;
+﻿using Monod.ECS;
+using Monod.Shared.Exceptions;
 using System;
 using System.Runtime.InteropServices;
 
@@ -62,16 +63,11 @@ public record struct StoredComponent()
         }
         else if (RemoveComponent)
         {
-            EntitySchema schema = EntityStore.GetEntitySchema();
-            var componentType = schema.ComponentTypeByType[ComponentType];
-            EntityUtils.RemoveEntityComponent(entity, componentType);
+            entity.RemoveComponentByType(ComponentType!); // 'Component is null' is the same 'ComponentType is null', so ComponentType is not null here.
         }
         else
         {
-            EntitySchema schema = EntityStore.GetEntitySchema();
-            var componentType = schema.ComponentTypeByType[Component.GetType()];
-            EntityUtils.AddEntityComponent(entity, componentType);
-            EntityUtils.AddEntityComponentValue(entity, componentType, Component);
+            entity.AddOrChangeComponent(Component!);
         }
     }
 

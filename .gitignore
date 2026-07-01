@@ -395,5 +395,3 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-/src/Content/Effects/Black.mgfx
-/src/Content/Effects/White.mgfx

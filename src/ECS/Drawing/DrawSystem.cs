@@ -147,10 +147,10 @@ public class DrawSystem : BaseSystem
         }
 
         if (RewindEffect?.IsDisposed != false || Assets.ReloadThisFrame)
-            RewindEffect = Assets.Get<Effect>("Effects/Rewind.mgfx");
+            RewindEffect = Assets.Get<Effect>("Effects/Rewind.fx");
 
         if (InCardEffect?.IsDisposed != false || Assets.ReloadThisFrame)
-            InCardEffect = Assets.Get<Effect>("Effects/InCard.mgfx");
+            InCardEffect = Assets.Get<Effect>("Effects/InCard.fx");
 
         if (Bg?.IsDisposed != false || Assets.ReloadThisFrame)
             Bg = Assets.Get<Texture2D>("Sprites/Bg.png");

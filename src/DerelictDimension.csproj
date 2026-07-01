@@ -94,6 +94,8 @@
     
     <!-- Compile effects -->
     <Target Name="CompileEffects" AfterTargets="Build">
+        <!--
         <CompileEffectsTask PathToContent="$(ProjectDir)$(ContentDir)" OutputPath="@(EffectOutputDir)" />
+        -->
     </Target>
 </Project>

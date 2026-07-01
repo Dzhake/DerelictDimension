@@ -4,8 +4,6 @@ using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
-using Friflo.Engine.ECS.Serialize;
-using JetBrains.Annotations;
 using MLEM.Extended.Font;
 using MLEM.Font;
 using Monod;
@@ -15,14 +13,13 @@ using Monod.ECS.Prefabs;
 using Monod.Graphics;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
+using Monod.MathModule;
 using Monod.ModsModule;
 using Monod.Utils.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace DerelictDimension;
 
@@ -44,7 +41,7 @@ public class TheGame : MonodGame
     public Key released;
     public RebindMenu Rebind;
 
-    public HashSet<string> ModsToToggle = new();
+    public HashSet<string> ModsToToggle = [];
     public int Page = 0;
 
     public static Vector2 GameSize;
@@ -64,12 +61,12 @@ public class TheGame : MonodGame
         IsFixedTimeStep = true;
         MaxElapsedTime = TimeSpan.FromMilliseconds(1000f / WantedFPS * 60);
         TargetElapsedTime = TimeSpan.FromMilliseconds(1000f / WantedFPS);
+        PrefabsStore = new(PidType.RandomPids);
     }
 
 
     protected override void Initialize()
     {
-        PrefabsStore = new(PidType.RandomPids);
         base.Initialize();
     }
 
@@ -79,7 +76,7 @@ public class TheGame : MonodGame
     protected override void LoadContent()
     {
         MainAssetManager.LoadAsset("Fonts/m6x11plus.ttf");
-        MainAssetManager.LoadAsset("Prefabs/Player.prefab.json");
+        MainAssetManager.LoadAsset("Prefabs/Platform.prefab.json");
 
         LoadFont();
         base.LoadContent();
@@ -102,55 +99,26 @@ public class TheGame : MonodGame
         Log.Information(json);*/
 
         var prefab = Assets.Get<Prefab>("Prefabs/Platform.prefab.json");
-        prefab.Instantiate(Store);
-        var inst = prefab.Instantiate(Store);
-        inst.GetComponent<Transform2D>().PosX = 700;
-        inst.GetComponent<Transform2D>().PosY = -200;
+        var platform1 = prefab.Instantiate(Store);
+        platform1.GetComponent<Transform2D>().Position = new(300, 700);
 
-        /*Entity platformPrefab = PrefabsStore.CreateEntity();
-        platformPrefab.Add(new SupportComponent(), new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 0), new SolidComponent());
-        Entity mobilePrefab = PrefabsStore.CreateEntity();
-        mobilePrefab.Add(new MobileComponent(), new MobileInfoComponent());
+        platform1 = prefab.Instantiate(Store);
+        platform1.GetComponent<Transform2D>().Position = new(1000, 650);
 
-        Entity platform1 = PrefabsStore.CreateEntity();
-        EntityStore.MergeEntity(platformPrefab, platform1);
-        EntityStore.MergeEntity(mobilePrefab, platform1);
+        platform1 = prefab.Instantiate(Store);
+        platform1.GetComponent<Transform2D>().Position = new(1200, 600);
+        platform1.RemoveComponent<SolidComponent>();
+        platform1.GetComponent<SupportComponent>().Normals = Direction4.Up;
 
-        EntitySerializer serializer = new();
-        EntityConverter converter = new();
-        var mem = new MemoryStream();
-        //serializer.WriteEntities(Enumerable.Repeat(platform1, 1), mem);
-        var json = serializer.WriteEntity(platform1);
-        Log.Information("{Json}", json);*/
-        /*var json = "{\r\n    \r\n    \"components\": {\r\n        \"HitboxComponent\": {\"Value\":{\"Center\":{\"X\":0,\"Y\":0},\"HalfSize\":{\"X\":250,\"Y\":50},\"Size\":{\"X\":500,\"Y\":100},\"X\":-250,\"Y\":-50,\"Width\":500,\"Height\":100,\"Bottom\":50,\"Top\":-50,\"Right\":250,\"Left\":-250,\"CenterX\":0,\"CenterY\":0,\"HalfWidth\":250,\"HalfHeight\":50},\"Collidable\":true},\r\n        \"MobileComponent\": {\"Velocity\":{\"X\":0,\"Y\":0},\"SupportingEntityPid\":-1,\"HighestPoint\":3.4028235E+38},\r\n        \"MobileInfoComponent\": {\"AffectedByGravity\":true,\"FlipOnEdge\":false,\"Restitution\":{\"X\":1,\"Y\":1},\"RestitutionRequiredVelocity\":{\"X\":0,\"Y\":0},\"RestitutionMinimumResultingVelocity\":{\"X\":0,\"Y\":0},\"FrictionMult\":1},\r\n        \"SolidComponent\": {},\r\n        \"SupportComponent\": {\"Friction\":0,\"MakeTimeless\":false,\"Normals\":\"Up\",\"OverrideRestitution\":{\"X\":-1,\"Y\":-1},\"AccelerationMult\":1},\r\n        \"Transform2D\": {\"PosX\":300,\"PosY\":0,\"ScaleX\":1,\"ScaleY\":1,\"FlipX\":false,\"FlipY\":false,\"Rotation\":0}\r\n    }\r\n}";*/
-        /*var s = $"[{json}]";
-        Log.Information("{Value}", s);
-        var byteArr = Encoding.UTF8.GetBytes(s);
-        //var result = serializer.ReadIntoStore(Store, new MemoryStream(byteArr));
-        //Log.Information("{Count}: {Error}", result.entityCount, result.error);
-        List<DataEntity> entities = [];
-        serializer.ReadEntities(entities, new MemoryStream(byteArr));
-        Entity platform3 = new();
-        foreach (var dataEntity in entities)
-        {
-            platform3 = converter.DataEntityToEntity(dataEntity, PrefabsStore, out string error);
-            if (!string.IsNullOrEmpty(error)) Log.Error("Failed to load entity: {Error}", error);
-        }
+        platform1 = prefab.Instantiate(Store);
+        platform1.GetComponent<Transform2D>().Position = new(640, 0);
+        platform1.GetComponent<HitboxComponent>().Value.HalfWidth = 640;
 
-        Entity platform4 = Store.CreateEntity();
-        platform3.CopyEntity(platform4);
+        platform1 = prefab.Instantiate(Store);
+        platform1.GetComponent<Transform2D>().Position = new(640, 300);
+        platform1.GetComponent<HitboxComponent>().Value.HalfWidth = 640;
 
-        //Log.Information("{Mem}", Encoding.mem.ToArray());
-        //var result = serializer.ReadIntoStore(Store, mem);
-
-        Entity platform2 = Store.CreateEntity();
-        platformPrefab.CopyEntity(platform2);
-        platform2.GetComponent<Transform2D>().PosY = 700;*/
-        /*
-        Store.CreateEntity(new SupportComponent(), new MobileComponent() { Velocity = new(0, 0) }, new MobileInfoComponent() { AffectedByGravity = false }, new HitboxComponent(0, 0, 250, 50), new Transform2D(300, 600), new SolidComponent());
-        Store.CreateEntity(new SupportComponent() { Friction = -0.05f, OverrideRestitution = new(0, 1) }, new SolidComponent(), new HitboxComponent(0, 0, 250, 50), new Transform2D(810, 550.5f));
-        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new BounceableComponent(100, 200, 50), new MortalComponent());
-        */
+        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new BounceableComponent(100, 200, 50), new MortalComponent(), new PlayerAi());
 
         InitializeSystems();
     }
@@ -253,11 +221,8 @@ public class TheGame : MonodGame
         }
         else if (Input.KeyPressed(Key.Mouse3) && !entity.IsNull)
         {
-            //Entity ent = Store.CreateEntity(new ActorComponent() { Hitbox = new(0, 0, 50, 50) }, new Transform(mousepos), new TimelessComponent());
-            Rewind.StoreComponentNonExisting<PlayerAi>(entity.Id);
-            StoredComponent stored = StoredComponent.ComponentChangedOrAdded(entity.Id, new PlayerAi());
-            stored.Set(Store);
-            //entity.AddComponent(new PlayerAi());
+            Entity ent = Store.CreateEntity(new HitboxComponent(0, 0, 30, 15), new Transform2D(mousepos), new BouncyComponent(), new MonstarAi(), new MortalComponent() { DiesToLethal = false }, new LethalComponent(), new BounceableComponent(10, 300, 20));
+            Rewind.StoreEntityUpdated(ent, false);
         }
 
 

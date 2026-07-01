@@ -2,20 +2,12 @@
 using DerelictDimension.ECS.Rewinding;
 using Monod.ECS.DefaultComponents;
 using Monod.TimeModule;
-using System;
 
 namespace DerelictDimension.ECS.Ai;
 
 public record struct BunnyAi : IComponent, IAi
 {
-    public Vector2 SmallJumpStrength = new(200);
-    public Vector2 BigJumpStrength = new(400);
-    public int SmallJumpsBeforeBigJump = 3;
-    public float TimeBeforeSmallJump = 0.5f;
-    public float TimeBeforeBigJump = 2f;
-    public float DelayAfterSmallJump = 0;
-    public float DelayAfterBigJump = 1f;
-    public float RotationSpeedWhileDead = MathF.PI;
+
 
     public float TimeGroundedSinceJump;
     public float SmallJumpsDone;
@@ -29,8 +21,9 @@ public record struct BunnyAi : IComponent, IAi
     {
         var data = entity.Data;
         if (!Rewind.ShouldUpdateEntity(data)) return;
-        if (!data.Has<Transform2D>()) return;
+        if (!data.Has<Transform2D>() || !data.Has<BunnyAiInfo>()) return;
         ref var transform = ref data.Get<Transform2D>();
+        ref var info = ref data.Get<BunnyAiInfo>();
 
         if (data.Has<MortalComponent>())
         {
@@ -38,7 +31,7 @@ public record struct BunnyAi : IComponent, IAi
             if (mortal.Dead)
             {
                 Rewind.StoreComponentUpdated(entity.Id, ref transform);
-                transform.Rotation += RotationSpeedWhileDead * Time.DeltaTime;
+                transform.Rotation += info.RotationSpeedWhileDead * Time.DeltaTime;
             }
         }
 
@@ -66,35 +59,35 @@ public record struct BunnyAi : IComponent, IAi
 
         Rewind.StoreComponentUpdated(data.Id, ref this);
         TimeGroundedSinceJump += Time.DeltaTime;
-        if (SmallJumpsDone >= SmallJumpsBeforeBigJump)
+        if (SmallJumpsDone >= info.SmallJumpsBeforeBigJump)
         {
-            if (TimeGroundedSinceJump < TimeBeforeBigJump) return;
-            SmallJumpsDone -= SmallJumpsBeforeBigJump;
-            TimeGroundedSinceJump -= TimeBeforeBigJump + DelayAfterBigJump;
+            if (TimeGroundedSinceJump < info.TimeBeforeBigJump) return;
+            SmallJumpsDone -= info.SmallJumpsBeforeBigJump;
+            TimeGroundedSinceJump -= info.TimeBeforeBigJump + info.DelayAfterBigJump;
             Rewind.StoreComponentUpdated(data.Id, ref mobile);
-            DoBigJump(ref mobile);
+            DoBigJump(ref mobile, ref info);
         }
         else
         {
-            if (TimeGroundedSinceJump < TimeBeforeSmallJump) return;
-            TimeGroundedSinceJump -= TimeBeforeSmallJump + DelayAfterSmallJump;
+            if (TimeGroundedSinceJump < info.TimeBeforeSmallJump) return;
+            TimeGroundedSinceJump -= info.TimeBeforeSmallJump + info.DelayAfterSmallJump;
             Rewind.StoreComponentUpdated(data.Id, ref mobile);
-            DoSmallJump(ref mobile);
+            DoSmallJump(ref mobile, ref info);
             SmallJumpsDone++;
         }
     }
 
-    private void DoSmallJump(ref MobileComponent mobile)
+    private void DoSmallJump(ref MobileComponent mobile, ref BunnyAiInfo info)
     {
         //TODO: target nearest player
-        mobile.Velocity.X += SmallJumpStrength.X;
-        mobile.Velocity.Y -= SmallJumpStrength.Y;
+        mobile.Velocity.X += info.SmallJumpStrength.X;
+        mobile.Velocity.Y -= info.SmallJumpStrength.Y;
     }
 
-    private void DoBigJump(ref MobileComponent mobile)
+    private void DoBigJump(ref MobileComponent mobile, ref BunnyAiInfo info)
     {
         //TODO: target nearest player
-        mobile.Velocity.X += BigJumpStrength.X;
-        mobile.Velocity.Y -= BigJumpStrength.Y;
+        mobile.Velocity.X += info.BigJumpStrength.X;
+        mobile.Velocity.Y -= info.BigJumpStrength.Y;
     }
 }

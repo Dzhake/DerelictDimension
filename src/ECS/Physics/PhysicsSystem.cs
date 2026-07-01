@@ -249,6 +249,7 @@ public class PhysicsSystem : BaseSystem
         ICollision? collision = null;
         bool isBounceable = data.Has<BounceableComponent>();
         bool isMortal = data.Has<MortalComponent>();
+        bool isLethal = data.Has<LethalComponent>();
         ref var hitbox = ref data.Get<HitboxComponent>();
         ref var transform = ref data.Get<Transform2D>();
         AABB worldMobileHitbox = GetWorldHitbox(ref hitbox, ref transform);
@@ -273,7 +274,7 @@ public class PhysicsSystem : BaseSystem
             var lethalData = lethalEnt.Data;
             if (!lethalData.Has<HitboxComponent>() || !lethalData.Has<Transform2D>()) continue;
             ref var lethalHitbox = ref lethalData.Get<HitboxComponent>();
-            if (!lethalHitbox.Collidable) return;
+            if (!lethalHitbox.Collidable) continue;
 
             ref var lethalTransform = ref lethalData.Get<Transform2D>();
             ref var lethalC = ref lethalData.Get<LethalComponent>();

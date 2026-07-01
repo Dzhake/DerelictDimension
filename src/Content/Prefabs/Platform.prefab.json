@@ -4,63 +4,15 @@
         "components": {
             "HitboxComponent": {
                 "Value": {
-                    "Center": {
-                        "X": 0,
-                        "Y": 0
-                    },
-                    "HalfSize": {
-                        "X": 250,
-                        "Y": 50
-                    },
-                    "Size": {
-                        "X": 500,
-                        "Y": 100
-                    },
-                    "X": -250,
-                    "Y": -50,
-                    "Width": 500,
-                    "Height": 100,
-                    "Bottom": 50,
-                    "Top": -50,
-                    "Right": 250,
-                    "Left": -250,
-                    "CenterX": 0,
-                    "CenterY": 0,
                     "HalfWidth": 250,
                     "HalfHeight": 50
                 },
                 "Collidable": true
             },
-            "MobileComponent": {
-                "Velocity": {
-                    "X": 0,
-                    "Y": 0
-                },
-                "SupportingEntityPid": -1,
-                "HighestPoint": 3.4028235E+38
-            },
-            "MobileInfoComponent": {
-                "AffectedByGravity": true,
-                "FlipOnEdge": false,
-                "Restitution": {
-                    "X": 1,
-                    "Y": 1
-                },
-                "RestitutionRequiredVelocity": {
-                    "X": 0,
-                    "Y": 0
-                },
-                "RestitutionMinimumResultingVelocity": {
-                    "X": 0,
-                    "Y": 0
-                },
-                "FrictionMult": 1
-            },
             "SolidComponent": {},
             "SupportComponent": {
-                "Friction": 0,
+                "Friction": -0.05,
                 "MakeTimeless": false,
-                "Normals": "Up",
                 "OverrideRestitution": {
                     "X": -1,
                     "Y": -1
@@ -68,7 +20,7 @@
                 "AccelerationMult": 1
             },
             "Transform2D": {
-                "PosX": 300,
+                "PosX": 0,
                 "PosY": 0,
                 "ScaleX": 1,
                 "ScaleY": 1,

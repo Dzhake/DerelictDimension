@@ -71,7 +71,7 @@ public class DrawSystem : BaseSystem
         rect.Height *= Upscale.Y;
         Color color = new(176 / 255f, 176 / 255f, 39 / 255f);
         if (isTimeless) color = Color.Lime;
-        if (data.Has<PlayerAi>()) color = Color.Orange;
+        //if (data.Has<PlayerAi>()) color = Color.Orange;
         if (!hitbox.Collidable) color.A /= 2;
         Renderer.Begin(effect: isTimeless || !Rewind.Active ? null : RewindEffect);
         RendererExt.DrawRotRect(rect, transform.GetFlippedRotation(), color);
@@ -87,6 +87,7 @@ public class DrawSystem : BaseSystem
         if (!data.Has<HitboxComponent>() || !data.Has<Transform2D>()) return;
         ref var transform = ref data.Get<Transform2D>();
         ref var hitbox = ref data.Get<HitboxComponent>();
+        bool isSolid = data.Has<SolidComponent>();
 
         AABB rect = PhysicsSystem.GetWorldHitbox(ref hitbox, ref transform);
 
@@ -97,6 +98,7 @@ public class DrawSystem : BaseSystem
 
         Color color = new(48 / 255f, 37 / 255f, 138 / 255f);
         if (support.MakeTimeless && Rewind.CurrentFrame % 60 < 20) color.AddRgb(25);
+        if (!isSolid) color.A /= 2;
         Renderer.Begin(effect: Rewind.Active ? RewindEffect : null);
         RendererExt.DrawRotRect(rect, transform.GetFlippedRotation(), color);
         Renderer.End();

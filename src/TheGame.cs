@@ -2,6 +2,7 @@
 using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Physics.Components;
+using DerelictDimension.ECS.Prefabs;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
 using MLEM.Extended.Font;
@@ -23,7 +24,9 @@ using System.Linq;
 
 namespace DerelictDimension;
 
-/// <inheritdoc/>
+/// <summary>
+/// Entry point of the game, that manages update and render.
+/// </summary>
 public class TheGame : MonodGame
 {
     /// <summary>
@@ -91,16 +94,16 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        /*entity = Store.CreateEntity();
-        entity.Add(new SupportComponent());
-
+        entity = Store.CreateEntity();
+        entity.Add(new CannonComponent(), new CannonInfoComponent("Prefabs/Monstar.prefab.json"), new Transform2D(0, 200));
         var json = entitySerializer.WriteEntity(entity);
 
-        Log.Information(json);*/
+        Log.Information(json);
 
-        var prefab = Assets.Get<Prefab>("Prefabs/Platform.prefab.json");
+        var prefab = Assets.Get<PrefabAsset>("Prefabs/Platform.prefab.json");
         var platform1 = prefab.Instantiate(Store);
         platform1.GetComponent<Transform2D>().Position = new(300, 700);
+
 
         platform1 = prefab.Instantiate(Store);
         platform1.GetComponent<Transform2D>().Position = new(1000, 650);
@@ -118,7 +121,7 @@ public class TheGame : MonodGame
         platform1.GetComponent<Transform2D>().Position = new(640, 300);
         platform1.GetComponent<HitboxComponent>().Value.HalfWidth = 640;
 
-        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new BounceableComponent(100, 200, 50), new MortalComponent(), new PlayerAi());
+        //entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new BounceableComponent(100, 200, 50), new MortalComponent(), new PlayerAi());
 
         InitializeSystems();
     }
@@ -137,6 +140,7 @@ public class TheGame : MonodGame
         DrawSystemRoot.RemoveAllSystems();
 
         LogicSystemRoot.Add(new RewindPreUpdateSystem());
+        LogicSystemRoot.Add(new CannonSystem());
         LogicSystemRoot.Add(new AiPreUpdateSystem());
         LogicSystemRoot.Add(new PhysicsSystem());
         LogicSystemRoot.Add(new RewindPostUpdateSystem());
@@ -209,20 +213,31 @@ public class TheGame : MonodGame
         if (Input.KeyDown(Key.Mouse1) && !entity.IsNull)
         {
             var data = entity.Data;
-            ref var pos = ref data.Get<Transform2D>();
-            pos.Position = mousepos;
-            ref var mobile = ref data.Get<MobileComponent>();
-            mobile.Velocity = Vector2.Zero;
+            if (data.Has<Transform2D>())
+            {
+                ref var pos = ref data.Get<Transform2D>();
+                pos.Position = mousepos;
+
+                if (data.Has<MobileComponent>())
+                {
+                    ref var mobile = ref data.Get<MobileComponent>();
+                    mobile.Velocity = Vector2.Zero;
+                }
+            }
         }
         else if (Input.KeyPressed(Key.Mouse2))
         {
-            Entity ent = Store.CreateEntity(new HitboxComponent(0, 0, 30, 30), new Transform2D(mousepos), new BouncyComponent(), new BunnyAi(), new MortalComponent() { DiesToLethal = false }, new LethalComponent(), new BounceableComponent(10, 300, 20));
-            Rewind.StoreEntityUpdated(ent, false);
+            var bunnyPrefab = Assets.Get<PrefabAsset>("Prefabs/Bunny.prefab.json");
+            var bunny = bunnyPrefab.Instantiate(Store);
+            bunny.GetComponent<Transform2D>().Position = mousepos;
+            Rewind.StoreEntityUpdated(bunny, false);
         }
         else if (Input.KeyPressed(Key.Mouse3) && !entity.IsNull)
         {
-            Entity ent = Store.CreateEntity(new HitboxComponent(0, 0, 30, 15), new Transform2D(mousepos), new BouncyComponent(), new MonstarAi(), new MortalComponent() { DiesToLethal = false }, new LethalComponent(), new BounceableComponent(10, 300, 20));
-            Rewind.StoreEntityUpdated(ent, false);
+            var monstarPrefab = Assets.Get<PrefabAsset>("Prefabs/Monstar.prefab.json");
+            var monstar = monstarPrefab.Instantiate(Store);
+            monstar.GetComponent<Transform2D>().Position = mousepos;
+            Rewind.StoreEntityUpdated(monstar, false);
         }
 
 

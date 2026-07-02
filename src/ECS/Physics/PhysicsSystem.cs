@@ -103,6 +103,7 @@ public class PhysicsSystem : BaseSystem
         if (!mobileHitbox.Collidable)
         {
             FreeMoveMobile(ref mobile, ref mobileTransform, movement);
+            return;
         }
 
         ref var mobileInfo = ref mobileData.Get<MobileInfoComponent>();

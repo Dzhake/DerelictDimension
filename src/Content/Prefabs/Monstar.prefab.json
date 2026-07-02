@@ -1,0 +1,39 @@
+{
+    "$type": "EntityPrefab",
+    "Source": {
+        "components": {
+            "BounceableComponent": {
+                "MinHeight": 10,
+                "MaxHeight": 300,
+                "AddHeight": 20
+            },
+            "BouncyComponent": { "DieOnBounce": true },
+            "HitboxComponent": {
+                "Value": {
+                    "HalfWidth": 30,
+                    "HalfHeight": 15
+                },
+                "Collidable": true
+            },
+            "LethalComponent": {},
+            "MortalComponent": {
+                "Dead": false,
+                "DiesToLethal": false
+            },
+            "MonstarAi": {
+                "Speed": 150,
+                "RotationSpeedWhileDead": -3.1415927,
+                "FlipOnEdge": true
+            },
+            "Transform2D": {
+                "PosX": 527,
+                "PosY": 450,
+                "ScaleX": 1,
+                "ScaleY": 1,
+                "FlipX": false,
+                "FlipY": false,
+                "Rotation": 0
+            }
+        }
+    }
+}

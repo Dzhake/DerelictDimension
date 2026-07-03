@@ -11,6 +11,7 @@ public static class Rewind
 
     public static float GetSaturationChange()
     {
+        if (!Active) return 0;
         return (Math.Sign(RewindSpeed) - 1) * 0.4f;
     }
 

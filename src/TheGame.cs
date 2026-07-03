@@ -85,7 +85,7 @@ public class TheGame : MonodGame
         base.LoadContent();
 
         Renderer.deviceManager.PreferMultiSampling = true;
-        Renderer.DefaultBlendState = Renderer.NonPremultipliedBlend;
+        //Renderer.DefaultBlendState = Renderer.NonPremultipliedBlend;
         Assets.OnReload += LoadFont;
         InitWorld();
     }

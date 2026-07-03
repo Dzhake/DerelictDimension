@@ -66,6 +66,9 @@ public sealed class CannonSystem : QuerySystem<CannonComponent, CannonInfoCompon
             cannonInfo.Prefab = Assets.Get<PrefabAsset>(cannonInfo.PrefabPath);
         }
 
+        if (!Rewind.ShouldUpdateEntity(cannonEnt.Data)) return;
+        Rewind.StoreComponentUpdated(cannonEnt.Id, ref cannon);
+
         cannon.TimeUntilNextShot -= Time.DeltaTime;
         if (cannon.TimeUntilNextShot <= 0)
         {

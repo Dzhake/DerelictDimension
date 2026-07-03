@@ -104,7 +104,6 @@ public record struct PlayerAi : IComponent, IAi
 
         if (Input.KeyPressed(Key.Space))
         {
-            Log.Information("Space!");
             if (mobile.Grounded || CoyoteTimeLeft >= 0)
             {
                 Jump(store, ref mobile, ref info);
@@ -121,7 +120,6 @@ public record struct PlayerAi : IComponent, IAi
 
     private static void Jump(EntityStore store, ref MobileComponent mobile, ref PlayerAiInfo info)
     {
-        Log.Information("Jump!");
         mobile.Velocity.Y -= info.JumpStrength;
         if (mobile.Grounded)
         {

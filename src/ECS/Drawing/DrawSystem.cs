@@ -7,6 +7,7 @@ using Monod.AssetsModule;
 using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
 using Monod.Graphics.Fonts;
+using Monod.MathModule;
 using Monod.TimeModule;
 using Monod.Utils.Extensions;
 
@@ -14,9 +15,7 @@ namespace DerelictDimension.ECS.Drawing;
 
 public class DrawSystem : BaseSystem
 {
-    private const float CardRadius = 0.3f;
     public Effect? RewindEffect;
-    public Effect? InCardEffect;
     public RenderTarget2D? InCardRT;
     public RenderTarget2D? MainRT;
     public Texture2D Bg;
@@ -25,12 +24,14 @@ public class DrawSystem : BaseSystem
 
     public ArchetypeQuery<MobileComponent> MobilesQuery;
     public ArchetypeQuery<SupportComponent> SupportsQuery;
+    public ArchetypeQuery<Transform2D, HitboxComponent> HitboxesQuery;
 
     protected override void OnAddStore(EntityStore store)
     {
         base.OnAddStore(store);
         MobilesQuery = store.Query<MobileComponent>();
         SupportsQuery = store.Query<SupportComponent>();
+        HitboxesQuery = store.Query<Transform2D, HitboxComponent>();
     }
 
     protected override void OnUpdateGroup()
@@ -38,7 +39,7 @@ public class DrawSystem : BaseSystem
         Point renderSize = Renderer.RenderSize;
         LoadMissingAssets();
         Upscale = new(renderSize.X / TheGame.GameSize.X, renderSize.Y / TheGame.GameSize.Y);
-        UpdateShaders(renderSize, out float cardSide);
+        UpdateShaders(renderSize);
 
         RenderTarget2D? currentRT = Renderer.RenderTarget;
         Renderer.SetRenderTarget(MainRT);
@@ -51,8 +52,71 @@ public class DrawSystem : BaseSystem
 
     private void DrawGame()
     {
-        SupportsQuery.ForEachEntity(DrawSupport);
-        MobilesQuery.ForEachEntity(DrawMobile);
+        //SupportsQuery.ForEachEntity(DrawSupport);
+        //MobilesQuery.ForEachEntity(DrawMobile);
+        bool drawHitboxes = true;
+        if (drawHitboxes)
+        {
+            Renderer.Begin(effect: RewindEffect);
+            HitboxesQuery.ForEachEntity(DrawHitbox);
+            Renderer.End();
+        }
+    }
+
+    private void DrawHitbox(ref Transform2D transform, ref HitboxComponent hitboxC, Entity entity)
+    {
+        var hitbox = PhysicsSystem.GetWorldHitbox(ref hitboxC, ref transform);
+        var data = entity.Data;
+
+        bool isLethal = data.Has<LethalComponent>();
+        bool isSolid = data.Has<SolidComponent>();
+        bool isSupport = data.Has<SupportComponent>();
+        bool isMobile = data.Has<MobileComponent>();
+        bool isBouncy = data.Has<BouncyComponent>();
+
+        float alpha = hitboxC.Collidable ? 1 : 0.5f;
+        int lineWidth = 2;
+
+        Rectangle rect = new(hitbox.TopLeft.ToPoint(), hitbox.Size.ToPoint());
+
+        if (isLethal)
+        {
+            Renderer.DrawRect(rect, Color.Red * alpha);
+        }
+
+        Color mainColor = Color.Blue;
+        if (isMobile)
+        {
+            mainColor = (isSupport || isSolid) ? new Color(255, 250, 205) : Color.Yellow;
+        }
+        mainColor *= alpha;
+
+        if (isSolid)
+        {
+            Renderer.DrawRect(rect, mainColor);
+        }
+        else if (isSupport)
+        {
+            Direction4 normals = data.Get<SupportComponent>().Normals;
+
+            if ((normals & Direction4.Up) != 0)
+            {
+                Renderer.DrawLine(hitbox.TopLeft, hitbox.TopRight, mainColor, lineWidth);
+                Renderer.DrawLine(hitbox.TopLeft + new Vector2(0, lineWidth), hitbox.TopRight + new Vector2(0, lineWidth), mainColor * 0.7f, lineWidth);
+            }
+            if ((normals & Direction4.Down) != 0) Renderer.DrawLine(hitbox.BottomLeft, hitbox.BottomRight, mainColor, lineWidth);
+            if ((normals & Direction4.Left) != 0) Renderer.DrawLine(hitbox.TopLeft, hitbox.BottomLeft, mainColor, lineWidth);
+            if ((normals & Direction4.Right) != 0) Renderer.DrawLine(hitbox.TopRight, hitbox.BottomRight, mainColor, lineWidth);
+        }
+        else if (!isLethal || isMobile)
+        {
+            Renderer.DrawHollowRect(rect, mainColor, lineWidth);
+        }
+
+        if (isBouncy)
+        {
+            Renderer.DrawLine(hitbox.TopLeft, hitbox.TopRight, new Color(136, 14, 201) * alpha, lineWidth + 1);
+        }
     }
 
     private void DrawMobile(ref MobileComponent mobile, Entity entity)
@@ -123,27 +187,14 @@ public class DrawSystem : BaseSystem
         Renderer.End();
     }
 
-    private void UpdateShaders(Point renderSize, out float cardSide)
+    private void UpdateShaders(Point renderSize)
     {
-        cardSide = 320 * Upscale.X;
-        float halfSideX = cardSide / renderSize.X / 2;
-        float halfSideY = cardSide / renderSize.Y / 2;
-
         RewindEffect!.Parameters["SaturationChange"]?.SetValue(Rewind.GetSaturationChange());
-
-        InCardEffect!.Parameters["HalfSideX"]?.SetValue(halfSideX);
-        InCardEffect.Parameters["HalfSideY"]?.SetValue(halfSideY);
-        InCardEffect.Parameters["CardRadius"]?.SetValue(CardRadius);
     }
 
     private void LoadMissingAssets()
     {
         Point renderSize = Renderer.RenderSize;
-        if (InCardRT is null || InCardRT.Bounds.Size != renderSize)
-        {
-            InCardRT?.Dispose();
-            InCardRT = new(Renderer.device, renderSize.X, renderSize.Y, false, SurfaceFormat.Color, DepthFormat.None, 4, RenderTargetUsage.PreserveContents);
-        }
 
         if (MainRT is null || MainRT.Bounds.Size != renderSize)
         {
@@ -153,9 +204,6 @@ public class DrawSystem : BaseSystem
 
         if (RewindEffect?.IsDisposed != false || Assets.ReloadThisFrame)
             RewindEffect = Assets.Get<Effect>("Effects/Rewind.fx");
-
-        if (InCardEffect?.IsDisposed != false || Assets.ReloadThisFrame)
-            InCardEffect = Assets.Get<Effect>("Effects/InCard.fx");
 
         if (Bg?.IsDisposed != false || Assets.ReloadThisFrame)
             Bg = Assets.Get<Texture2D>("Sprites/Bg.png");

@@ -1,4 +1,5 @@
-﻿using DerelictDimension.ECS.Physics;
+﻿using DerelictDimension.ECS.Ai;
+using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
@@ -60,6 +61,9 @@ public class DrawSystem : BaseSystem
         if (!data.Has<HitboxComponent>() || !data.Has<Transform2D>()) return;
         bool isTimeless = data.Has<TimelessComponent>();
         ref var transform = ref data.Get<Transform2D>();
+        bool canJump = false;
+
+        if (data.Has<PlayerAi>() && data.Get<PlayerAi>().CoyoteTimeLeft >= 0) canJump = true;
 
         ref var hitbox = ref data.Get<HitboxComponent>();
         AABB rect = PhysicsSystem.GetWorldHitbox(ref hitbox, ref transform);
@@ -70,7 +74,7 @@ public class DrawSystem : BaseSystem
         rect.Height *= Upscale.Y;
         Color color = new(176 / 255f, 176 / 255f, 39 / 255f);
         if (isTimeless) color = Color.Lime;
-        //if (data.Has<PlayerAi>()) color = Color.Orange;
+        if (canJump) color = Color.Orange;
         if (!hitbox.Collidable) color.A /= 2;
         Renderer.Begin(effect: isTimeless || !Rewind.Active ? null : RewindEffect);
         RendererExt.DrawRotRect(rect, transform.GetFlippedRotation(), color);

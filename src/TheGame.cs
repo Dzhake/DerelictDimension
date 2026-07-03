@@ -122,7 +122,7 @@ public class TheGame : MonodGame
         platform1.GetComponent<HitboxComponent>().Value.HalfWidth = 640;
 
 
-        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new BounceableComponent(100, 200, 50), new MortalComponent(), new PlayerAi());
+        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new BounceableComponent(100, 200, 50), new MortalComponent(), new PlayerAi(), new PlayerAiInfo());
 
         InitializeSystems();
     }

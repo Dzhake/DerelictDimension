@@ -51,20 +51,14 @@
                 "SmallJumpsDone": 0
             },
             "BunnyAiInfo": {
-                "SmallJumpStrength": {
-                    "X": 0,
-                    "Y": 0
-                },
-                "BigJumpStrength": {
-                    "X": 0,
-                    "Y": 0
-                },
-                "SmallJumpsBeforeBigJump": 0,
-                "TimeBeforeSmallJump": 0,
-                "TimeBeforeBigJump": 0,
+                "SmallJumpStrength": 200,
+                "BigJumpStrength": 400,
+                "SmallJumpsBeforeBigJump": 3,
+                "TimeBeforeSmallJump": 0.5,
+                "TimeBeforeBigJump": 2,
                 "DelayAfterSmallJump": 0,
-                "DelayAfterBigJump": 0,
-                "RotationSpeedWhileDead": 0
+                "DelayAfterBigJump": 1,
+                "RotationSpeedWhileDead": 3.1415927
             },
             "Transform2D": {
                 "PosX": 0,

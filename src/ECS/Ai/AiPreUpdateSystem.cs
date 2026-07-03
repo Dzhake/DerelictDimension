@@ -7,7 +7,6 @@ public class AiPreUpdateSystem : BaseSystem
 {
     public ArchetypeQuery<PlayerAi> PlayerControlledQuery;
     public ArchetypeQuery<MonstarAi> MonstarControlledQuery;
-    public ArchetypeQuery<BunnyAi> BunnyControlledQuery;
     public EntityStore Store;
     public CommandBuffer cb;
 
@@ -16,7 +15,6 @@ public class AiPreUpdateSystem : BaseSystem
         base.OnAddStore(store);
         PlayerControlledQuery = store.Query<PlayerAi>();
         MonstarControlledQuery = store.Query<MonstarAi>();
-        BunnyControlledQuery = store.Query<BunnyAi>();
         Store = store;
         cb = store.GetCommandBuffer();
         cb.ReuseBuffer = true;
@@ -27,7 +25,6 @@ public class AiPreUpdateSystem : BaseSystem
         base.OnUpdateGroup();
         PlayerControlledQuery.ForEachEntity(UpdateAi);
         MonstarControlledQuery.ForEachEntity(UpdateAi);
-        BunnyControlledQuery.ForEachEntity(UpdateAi);
         cb.Playback();
     }
 

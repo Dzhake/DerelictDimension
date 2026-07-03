@@ -1,5 +1,4 @@
-﻿using DerelictDimension.ECS.Ai;
-using DerelictDimension.ECS.Physics;
+﻿using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
@@ -51,8 +50,8 @@ public class DrawSystem : BaseSystem
 
     private void DrawGame()
     {
-        MobilesQuery.ForEachEntity(DrawMobile);
         SupportsQuery.ForEachEntity(DrawSupport);
+        MobilesQuery.ForEachEntity(DrawMobile);
     }
 
     private void DrawMobile(ref MobileComponent mobile, Entity entity)
@@ -77,7 +76,7 @@ public class DrawSystem : BaseSystem
         RendererExt.DrawRotRect(rect, transform.GetFlippedRotation(), color);
         Renderer.DrawLine(rect.Center, rect.Center + (mobile.Velocity * Time.DeltaTime), Color.Red, 5);
         //Renderer.DrawLine(new(0, mobile.HighestPoint), new(Renderer.WindowSize.X, mobile.HighestPoint), Color.LightBlue, 1);
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{mobile.Velocity.X}\n{mobile.Velocity.Y}\n{mobile.SupportingEntityPid}", rect.Center, Color.Black);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"{mobile.Velocity.X}\n{mobile.Velocity.Y}\n{mobile.SupportingEntityPid}", rect.Center, Color.White);
         Renderer.End();
     }
 
@@ -97,8 +96,8 @@ public class DrawSystem : BaseSystem
         rect.Height *= Upscale.Y;
 
         Color color = new(48 / 255f, 37 / 255f, 138 / 255f);
+        if (!isSolid) color = Color.Purple;
         if (support.MakeTimeless && Rewind.CurrentFrame % 60 < 20) color.AddRgb(25);
-        if (!isSolid) color.A /= 2;
         Renderer.Begin(effect: Rewind.Active ? RewindEffect : null);
         RendererExt.DrawRotRect(rect, transform.GetFlippedRotation(), color);
         Renderer.End();

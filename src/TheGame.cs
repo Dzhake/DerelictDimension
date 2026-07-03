@@ -95,15 +95,15 @@ public class TheGame : MonodGame
         ClearStore();
 
         entity = Store.CreateEntity();
-        entity.Add(new CannonComponent(), new CannonInfoComponent("Prefabs/Monstar.prefab.json"), new Transform2D(0, 200));
-        var json = entitySerializer.WriteEntity(entity);
+        entity.Add(new CannonComponent(), new CannonInfoComponent("Prefabs/Monstar.prefab.json"), new Transform2D(0, 200), new HitboxComponent(0, 0, 60, 30), new SupportComponent(normals: Direction4.All, -0.05f));
 
-        Log.Information(json);
+        var json = entitySerializer.WriteEntity(entity);
+        Log.Information($"\n{json}");
+
 
         var prefab = Assets.Get<PrefabAsset>("Prefabs/Platform.prefab.json");
         var platform1 = prefab.Instantiate(Store);
         platform1.GetComponent<Transform2D>().Position = new(300, 700);
-
 
         platform1 = prefab.Instantiate(Store);
         platform1.GetComponent<Transform2D>().Position = new(1000, 650);
@@ -120,6 +120,7 @@ public class TheGame : MonodGame
         platform1 = prefab.Instantiate(Store);
         platform1.GetComponent<Transform2D>().Position = new(640, 300);
         platform1.GetComponent<HitboxComponent>().Value.HalfWidth = 640;
+
 
         //entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new BounceableComponent(100, 200, 50), new MortalComponent(), new PlayerAi());
 

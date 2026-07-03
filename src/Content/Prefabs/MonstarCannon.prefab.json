@@ -1,19 +1,26 @@
 {
     "$type": "EntityPrefab",
     "Source": {
-        "id": 783417373,
+        "id": 74354560,
         "components": {
+            "CannonInfoComponent": {
+                "Points": null,
+                "PrefabPath": "Prefabs/Monstar.prefab.json",
+                "FiringInterval": 1,
+                "ProjectileVelocity": 300
+            },
+            "CannonComponent": { "TimeUntilNextShot": 0 },
             "HitboxComponent": {
                 "Value": {
-                    "HalfWidth": 250,
-                    "HalfHeight": 50
+                    "HalfWidth": 60,
+                    "HalfHeight": 30
                 },
                 "Collidable": true
             },
-            "SolidComponent": {},
             "SupportComponent": {
                 "Friction": -0.05,
                 "MakeTimeless": false,
+                "Normals": "All",
                 "OverrideRestitution": {
                     "X": -1,
                     "Y": -1

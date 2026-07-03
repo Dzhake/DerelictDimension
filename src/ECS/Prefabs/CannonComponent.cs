@@ -8,6 +8,7 @@ public record struct CannonInfoComponent : IComponent
     public Vector2[]? Points = null;
     public string PrefabPath;
     public float FiringInterval = 1;
+    public float ProjectileVelocity = 300;
 
     [Ignore]
     public PrefabAsset Prefab;

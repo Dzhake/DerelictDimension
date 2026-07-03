@@ -1,8 +1,10 @@
-﻿using DerelictDimension.ECS.Rewinding;
+﻿using DerelictDimension.ECS.Physics.Components;
+using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
 using Monod.AssetsModule;
 using Monod.ECS.DefaultComponents;
 using Monod.ECS.Prefabs;
+using Monod.MathModule;
 using Monod.TimeModule;
 using System.Collections.Generic;
 
@@ -40,6 +42,16 @@ public sealed class CannonSystem : QuerySystem<CannonComponent, CannonInfoCompon
             {
                 ref var instanceTransform = ref instanceData.Get<Transform2D>();
                 instanceTransform.Position = transform.Position;
+            }
+
+            if (instanceData.Has<MobileComponent>())
+            {
+                ref var instanceMobile = ref instanceData.Get<MobileComponent>();
+
+                Vector2 projectileVelocity = MathM.VectorRight;
+                projectileVelocity.Rotate(transform.GetFlippedRotation());
+                projectileVelocity *= cannonInfo.ProjectileVelocity;
+                instanceMobile.Velocity = projectileVelocity;
             }
         }
 

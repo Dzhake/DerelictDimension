@@ -1,6 +1,7 @@
 {
     "$type": "EntityPrefab",
     "Source": {
+        "id": 2055652191,
         "components": {
             "BounceableComponent": {
                 "MinHeight": 10,
@@ -10,14 +11,37 @@
             "BouncyComponent": { "DieOnBounce": true },
             "HitboxComponent": {
                 "Value": {
-                    "CenterX": 0,
-                    "CenterY": 0,
                     "HalfWidth": 30,
                     "HalfHeight": 30
                 },
                 "Collidable": true
             },
             "LethalComponent": {},
+            "MobileComponent": {
+                "Velocity": {
+                    "X": 0,
+                    "Y": 0
+                },
+                "SupportingEntityPid": -1,
+                "HighestPoint": -1000000
+            },
+            "MobileInfoComponent": {
+                "AffectedByGravity": true,
+                "FlipOnEdge": false,
+                "Restitution": {
+                    "X": 1,
+                    "Y": 0
+                },
+                "RestitutionRequiredVelocity": {
+                    "X": 0,
+                    "Y": 0
+                },
+                "RestitutionMinimumResultingVelocity": {
+                    "X": 0,
+                    "Y": 1
+                },
+                "FrictionMult": 3
+            },
             "MortalComponent": {
                 "Dead": false,
                 "DiesToLethal": false
@@ -43,8 +67,8 @@
                 "RotationSpeedWhileDead": 0
             },
             "Transform2D": {
-                "PosX": 348,
-                "PosY": 156,
+                "PosX": 0,
+                "PosY": 0,
                 "ScaleX": 1,
                 "ScaleY": 1,
                 "FlipX": false,

@@ -35,23 +35,8 @@ public record struct BunnyAi : IComponent, IAi
             }
         }
 
-        bool hasMobile = data.Has<MobileComponent>();
-        bool hasMobileInfo = data.Has<MobileInfoComponent>();
-        if (!hasMobile)
-        {
-            MobileComponent defaultMobile = new();
-            Rewind.StoreComponentNonExisting<MobileComponent>(entity.Id);
-            cb.AddComponent(data.Id, defaultMobile);
-        }
 
-        if (!hasMobileInfo)
-        {
-            MobileInfoComponent defaultMobileInfo = new(restitution: new(1, 0), restitutionMinimumResultingVelocity: new(0, 1), frictionMult: 3);
-            Rewind.StoreComponentNonExisting<MobileInfoComponent>(entity.Id);
-            cb.AddComponent(data.Id, defaultMobileInfo);
-        }
-
-        if (!hasMobile || !hasMobileInfo) return;
+        if (!data.Has<MobileComponent>() || !data.Has<MobileInfoComponent>()) return;
 
         ref var mobile = ref data.Get<MobileComponent>();
 

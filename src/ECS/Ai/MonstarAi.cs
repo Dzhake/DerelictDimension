@@ -34,29 +34,14 @@ public record struct MonstarAi : IComponent, IAi
             }
         }
 
-        bool hasMobile = data.Has<MobileComponent>();
-        bool hasMobileInfo = data.Has<MobileInfoComponent>();
-        if (!hasMobile)
-        {
-            MobileComponent defaultMobile = new() { Velocity = new(Speed, 0) };
-            Rewind.StoreComponentNonExisting<MobileComponent>(entity.Id);
-            cb.AddComponent(data.Id, defaultMobile);
-        }
-
-        if (!hasMobileInfo)
-        {
-            MobileInfoComponent defaultMobileInfo = new(flipOnEdge: FlipOnEdge, restitution: new(1, 0.2f), restitutionMinimumResultingVelocity: new(0, 1), frictionMult: 0);
-            Rewind.StoreComponentNonExisting<MobileInfoComponent>(entity.Id);
-            cb.AddComponent(data.Id, defaultMobileInfo);
-        }
-
-        if (!hasMobile || !hasMobileInfo) return;
+        if (!data.Has<MobileComponent>() || !data.Has<MobileInfoComponent>()) return;
 
         ref var mobile = ref data.Get<MobileComponent>();
         if (mobile.Grounded)
         {
             Rewind.StoreComponentUpdated(entity.Id, ref mobile);
-            mobile.Velocity.X = Math.Sign(mobile.Velocity.X) * Speed;
+            bool faceLeft = mobile.Velocity.X < 0 || transform.FlipX;
+            mobile.Velocity.X = (faceLeft ? -1 : 1) * Speed;
         }
     }
 }

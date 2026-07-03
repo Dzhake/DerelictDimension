@@ -4,14 +4,14 @@ namespace DerelictDimension.ECS.Rewinding;
 
 public static class Rewind
 {
-    public static Dictionary<ComponentRef, RecordedComponent> RecordedComponents = new();
+    public static Dictionary<ComponentRef, RecordedComponent> RecordedComponents = [];
     public static bool Active;
     public static int CurrentFrame = 0;
     public static int RewindSpeed = -1;
 
     public static float GetSaturationChange()
     {
-        return Math.Sign(Rewind.RewindSpeed) * 0.8f;
+        return (Math.Sign(RewindSpeed) - 1) * 0.4f;
     }
 
     public static void StoreEntityUpdated(Entity entity, bool wasEnabled)

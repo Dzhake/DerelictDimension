@@ -10,7 +10,6 @@
                 },
                 "Collidable": true
             },
-            "SolidComponent": {},
             "SupportComponent": {
                 "Friction": -0.05,
                 "MakeTimeless": false,
@@ -29,6 +28,9 @@
                 "FlipY": false,
                 "Rotation": 0
             }
-        }
+        },
+        "tags": [
+            "SolidTag"
+        ]
     }
 }

@@ -65,11 +65,12 @@ public class DrawSystem : BaseSystem
 
     private void DrawHitbox(ref Transform2D transform, ref HitboxComponent hitboxC, Entity entity)
     {
+        //TODO: should probably make this better somehow. Like split it into separate methods or something.
         var hitbox = PhysicsSystem.GetWorldHitbox(ref hitboxC, ref transform);
         var data = entity.Data;
 
         bool isLethal = data.Has<LethalComponent>();
-        bool isSolid = data.Has<SolidComponent>();
+        bool isSolid = data.Tags.Has<SolidTag>();
         bool isSupport = data.Has<SupportComponent>();
         bool isMobile = data.Has<MobileComponent>();
         bool isBouncy = data.Has<BouncyComponent>();
@@ -154,7 +155,7 @@ public class DrawSystem : BaseSystem
         if (!data.Has<HitboxComponent>() || !data.Has<Transform2D>()) return;
         ref var transform = ref data.Get<Transform2D>();
         ref var hitbox = ref data.Get<HitboxComponent>();
-        bool isSolid = data.Has<SolidComponent>();
+        bool isSolid = data.Tags.Has<SolidTag>();
 
         AABB rect = PhysicsSystem.GetWorldHitbox(ref hitbox, ref transform);
 

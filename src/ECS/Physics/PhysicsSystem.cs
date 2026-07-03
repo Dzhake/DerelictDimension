@@ -15,7 +15,7 @@ public class PhysicsSystem : BaseSystem
 
     public ArchetypeQuery<MobileComponent, MobileInfoComponent> MobilesQuery;
     public ArchetypeQuery<SupportComponent> SupportsQuery;
-    public ArchetypeQuery<SolidComponent> SolidsQuery;
+    public ArchetypeQuery SolidsQuery;
     public ArchetypeQuery<BouncyComponent> BouncyQuery;
     public ArchetypeQuery<LethalComponent> LethalsQuery;
     public EntityStore Store;
@@ -26,7 +26,7 @@ public class PhysicsSystem : BaseSystem
         MobilesQuery = store.Query<MobileComponent, MobileInfoComponent>();
         SupportsQuery = store.Query<SupportComponent>();
         BouncyQuery = store.Query<BouncyComponent>();
-        SolidsQuery = store.Query<SolidComponent>();
+        SolidsQuery = store.Query().AllTags(Tags.Get<SolidTag>());
         LethalsQuery = store.Query<LethalComponent>();
         Store = store;
     }
@@ -155,7 +155,7 @@ public class PhysicsSystem : BaseSystem
         ref var support = ref supportData.Get<SupportComponent>();
         Vector2 relativeMovement = -movedThisStep;
         AABB supportUnion = supportOriginalHitbox.Union(supportNewHitbox);
-        bool isSolid = supportData.Has<SolidComponent>();
+        bool isSolid = supportData.Tags.Has<SolidTag>();
 
         foreach (Entity mobileEnt in MobilesQuery.Entities)
         {
@@ -368,7 +368,7 @@ public class PhysicsSystem : BaseSystem
             float collisionTime = CheckSweepCollision(ref worldMobileHitbox, ref quickCheckHitbox, currentFrameMovement, minCollisionTime, supportEnt, out Vector2 normal);
             if (collisionTime != 1)
             {
-                bool supportIsSolid = supportData.Has<SolidComponent>();
+                bool supportIsSolid = supportData.Tags.Has<SolidTag>();
                 if (supportIsSolid || supportC.Normals.Matches(normal))
                 {
                     minCollisionTime = collisionTime;

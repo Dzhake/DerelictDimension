@@ -110,7 +110,7 @@ public class TheGame : MonodGame
 
         platform1 = prefab.Instantiate(Store);
         platform1.GetComponent<Transform2D>().Position = new(1200, 600);
-        platform1.RemoveComponent<SolidComponent>();
+        platform1.RemoveTag<SolidTag>();
         platform1.GetComponent<SupportComponent>().Normals = Direction4.Up;
 
         platform1 = prefab.Instantiate(Store);

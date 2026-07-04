@@ -1,10 +1,12 @@
 ﻿using DerelictDimension.ECS.Ai;
+using DerelictDimension.ECS.Ai.Cloud;
 using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Physics.Components;
 using DerelictDimension.ECS.Prefabs;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
+using Friflo.EcGui;
 using MLEM.Extended.Font;
 using MLEM.Font;
 using Monod;
@@ -71,6 +73,8 @@ public class TheGame : MonodGame
     protected override void Initialize()
     {
         base.Initialize();
+        EcGui.AddExplorerStore("Main", Store);
+        EcGui.AddExplorerStore("Prefabs", PrefabsStore);
     }
 
     public override void CreateStore() => Store = new(PidType.RandomPids);
@@ -79,6 +83,7 @@ public class TheGame : MonodGame
     protected override void LoadContent()
     {
         MainAssetManager.LoadAsset("Fonts/m6x11plus.ttf");
+        MainAssetManager.LoadAsset("Prefabs/MonstarCannon.prefab.json");
         MainAssetManager.LoadAsset("Prefabs/Platform.prefab.json");
 
         LoadFont();
@@ -94,30 +99,33 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
+        var cannonPrefab = Assets.Get<PrefabAsset>("Prefabs/MonstarCannon.prefab.json");
+        var cannon = cannonPrefab.Instantiate(Store);
+
         entity = Store.CreateEntity();
-        entity.Add(new CannonComponent(), new CannonInfoComponent("Prefabs/Monstar.prefab.json"), new Transform2D(0, 200), new HitboxComponent(0, 0, 60, 30), new SupportComponent(normals: Direction4.All, -0.05f));
+        entity.Add(new CloudBehaviour(), new HitboxComponent(0, 0, 100, 30), new SupportComponent(Direction4.Up, -0.05f), new Transform2D(0, 500), new MobileInfoComponent() { AffectedByGravity = false }, new MobileComponent() { Velocity = new(100, 0) }, Tags.Get<FragileTag>());
 
         var json = entitySerializer.WriteEntity(entity);
         Log.Information($"\n{json}");
 
 
-        var prefab = Assets.Get<PrefabAsset>("Prefabs/Platform.prefab.json");
-        var platform1 = prefab.Instantiate(Store);
+        var platformPrefab = Assets.Get<PrefabAsset>("Prefabs/Platform.prefab.json");
+        var platform1 = platformPrefab.Instantiate(Store);
         platform1.GetComponent<Transform2D>().Position = new(300, 700);
 
-        platform1 = prefab.Instantiate(Store);
+        platform1 = platformPrefab.Instantiate(Store);
         platform1.GetComponent<Transform2D>().Position = new(1000, 650);
 
-        platform1 = prefab.Instantiate(Store);
+        platform1 = platformPrefab.Instantiate(Store);
         platform1.GetComponent<Transform2D>().Position = new(1200, 600);
         platform1.RemoveTag<SolidTag>();
         platform1.GetComponent<SupportComponent>().Normals = Direction4.Up;
 
-        platform1 = prefab.Instantiate(Store);
+        platform1 = platformPrefab.Instantiate(Store);
         platform1.GetComponent<Transform2D>().Position = new(640, 0);
         platform1.GetComponent<HitboxComponent>().Value.HalfWidth = 640;
 
-        platform1 = prefab.Instantiate(Store);
+        platform1 = platformPrefab.Instantiate(Store);
         platform1.GetComponent<Transform2D>().Position = new(640, 300);
         platform1.GetComponent<HitboxComponent>().Value.HalfWidth = 640;
 
@@ -142,6 +150,7 @@ public class TheGame : MonodGame
 
         LogicSystemRoot.Add(new RewindPreUpdateSystem());
         LogicSystemRoot.Add(new CannonSystem());
+        LogicSystemRoot.Add(new CloudSystem());
         LogicSystemRoot.Add(new AiPreUpdateSystem());
         LogicSystemRoot.Add(new BunnySystem());
         LogicSystemRoot.Add(new PhysicsSystem());
@@ -205,6 +214,7 @@ public class TheGame : MonodGame
 
         if (Input.KeyPressed(Key.F1)) Settings.ShowDemoWindow = !Settings.ShowDemoWindow;
         if (Input.KeyPressed(Key.F2)) Settings.ShowSettingsWindow = !Settings.ShowSettingsWindow;
+        if (Input.KeyPressed(Key.F3)) Settings.ShowInspector = !Settings.ShowInspector;
         if (Input.KeyPressed(Key.F5)) Settings.ShowReloadWindow = !Settings.ShowReloadWindow;
 
         Rebind?.Update();
@@ -217,12 +227,14 @@ public class TheGame : MonodGame
             var data = entity.Data;
             if (data.Has<Transform2D>())
             {
-                ref var pos = ref data.Get<Transform2D>();
-                pos.Position = mousepos;
+                ref var transform = ref data.Get<Transform2D>();
+                Rewind.StoreComponentUpdated(entity.Id, ref transform);
+                transform.Position = mousepos;
 
                 if (data.Has<MobileComponent>())
                 {
                     ref var mobile = ref data.Get<MobileComponent>();
+                    Rewind.StoreComponentUpdated(entity.Id, ref mobile);
                     mobile.Velocity = Vector2.Zero;
                 }
             }
@@ -256,7 +268,7 @@ public class TheGame : MonodGame
 
         /*Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
         Renderer.End();*/
-        //DrawModMenu(font, ref pos);
+        //DrawModMenu(font, ref transform);
     }
 
     public override void DrawImGui()
@@ -280,8 +292,8 @@ public class TheGame : MonodGame
 
         pos.Y += 16;
 
-        //font.DrawString(Renderer.spriteBatch, $"Page: {Page}", pos, Color.White);
-        //pos.Y += 16;
+        //font.DrawString(Renderer.spriteBatch, $"Page: {Page}", transform, Color.White);
+        //transform.Y += 16;
 
         int i = 0;
 

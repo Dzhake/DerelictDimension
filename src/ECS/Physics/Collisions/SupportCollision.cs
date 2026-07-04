@@ -27,6 +27,12 @@ public class SupportCollision : ICollision
             mobile.SupportingEntityPid = -1;
         }
 
+        if (data.Tags.Has<FragileTag>() && data.Has<MortalComponent>())
+        {
+            data.Get<MortalComponent>().Kill(data.Id, ref data);
+            return;
+        }
+
         Vector2 restitution = PhysicsSystem.GetRestitution(ref mobileInfo, ref support);
         if (Math.Abs(restitution.X) < 0.001f) restitution.X = 0;
         if (Math.Abs(restitution.Y) < 0.001f) restitution.Y = 0;

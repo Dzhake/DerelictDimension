@@ -1,5 +1,4 @@
-﻿using Friflo.Json.Fliox;
-using Monod.ECS.Prefabs;
+﻿using System.Linq;
 
 namespace DerelictDimension.ECS.Prefabs;
 
@@ -10,8 +9,8 @@ public record struct CannonInfoComponent : IComponent
     public float FiringInterval = 1;
     public float ProjectileVelocity = 300;
 
-    [Ignore]
-    public PrefabAsset Prefab;
+    //[Ignore]
+    //public PrefabAsset Prefab;
 
     //limit amount of entities shot by this cannon?
     //sound effect (asset)
@@ -22,6 +21,14 @@ public record struct CannonInfoComponent : IComponent
         PrefabPath = prefabPath;
         FiringInterval = firingInterval;
         Points = points;
+    }
+
+    public static void CopyValue(in CannonInfoComponent source, ref CannonInfoComponent target, in CopyContext context)
+    {
+        target.Points = source.Points?.ToArray();
+        target.PrefabPath = source.PrefabPath;
+        target.FiringInterval = source.FiringInterval;
+        target.ProjectileVelocity = source.ProjectileVelocity;
     }
 }
 

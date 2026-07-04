@@ -1,3 +1,4 @@
+using Friflo.EcGui;
 using Hexa.NET.ImGui;
 using Monod.AssetsModule;
 using Monod.Graphics.Settings;
@@ -10,6 +11,7 @@ public static class Settings
     public static bool ShowReloadWindow;
     public static bool ShowSettingsWindow;
     public static bool ShowDemoWindow;
+    public static bool ShowInspector;
 
     public static void Draw()
     {
@@ -17,6 +19,11 @@ public static class Settings
         if (ShowSettingsWindow) DrawSettingsWindow();
         if (ShowReloadWindow) DrawReloadWindow(io);
         if (ShowDemoWindow) ImGui.ShowDemoWindow();
+        if (ShowInspector)
+        {
+            EcGui.ExplorerWindow();
+            EcGui.InspectorWindow();
+        }
     }
 
     private static void DrawSettingsWindow()

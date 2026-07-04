@@ -1,11 +1,4 @@
-﻿using DerelictDimension.ECS.Physics.Components;
-using DerelictDimension.ECS.Rewinding;
-using Friflo.Engine.ECS.Systems;
-using Monod.AssetsModule;
-using Monod.ECS.DefaultComponents;
-using Monod.ECS.Prefabs;
-using Monod.MathModule;
-using Monod.TimeModule;
+﻿using Friflo.Engine.ECS.Systems;
 using System.Collections.Generic;
 
 namespace DerelictDimension.ECS.Prefabs;
@@ -23,7 +16,7 @@ public sealed class CannonSystem : QuerySystem<CannonComponent, CannonInfoCompon
 
     protected override void OnUpdate()
     {
-        Query.ForEachEntity(UpdateCannon);
+        /*Query.ForEachEntity(UpdateCannon);
 
         foreach (var entity in ToShoot)
         {
@@ -56,12 +49,12 @@ public sealed class CannonSystem : QuerySystem<CannonComponent, CannonInfoCompon
         }
 
         ToShoot.Clear();
-        ToShoot.Capacity = 4;
+        ToShoot.Capacity = 4;*/
     }
 
     private void UpdateCannon(ref CannonComponent cannon, ref CannonInfoComponent cannonInfo, Entity cannonEnt)
     {
-        if (cannonInfo.Prefab is null || Assets.ReloadThisFrame)
+        /*if (cannonInfo.Prefab is null || Assets.ReloadThisFrame)
         {
             cannonInfo.Prefab = Assets.Get<PrefabAsset>(cannonInfo.PrefabPath);
         }
@@ -74,7 +67,7 @@ public sealed class CannonSystem : QuerySystem<CannonComponent, CannonInfoCompon
         {
             cannon.TimeUntilNextShot += cannonInfo.FiringInterval;
             ToShoot.Add(cannonEnt);
-        }
+        }*/
     }
 
 }

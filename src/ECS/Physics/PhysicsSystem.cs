@@ -180,7 +180,7 @@ public class PhysicsSystem : BaseSystem
                 mobileTransform.Position.Y = supportNewHitbox.Top - mobileHitbox.Value.HalfHeight - MathM.Epsilon;
                 AABB mobileNewHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
                 if (IsCrushed(ref mobileNewHitbox))
-                    TryKillMortal(mobileEnt, ref mobileData);
+                    TryKillMortal(ref mobileData);
 
                 mobileC.SupportingEntityPid = Store.IdToPid(mobileData.Id);
                 continue;
@@ -209,7 +209,7 @@ public class PhysicsSystem : BaseSystem
                 mobileNewHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
 
                 if (IsCrushed(ref mobileNewHitbox))
-                    TryKillMortal(mobileEnt, ref mobileData);
+                    TryKillMortal(ref mobileData);
 
                 if (normal == MathM.VectorUp)
                     mobileC.SupportingEntityPid = Store.IdToPid(mobileData.Id);
@@ -217,7 +217,7 @@ public class PhysicsSystem : BaseSystem
         }
     }
 
-    private void TryKillMortal(Entity mobileEnt, ref EntityData mobileData)
+    public static void TryKillMortal(ref EntityData mobileData)
     {
         if (!mobileData.Has<MortalComponent>()) return;
         mobileData.Get<MortalComponent>().Kill(mobileData.Id, ref mobileData);

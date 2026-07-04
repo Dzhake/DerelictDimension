@@ -34,6 +34,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Friflo.Engine.ECS", "..\Mon
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Friflo.Engine.ECS.Boost", "..\Monod\src\Friflo.Engine.ECS\src\ECS.Boost\Friflo.Engine.ECS.Boost.csproj", "{E6EF4C7A-9859-5150-90A4-913285985A76}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Friflo.EcGui", "..\Monod\src\EcGui\Friflo.EcGui.csproj", "{55CCB62E-830B-C2F5-C724-DE4C69395311}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -100,6 +102,14 @@ Global
 		{E6EF4C7A-9859-5150-90A4-913285985A76}.TasksDebug|Any CPU.Build.0 = Release|Any CPU
 		{E6EF4C7A-9859-5150-90A4-913285985A76}.TasksRelease|Any CPU.ActiveCfg = Release|Any CPU
 		{E6EF4C7A-9859-5150-90A4-913285985A76}.TasksRelease|Any CPU.Build.0 = Release|Any CPU
+		{55CCB62E-830B-C2F5-C724-DE4C69395311}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55CCB62E-830B-C2F5-C724-DE4C69395311}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55CCB62E-830B-C2F5-C724-DE4C69395311}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55CCB62E-830B-C2F5-C724-DE4C69395311}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55CCB62E-830B-C2F5-C724-DE4C69395311}.TasksDebug|Any CPU.ActiveCfg = Release|Any CPU
+		{55CCB62E-830B-C2F5-C724-DE4C69395311}.TasksDebug|Any CPU.Build.0 = Release|Any CPU
+		{55CCB62E-830B-C2F5-C724-DE4C69395311}.TasksRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{55CCB62E-830B-C2F5-C724-DE4C69395311}.TasksRelease|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

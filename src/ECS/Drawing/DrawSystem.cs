@@ -67,6 +67,11 @@ public class DrawSystem : BaseSystem
     {
         //TODO: should probably make this better somehow. Like split it into separate methods or something.
         var hitbox = PhysicsSystem.GetWorldHitbox(ref hitboxC, ref transform);
+        hitbox.CenterX *= Upscale.X;
+        hitbox.CenterY *= Upscale.Y;
+        hitbox.HalfWidth *= Upscale.X;
+        hitbox.HalfHeight *= Upscale.Y;
+
         var data = entity.Data;
 
         bool isLethal = data.Has<LethalComponent>();
@@ -98,16 +103,30 @@ public class DrawSystem : BaseSystem
         }
         else if (isSupport)
         {
+            Color subColor = mainColor * 0.7f;
+            Renderer.DrawRect(rect, subColor);
             Direction4 normals = data.Get<SupportComponent>().Normals;
 
             if ((normals & Direction4.Up) != 0)
             {
                 Renderer.DrawLine(hitbox.TopLeft, hitbox.TopRight, mainColor, lineWidth);
-                Renderer.DrawLine(hitbox.TopLeft + new Vector2(0, lineWidth), hitbox.TopRight + new Vector2(0, lineWidth), mainColor * 0.7f, lineWidth);
+                Renderer.DrawLine(hitbox.TopLeft + new Vector2(0, lineWidth), hitbox.TopRight + new Vector2(0, lineWidth), subColor, lineWidth);
             }
-            if ((normals & Direction4.Down) != 0) Renderer.DrawLine(hitbox.BottomLeft, hitbox.BottomRight, mainColor, lineWidth);
-            if ((normals & Direction4.Left) != 0) Renderer.DrawLine(hitbox.TopLeft, hitbox.BottomLeft, mainColor, lineWidth);
-            if ((normals & Direction4.Right) != 0) Renderer.DrawLine(hitbox.TopRight, hitbox.BottomRight, mainColor, lineWidth);
+            if ((normals & Direction4.Down) != 0)
+            {
+                Renderer.DrawLine(hitbox.BottomLeft, hitbox.BottomRight, mainColor, lineWidth);
+                Renderer.DrawLine(hitbox.BottomLeft - new Vector2(0, lineWidth), hitbox.BottomRight - new Vector2(0, lineWidth), subColor, lineWidth);
+            }
+            if ((normals & Direction4.Left) != 0)
+            {
+                Renderer.DrawLine(hitbox.TopLeft, hitbox.BottomLeft, mainColor, lineWidth);
+                Renderer.DrawLine(hitbox.TopLeft + new Vector2(lineWidth, 0), hitbox.BottomLeft + new Vector2(lineWidth, 0), subColor, lineWidth);
+            }
+            if ((normals & Direction4.Right) != 0)
+            {
+                Renderer.DrawLine(hitbox.TopRight, hitbox.BottomRight, mainColor, lineWidth);
+                Renderer.DrawLine(hitbox.TopRight - new Vector2(lineWidth, 0), hitbox.BottomRight + new Vector2(lineWidth, 0), subColor, lineWidth);
+            }
         }
         else if (!isLethal || isMobile)
         {

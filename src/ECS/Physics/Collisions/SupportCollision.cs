@@ -1,4 +1,5 @@
 ﻿using DerelictDimension.ECS.Physics.Components;
+using DerelictDimension.ECS.Rewinding;
 using Monod.ECS.DefaultComponents;
 using Monod.MathModule;
 
@@ -10,12 +11,12 @@ public class SupportCollision : ICollision
     public Vector2 Normal;
     public Entity SupportEntity;
 
-    public void Apply(EntityData _, ref Vector2 movement, float timeRemaining, float collisionTime, ref MobileComponent mobile, ref Transform2D mobilePos, ref MobileInfoComponent mobileInfo)
+    public void Apply(EntityData mobileData, ref Vector2 movement, float timeRemaining, float collisionTime, ref MobileComponent mobile, ref Transform2D mobilePos, ref MobileInfoComponent mobileInfo)
     {
-        var data = SupportEntity.Data;
+        var supportData = SupportEntity.Data;
         float timeToMove = Math.Max(0.0f, collisionTime - MathM.Epsilon);
         Vector2 currentFrameMovement = movement * timeRemaining;
-        ref SupportComponent support = ref data.Get<SupportComponent>();
+        ref SupportComponent support = ref supportData.Get<SupportComponent>();
         mobilePos.Position += currentFrameMovement * timeToMove;
         if (Normal == MathM.VectorUp)
         {
@@ -27,9 +28,10 @@ public class SupportCollision : ICollision
             mobile.SupportingEntityPid = -1;
         }
 
-        if (data.Tags.Has<FragileTag>() && data.Has<MortalComponent>())
+        if (mobileData.Tags.Has<FragileTag>() && mobileData.Has<MortalComponent>())
         {
-            data.Get<MortalComponent>().Kill(data.Id, ref data);
+            ref var mortalC = ref mobileData.Get<MortalComponent>();
+            mortalC.Kill(mobileData.Id, ref mobileData);
             return;
         }
 

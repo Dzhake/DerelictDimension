@@ -103,7 +103,7 @@ public class TheGame : MonodGame
         var cannon = cannonPrefab.Instantiate(Store);
 
         entity = Store.CreateEntity();
-        entity.Add(new CloudBehaviour(), new HitboxComponent(0, 0, 100, 30), new SupportComponent(Direction4.Up, -0.05f), new Transform2D(0, 500), new MobileInfoComponent() { AffectedByGravity = false }, new MobileComponent() { Velocity = new(100, 0) }, Tags.Get<FragileTag>());
+        entity.Add(new CloudBehaviour(), new HitboxComponent(0, 0, 100, 30), new SupportComponent(Direction4.Up, -0.05f), new Transform2D(0, 600), new MobileInfoComponent() { AffectedByGravity = false }, new MobileComponent() { Velocity = new(100, 0) }, new MortalComponent(), Tags.Get<FragileTag>());
 
         var json = entitySerializer.WriteEntity(entity);
         Log.Information($"\n{json}");

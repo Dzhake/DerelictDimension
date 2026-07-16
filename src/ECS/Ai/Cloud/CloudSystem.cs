@@ -1,4 +1,5 @@
 ﻿using DerelictDimension.ECS.Physics.Components;
+using DerelictDimension.ECS.Rewinding;
 using Friflo.Engine.ECS.Systems;
 
 namespace DerelictDimension.ECS.Ai.Cloud;
@@ -15,7 +16,9 @@ public class CloudSystem : QuerySystem<CloudBehaviour>
         var data = cloudEnt.Data;
         if (data.Has<MobileComponent>() && data.Has<MortalComponent>() && data.Get<MortalComponent>().Dead)
         {
-            data.Get<MobileComponent>().Velocity = Vector2.Zero;
+            ref var mobileC = ref data.Get<MobileComponent>();
+            Rewind.StoreComponentUpdated(cloudEnt.Id, ref mobileC);
+            mobileC.Velocity = Vector2.Zero;
         }
     }
 }

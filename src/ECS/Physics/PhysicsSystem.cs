@@ -173,7 +173,7 @@ public class PhysicsSystem : BaseSystem
             ref var mobileC = ref mobileData.Get<MobileComponent>();
             ref var mobileTransform = ref mobileData.Get<Transform2D>();
 
-            if (mobileC.SupportingEntityPid == Store.IdToPid(mobileData.Id))
+            if (mobileC.SupportingEntityPid == Store.IdToPid(supportData.Id))
             {
                 MoveMobileEntity(movedThisStep, mobileData, true);
                 if (!IsAlive(ref mobileData)) continue;
@@ -182,7 +182,7 @@ public class PhysicsSystem : BaseSystem
                 if (IsCrushed(ref mobileNewHitbox))
                     TryKillMortal(ref mobileData);
 
-                mobileC.SupportingEntityPid = Store.IdToPid(mobileData.Id);
+                mobileC.SupportingEntityPid = Store.IdToPid(supportData.Id);
                 continue;
             }
 
@@ -212,7 +212,7 @@ public class PhysicsSystem : BaseSystem
                     TryKillMortal(ref mobileData);
 
                 if (normal == MathM.VectorUp)
-                    mobileC.SupportingEntityPid = Store.IdToPid(mobileData.Id);
+                    mobileC.SupportingEntityPid = Store.IdToPid(supportData.Id);
             }
         }
     }

@@ -30,6 +30,7 @@
         <ContentDir>Content/</ContentDir>
         <LocalizationDir>Localization/</LocalizationDir>
         <NativeLibsDir>native/</NativeLibsDir>
+	<MSBuildTasksBasePath>../../Monod/src/MSBuildTasks/bin/</MSBuildTasksBasePath>
         
         <!--  Removes lotsa dirs with localization files for System.CommandLine from output dir (on build)  -->
         <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
@@ -44,14 +45,14 @@
     <!--  Import tasks -->
     <!--  Compile effects task  -->
     <!--  Import task from Monod repo - MSBuildTasks project -->
-    <UsingTask AssemblyFile="..\..\Monod\src\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="Monod.MSBuild.CompileEffectsTask" />
-    <UsingTask AssemblyFile="..\..\Monod\src\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="Monod.MSBuild.CreateSymlink" />
+    <!-- UsingTask AssemblyFile="..\..\Monod\src\MSBuildTasks\bin\MSBuildTasks.dll" TaskName="Monod.MSBuild.CompileEffectsTask" / -->
+    <!-- UsingTask AssemblyFile="$(MSBuildTasksBasePath)net6.0/MSBuildTasks.dll" TaskName="Monod.MSBuild.CreateSymlink" / -->
 
 
     <ItemGroup>
         <!--  Monod repo clone next to DerelictDimension repo  -->
         <!-- Build tasks project before this one -->
-        <ProjectReference Include="../../Monod/src/MSBuildTasks/MSBuildTasks.csproj" />
+        <!--ProjectReference Include="../../Monod/src/MSBuildTasks/MSBuildTasks.csproj" /-->
         <ProjectReference Include="../../Monod/src/Main/Monod.csproj" />
 
         <!--  Nuget packages  -->
@@ -82,14 +83,15 @@
         <Delete Files="@(CompiledShadersToDelete)" />
     </Target>
     
+
     <!-- Debug only actions -->
     <Target Name="DebugActions" Condition="'$(Configuration)' == 'Debug'" BeforeTargets="CompileEffects">
         <ItemGroup>
             <EffectOutputDir Include="$(ProjectDir)$(ContenDir)" />
         </ItemGroup>
 
-        <CreateSymlink Source="$(ProjectDir)$(ContentDir)" Destination="$(ProjectDir)$(OutputPath)$(ContentDir)" />
-        <CreateSymlink Source="$(ProjectDir)$(LocalizationDir)" Destination="$(ProjectDir)$(OutputPath)$(LocalizationDir)" />
+        <!--CreateSymlink Source="$(ProjectDir)$(ContentDir)" Destination="$(ProjectDir)$(OutputPath)$(ContentDir)" / -->
+        <!--CreateSymlink Source="$(ProjectDir)$(LocalizationDir)" Destination="$(ProjectDir)$(OutputPath)$(LocalizationDir)" / -->
     </Target>
     
     <!-- Compile effects -->

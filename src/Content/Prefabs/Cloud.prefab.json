@@ -1,0 +1,69 @@
+{
+    "$type": "EntityPrefab",
+    "Source": {
+        "id": 2108306540,
+        "components": {
+            "HitboxComponent": {
+                "Value": {
+                    "CenterX": 0,
+                    "CenterY": 0,
+                    "HalfWidth": 100,
+                    "HalfHeight": 30
+                },
+                "Collidable": true
+            },
+            "MobileComponent": {
+                "Velocity": {
+                    "X": 100,
+                    "Y": 0
+                },
+                "SupportingEntityPid": -1,
+                "HighestPoint": 3.4028235E+38
+            },
+            "MobileInfoComponent": {
+                "AffectedByGravity": false,
+                "FlipOnEdge": false,
+                "Restitution": {
+                    "X": 1,
+                    "Y": 1
+                },
+                "RestitutionRequiredVelocity": {
+                    "X": 0,
+                    "Y": 0
+                },
+                "RestitutionMinimumResultingVelocity": {
+                    "X": 0,
+                    "Y": 0
+                },
+                "FrictionMult": 1
+            },
+            "MortalComponent": {
+                "Dead": false,
+                "DiesToLethal": true
+            },
+            "SupportComponent": {
+                "Friction": -0.05,
+                "MakeTimeless": false,
+                "Normals": "Up",
+                "OverrideRestitution": {
+                    "X": -1,
+                    "Y": -1
+                },
+                "AccelerationMult": 1
+            },
+            "CloudBehaviour": {},
+            "Transform2D": {
+                "PosX": 0,
+                "PosY": 0,
+                "ScaleX": 1,
+                "ScaleY": 1,
+                "FlipX": false,
+                "FlipY": false,
+                "Rotation": 0
+            }
+        },
+        "tags": [
+            "FragileTag"
+        ]
+    }
+}

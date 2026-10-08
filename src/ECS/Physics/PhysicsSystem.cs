@@ -11,12 +11,9 @@ namespace DerelictDimension.ECS.Physics;
 
 public class PhysicsSystem : BaseSystem
 {
-    public static readonly Vector2 GravityAccel = new(0, 1000);
-
     public ArchetypeQuery<MobileComponent, MobileInfoComponent> MobilesQuery;
     public ArchetypeQuery<SupportComponent> SupportsQuery;
     public ArchetypeQuery SolidsQuery;
-    public ArchetypeQuery<BouncyComponent> BouncyQuery;
     public ArchetypeQuery<LethalComponent> LethalsQuery;
     public EntityStore Store;
 
@@ -25,7 +22,6 @@ public class PhysicsSystem : BaseSystem
         base.OnAddStore(store);
         MobilesQuery = store.Query<MobileComponent, MobileInfoComponent>();
         SupportsQuery = store.Query<SupportComponent>();
-        BouncyQuery = store.Query<BouncyComponent>();
         SolidsQuery = store.Query().AllTags(Tags.Get<SolidTag>());
         LethalsQuery = store.Query<LethalComponent>();
         Store = store;
@@ -42,47 +38,8 @@ public class PhysicsSystem : BaseSystem
             var mobileData = mobileEnt.Data;
             if (!mobileData.Has<Transform2D>() || !mobileData.Has<HitboxComponent>()) continue;
             ref var mobile = ref mobileData.Get<MobileComponent>();
-            ref var mobileInfo = ref mobileData.Get<MobileInfoComponent>();
-            ref var mobileTransform = ref mobileData.Get<Transform2D>();
-            ref var mobileHitbox = ref mobileData.Get<HitboxComponent>();
-            bool isTemporaryTimeless = mobileData.Has<TemporaryTimeless>();
-            bool isTimeless = mobileData.Has<TimelessComponent>();
 
-            if (!Rewind.Active || isTimeless)
-            {
-                Rewind.StoreComponentUpdated(mobileEnt.Id, ref mobile);
-                Rewind.StoreComponentUpdated(mobileEnt.Id, ref mobileTransform);
-
-                // Apply forces
-                if (mobile.Grounded)
-                {
-                    var supportEnt = Store.GetEntityByPid(mobile.SupportingEntityPid);
-
-                    if (!supportEnt.IsNull && supportEnt.HasComponent<SupportComponent>())
-                    {
-                        mobile.Velocity.X *= 1 + (supportEnt.GetComponent<SupportComponent>().Friction * mobileInfo.FrictionMult);
-                        if (Math.Abs(mobile.Velocity.X) < 0.01f) mobile.Velocity.X = 0;
-                    }
-                }
-
-                if (mobileInfo.AffectedByGravity)
-                    mobile.Velocity += GravityAccel * dt;
-
-                MoveMobileEntity(mobile.Velocity * dt, mobileData);
-            }
-
-            if (isTimeless && !isTemporaryTimeless) continue;
-            bool shouldBeTempTimeless = false;
-            if (mobile.SupportingEntityPid != -1)
-            {
-                Entity supportingEnt = Store.GetEntityByPid(mobile.SupportingEntityPid);
-                var supportingData = supportingEnt.Data;
-                ref var support = ref supportingData.Get<SupportComponent>();
-                shouldBeTempTimeless = support.MakeTimeless;
-            }
-
-            if (shouldBeTempTimeless) MakeTimeless(mobileData, cb);
-            else UnmakeTimeless(mobileData, cb);
+            MoveMobileEntity(mobile.Velocity * dt, mobileData);
         }
         cb.Playback();
     }
@@ -100,14 +57,14 @@ public class PhysicsSystem : BaseSystem
         ref var mobile = ref mobileData.Get<MobileComponent>();
         ref var mobileTransform = ref mobileData.Get<Transform2D>();
 
-        if (!mobileHitbox.Collidable)
+        //disable collisions for now
+        if (true)//if (!mobileHitbox.Collidable)
         {
             FreeMoveMobile(ref mobile, ref mobileTransform, movement);
             return;
         }
 
         ref var mobileInfo = ref mobileData.Get<MobileInfoComponent>();
-        bool isBounceable = mobileData.Has<BounceableComponent>();
         bool isSupport = mobileData.Has<SupportComponent>();
 
         AABB worldMobileHitbox = GetWorldHitbox(ref mobileHitbox, ref mobileTransform);
@@ -248,7 +205,6 @@ public class PhysicsSystem : BaseSystem
     private ICollision? FindCollision(ref EntityData data, ref Vector2 movement, bool force, ref MobileComponent mobile, ref MobileInfoComponent mobileInfo, ref Vector2 currentFrameMovement, ref AABB quickCheckHitbox, ref float minCollisionTime)
     {
         ICollision? collision = null;
-        bool isBounceable = data.Has<BounceableComponent>();
         bool isMortal = data.Has<MortalComponent>();
         bool isLethal = data.Has<LethalComponent>();
         ref var hitbox = ref data.Get<HitboxComponent>();
@@ -256,7 +212,6 @@ public class PhysicsSystem : BaseSystem
         AABB worldMobileHitbox = GetWorldHitbox(ref hitbox, ref transform);
 
         FindCollisionWithSupport(ref data, currentFrameMovement, ref quickCheckHitbox, ref minCollisionTime, ref collision, ref worldMobileHitbox);
-        FindCollisionWithBouncy(ref data, currentFrameMovement, ref quickCheckHitbox, ref minCollisionTime, ref collision, isBounceable, ref worldMobileHitbox);
         FindCollisionWithEdge(movement, force, ref mobile, ref mobileInfo, currentFrameMovement, ref minCollisionTime, ref collision, worldMobileHitbox);
         FindCollisionWithLethal(ref data, currentFrameMovement, ref quickCheckHitbox, ref minCollisionTime, ref collision, ref worldMobileHitbox, isMortal);
 
@@ -332,26 +287,6 @@ public class PhysicsSystem : BaseSystem
                     virtualCollision.Normal = new(-Math.Sign(movement.X), 0);
                     virtualCollision.Restitution = new(1, 0);
                     collision = virtualCollision;
-                }
-            }
-        }
-    }
-
-    private void FindCollisionWithBouncy(ref EntityData data, Vector2 currentFrameMovement, ref AABB quickCheckHitbox, ref float minCollisionTime, ref ICollision? collision, bool isBounceable, ref AABB worldMobileHitbox)
-    {
-        if (isBounceable)
-        {
-            foreach (Entity bouncyEnt in BouncyQuery.Entities)
-            {
-                if (bouncyEnt.Id == data.Id) continue;
-                float collisionTime = CheckSweepCollision(ref worldMobileHitbox, ref quickCheckHitbox, currentFrameMovement, minCollisionTime, bouncyEnt, out Vector2 normal);
-                if (normal == MathM.VectorUp && collisionTime != 1)
-                {
-                    minCollisionTime = collisionTime;
-                    if (collision is not BounceCollision bounce) bounce = new();
-
-                    bounce.BouncyEntity = bouncyEnt;
-                    collision = bounce;
                 }
             }
         }

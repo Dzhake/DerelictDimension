@@ -1,9 +1,7 @@
 ﻿using DerelictDimension.ECS.Ai;
-using DerelictDimension.ECS.Ai.Cloud;
 using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.Physics;
 using DerelictDimension.ECS.Physics.Components;
-using DerelictDimension.ECS.Prefabs;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
 using Friflo.EcGui;
@@ -12,11 +10,10 @@ using MLEM.Font;
 using Monod;
 using Monod.AssetsModule;
 using Monod.ECS.DefaultComponents;
-using Monod.ECS.Prefabs;
 using Monod.Graphics;
+using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
-using Monod.MathModule;
 using Monod.ModsModule;
 using Monod.Utils.Extensions;
 using System;
@@ -99,38 +96,17 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        var cannonPrefab = Assets.Get<PrefabAsset>("Prefabs/MonstarCannon.prefab.json");
-        var cannon = cannonPrefab.Instantiate(Store);
-
-        entity = Store.CreateEntity();
-        entity.Add(new CloudBehaviour(), new HitboxComponent(0, 0, 100, 30), new SupportComponent(Direction4.Up, -0.05f), new Transform2D(0, 600), new MobileInfoComponent() { AffectedByGravity = false }, new MobileComponent() { Velocity = new(100, 0) }, new MortalComponent(), Tags.Get<FragileTag>());
-
-        var json = entitySerializer.WriteEntity(entity);
-        Log.Information($"\n{json}");
-
-
-        var platformPrefab = Assets.Get<PrefabAsset>("Prefabs/Platform.prefab.json");
-        var platform1 = platformPrefab.Instantiate(Store);
-        platform1.GetComponent<Transform2D>().Position = new(300, 700);
-
-        platform1 = platformPrefab.Instantiate(Store);
-        platform1.GetComponent<Transform2D>().Position = new(1000, 650);
-
-        platform1 = platformPrefab.Instantiate(Store);
-        platform1.GetComponent<Transform2D>().Position = new(1200, 600);
-        platform1.RemoveTag<SolidTag>();
-        platform1.GetComponent<SupportComponent>().Normals = Direction4.Up;
-
-        platform1 = platformPrefab.Instantiate(Store);
-        platform1.GetComponent<Transform2D>().Position = new(640, 0);
-        platform1.GetComponent<HitboxComponent>().Value.HalfWidth = 640;
-
-        platform1 = platformPrefab.Instantiate(Store);
-        platform1.GetComponent<Transform2D>().Position = new(640, 300);
-        platform1.GetComponent<HitboxComponent>().Value.HalfWidth = 640;
+        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new MortalComponent(), new PlayerAi());
+        var body = Store.CreateEntity(new Transform2D(0, 0), new Sprite2D("Sprites/Player/body0.png"), new RenderDepth(0.2f), Tags.Get<LookAtMouseTag>());
+        entity.AddChild(body);
+        var head = Store.CreateEntity(new Transform2D(0, 0), new Sprite2D("Sprites/Player/head0.png"), new RenderDepth(0.1f));
+        body.AddChild(head);
+        var legs = Store.CreateEntity(new Transform2D(0, 0), new Sprite2D("Sprites/Player/legs2.png"), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag>());
+        entity.AddChild(legs);
 
 
-        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new BounceableComponent(100, 200, 50), new MortalComponent(), new PlayerAi(), new PlayerAiInfo());
+        //var json = entitySerializer.WriteEntity(entity);
+        //Log.Information($"\n{json}");
 
         InitializeSystems();
     }
@@ -148,17 +124,16 @@ public class TheGame : MonodGame
         LogicSystemRoot.RemoveAllSystems();
         DrawSystemRoot.RemoveAllSystems();
 
-        LogicSystemRoot.Add(new RewindPreUpdateSystem());
-        LogicSystemRoot.Add(new CannonSystem());
-        LogicSystemRoot.Add(new CloudSystem());
-        LogicSystemRoot.Add(new AiPreUpdateSystem());
-        LogicSystemRoot.Add(new BunnySystem());
+        LogicSystemRoot.Add(new PlayerAiSystem());
         LogicSystemRoot.Add(new PhysicsSystem());
-        LogicSystemRoot.Add(new RewindPostUpdateSystem());
-        LogicSystemRoot.Add(new AiPostUpdateSystem());
+        LogicSystemRoot.Add(new UpdateSpriteSystem());
+        LogicSystemRoot.Add(new ParentVelocityDirSystem());
+        LogicSystemRoot.Add(new LookAtMouseSystem());
 
-        DrawSystemRoot.Add(new DrawSystem());
-        //DrawSystemRoot.Add(new DrawSpriteSystem());
+
+
+        //DrawSystemRoot.Add(new DrawSystem());
+        DrawSystemRoot.Add(new DrawSpriteSystem());
     }
 
     public void Reload()
@@ -222,37 +197,21 @@ public class TheGame : MonodGame
         if (Input.KeyboardKeysPressed.Count > 0) pressed = Input.KeyboardKeysPressed.ElementAt(0);
         if (Input.KeyboardKeysReleased.Count > 0) released = Input.KeyboardKeysReleased.ElementAt(0);
         Vector2 mousepos = (Input.MousePos() - Renderer.RenderOffset) / DrawSystem.Upscale;
-        if (Input.KeyDown(Key.Mouse1) && !entity.IsNull)
+        /*if (Input.KeyDown(Key.Mouse1) && !entity.IsNull)
         {
             var data = entity.Data;
             if (data.Has<Transform2D>())
             {
                 ref var transform = ref data.Get<Transform2D>();
-                Rewind.StoreComponentUpdated(entity.Id, ref transform);
                 transform.Position = mousepos;
 
                 if (data.Has<MobileComponent>())
                 {
                     ref var mobile = ref data.Get<MobileComponent>();
-                    Rewind.StoreComponentUpdated(entity.Id, ref mobile);
                     mobile.Velocity = Vector2.Zero;
                 }
             }
-        }
-        else if (Input.KeyPressed(Key.Mouse2))
-        {
-            var bunnyPrefab = Assets.Get<PrefabAsset>("Prefabs/Bunny.prefab.json");
-            var bunny = bunnyPrefab.Instantiate(Store);
-            bunny.GetComponent<Transform2D>().Position = mousepos;
-            Rewind.StoreEntityUpdated(bunny, false);
-        }
-        else if (Input.KeyPressed(Key.Mouse3) && !entity.IsNull)
-        {
-            var monstarPrefab = Assets.Get<PrefabAsset>("Prefabs/Monstar.prefab.json");
-            var monstar = monstarPrefab.Instantiate(Store);
-            monstar.GetComponent<Transform2D>().Position = mousepos;
-            Rewind.StoreEntityUpdated(monstar, false);
-        }
+        }*/
 
 
 

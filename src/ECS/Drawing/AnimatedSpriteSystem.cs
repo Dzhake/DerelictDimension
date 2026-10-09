@@ -16,21 +16,29 @@ public class AnimatedSpriteSystem : QuerySystem<AnimatedSpriteComponent>
         var data = entity.Data;
 
         animatedSprite.FrameRemainder += Time.DeltaTime;
-        if (animatedSprite.FrameRemainder > animatedSprite.TimeBetweenFrames)
+
+        bool frameChanged = animatedSprite.FrameRemainder > animatedSprite.TimeBetweenFrames;
+        if (frameChanged)
         {
             animatedSprite.FrameNumber = (animatedSprite.FrameNumber + (int)(animatedSprite.FrameRemainder / animatedSprite.TimeBetweenFrames)) % animatedSprite.Frames.Length;
             animatedSprite.FrameRemainder %= animatedSprite.TimeBetweenFrames;
         }
+
         string texturePath = animatedSprite.BaseTexturePath + animatedSprite.Frames[animatedSprite.FrameNumber] + ".png";
         if (data.Has<Sprite2D>())
         {
-            ref var sprite2D = ref data.Get<Sprite2D>();
-            sprite2D.TexturePath = texturePath;
-            sprite2D.InvalidateTexture = true;
+            if (frameChanged || animatedSprite.BasePathChanged)
+            {
+                ref var sprite2D = ref data.Get<Sprite2D>();
+                sprite2D.TexturePath = texturePath;
+                sprite2D.InvalidateTexture = true;
+            }
         }
         else
         {
             CommandBuffer.AddComponent(data.Id, new Sprite2D(texturePath));
         }
+
+        animatedSprite.BasePathChanged = false;
     }
 }

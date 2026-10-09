@@ -20,6 +20,7 @@ public record struct AnimatedSpriteComponent : IComponent
     public float TimeBetweenFrames;
 
     public string BaseTexturePath;
+    public bool BasePathChanged = true;
 
     public AnimatedSpriteComponent(string baseTexturePath, int[] frames, float timeBetweenFrames = 1f)
     {

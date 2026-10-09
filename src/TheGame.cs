@@ -101,7 +101,7 @@ public class TheGame : MonodGame
         entity.AddChild(body);
         var head = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/head", [0, 1]), new RenderDepth(0.1f));
         body.AddChild(head);
-        var legs = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/legs", [0, 1, 2, 1, 0, 3, 4, 3], 0.1f), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag>());
+        var legs = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/legs", [0, 1, 2, 1, 0, 3, 4, 3], 0.1f), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag, LegsTag>());
         entity.AddChild(legs);
 
 
@@ -128,6 +128,7 @@ public class TheGame : MonodGame
         LogicSystemRoot.Add(new PlayerAiSystem());
         LogicSystemRoot.Add(new PhysicsSystem());
         LogicSystemRoot.Add(new ParentVelocityDirSystem());
+        LogicSystemRoot.Add(new LegsSystem());
         LogicSystemRoot.Add(new LookAtMouseSystem());
 
         LogicSystemRoot.Add(new AnimatedSpriteSystem());

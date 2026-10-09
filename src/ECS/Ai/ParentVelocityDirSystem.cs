@@ -1,20 +1,12 @@
 ﻿using DerelictDimension.ECS.Physics.Components;
-using Friflo.Engine.ECS.Systems;
+using Monod.ECS;
 using Monod.ECS.DefaultComponents;
 using MonoGame.Extended;
 
 namespace DerelictDimension.ECS.Ai;
 
-public class ParentVelocityDirSystem : BaseSystem
+public class ParentVelocityDirSystem : TagSystem<ParentVelocityDirTag>
 {
-    public ArchetypeQuery Query;
-
-    protected override void OnAddStore(EntityStore store)
-    {
-        Query = store.Query().AllTags(Tags.Get<ParentVelocityDirTag>());
-        base.OnAddStore(store);
-    }
-
     protected override void OnUpdateGroup()
     {
         foreach (var entity in Query.Entities)

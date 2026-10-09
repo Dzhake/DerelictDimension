@@ -17,17 +17,17 @@ public class AnimatedSpriteSystem : QuerySystem<AnimatedSpriteComponent>
 
         animatedSprite.FrameRemainder += Time.DeltaTime;
 
-        bool frameChanged = animatedSprite.FrameRemainder > animatedSprite.TimeBetweenFrames;
+        bool frameChanged = animatedSprite.FrameRemainder > animatedSprite.EffectiveTimeBetweenFrames;
         if (frameChanged)
         {
-            animatedSprite.FrameNumber = (animatedSprite.FrameNumber + (int)(animatedSprite.FrameRemainder / animatedSprite.TimeBetweenFrames)) % animatedSprite.Frames.Length;
-            animatedSprite.FrameRemainder %= animatedSprite.TimeBetweenFrames;
+            animatedSprite.FrameNumber = (animatedSprite.FrameNumber + (int)(animatedSprite.FrameRemainder / animatedSprite.EffectiveTimeBetweenFrames)) % animatedSprite.Frames.Length;
+            animatedSprite.FrameRemainder %= animatedSprite.EffectiveTimeBetweenFrames;
         }
 
         string texturePath = animatedSprite.BaseTexturePath + animatedSprite.Frames[animatedSprite.FrameNumber];
         if (data.Has<Sprite2D>())
         {
-            if (frameChanged || animatedSprite.BasePathChanged)
+            if (frameChanged || animatedSprite.InvalidateTexture)
             {
                 ref var sprite2D = ref data.Get<Sprite2D>();
                 sprite2D.TexturePath = texturePath;
@@ -39,6 +39,6 @@ public class AnimatedSpriteSystem : QuerySystem<AnimatedSpriteComponent>
             CommandBuffer.AddComponent(data.Id, new Sprite2D(texturePath));
         }
 
-        animatedSprite.BasePathChanged = false;
+        animatedSprite.InvalidateTexture = false;
     }
 }

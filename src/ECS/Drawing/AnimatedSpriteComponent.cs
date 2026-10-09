@@ -19,8 +19,15 @@ public record struct AnimatedSpriteComponent : IComponent
     /// </summary>
     public float TimeBetweenFrames;
 
+    public float EffectiveTimeBetweenFrames => TimeBetweenFrames / AnimationSpeedMultiplier;
+
+    /// <summary>
+    /// Use when gameplay effects are affecting <see cref="TimeBetweenFrames"/>.
+    /// </summary>
+    public float AnimationSpeedMultiplier = 1;
+
     public string BaseTexturePath;
-    public bool BasePathChanged = true;
+    public bool InvalidateTexture = true;
 
     public AnimatedSpriteComponent(string baseTexturePath, int[] frames, float timeBetweenFrames = 1f)
     {

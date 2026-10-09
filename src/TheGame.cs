@@ -147,7 +147,7 @@ public class TheGame : MonodGame
     protected static void LoadFont()
     {
         FontSystem defaultFontSystem = new();
-        defaultFontSystem.AddFont(Assets.Get<byte[]>("Fonts/m6x11plus.ttf"));
+        defaultFontSystem.AddFont(Assets.Get<byte[]>("Fonts/m6x11plus"));
         GlobalFonts.MenuFont = new GenericStashFont(defaultFontSystem.GetFont(18));
     }
 

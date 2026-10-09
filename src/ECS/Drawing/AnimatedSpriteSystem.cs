@@ -24,7 +24,7 @@ public class AnimatedSpriteSystem : QuerySystem<AnimatedSpriteComponent>
             animatedSprite.FrameRemainder %= animatedSprite.TimeBetweenFrames;
         }
 
-        string texturePath = animatedSprite.BaseTexturePath + animatedSprite.Frames[animatedSprite.FrameNumber] + ".png";
+        string texturePath = animatedSprite.BaseTexturePath + animatedSprite.Frames[animatedSprite.FrameNumber];
         if (data.Has<Sprite2D>())
         {
             if (frameChanged || animatedSprite.BasePathChanged)

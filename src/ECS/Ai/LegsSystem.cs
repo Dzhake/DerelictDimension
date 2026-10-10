@@ -15,14 +15,12 @@ public class LegsSystem : TagSystem<LegsTag>
             if (parent.IsNull) return;
             if (!entity.HasComponent<AnimatedSpriteComponent>()) continue;
             var velocity = parent.GetComponent<MobileComponent>().Velocity.Length();
+            if (velocity != 0)
+                continue;
             ref var animatedSprite = ref entity.GetComponent<AnimatedSpriteComponent>();
-            if (velocity == 0)
-            {
-                animatedSprite.FrameRemainder = 0;
-                animatedSprite.FrameNumber = 0;
-                animatedSprite.InvalidateTexture = true;
-            }
-            //animatedSprite.AnimationSpeedMultiplier = velocity / PlayerAi.NormalWalkingSpeed;
+            animatedSprite.FrameRemainder = 0;
+            animatedSprite.FrameNumber = 0;
+            animatedSprite.InvalidateTexture = true;
         }
     }
 }

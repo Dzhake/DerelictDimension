@@ -105,6 +105,8 @@ public class TheGame : MonodGame
         entity.AddChild(legs);
 
 
+        Store.CreateEntity(new Transform2D(500, 500, scaleX: 2), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)));
+        Store.CreateEntity(new Transform2D(800, 300, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)));
         //var json = entitySerializer.WriteEntity(entity);
         //Log.Information($"\n{json}");
 
@@ -134,7 +136,9 @@ public class TheGame : MonodGame
         LogicSystemRoot.Add(new AnimatedSpriteSystem());
         LogicSystemRoot.Add(new UpdateSpriteSystem());
 
-        DrawSystemRoot.Add(new DrawSpriteSystem());
+        DrawSystem drawSystem = new();
+        drawSystem.Add(new DrawSpriteSystem());
+        DrawSystemRoot.Add(drawSystem);
     }
 
     public void Reload()

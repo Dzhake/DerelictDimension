@@ -79,13 +79,12 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
         SpriteEffects effects = sprite.spriteEffects;
         bool flipH = (effects & SpriteEffects.FlipHorizontally) != 0;
         bool flipV = (effects & SpriteEffects.FlipVertically) != 0;
+        if (flipH) (leftSrcX, rightSrcX) = (rightSrcX, leftSrcX);
+        if (flipV) (topSrcY, bottomSrcY) = (bottomSrcY, topSrcY);
+
 
         void Tile(int srcX, int srcY, int srcW, int srcH, float dstX, float dstY)
         {
-            // Mirror the layout (not just the tile content) so flipping mirrors the whole slice. Should probably be outside Tile..
-            if (flipH) dstX = drawW - dstX - srcW;
-            if (flipV) dstY = drawH - dstY - srcH;
-
             Renderer.DrawTexture(texture, new Vector2(baseX + kx * dstX + ky * dstY, baseY + lx * dstX + ly * dstY), color, new Rectangle(srcX, srcY, srcW, srcH), rotation, Vector2.Zero, scale, effects, depth);
         }
 

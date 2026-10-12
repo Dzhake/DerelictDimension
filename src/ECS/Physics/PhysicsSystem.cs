@@ -12,7 +12,6 @@ namespace DerelictDimension.ECS.Physics;
 public class PhysicsSystem : BaseSystem
 {
     public ArchetypeQuery<MobileComponent, MobileInfoComponent> MobilesQuery;
-    public ArchetypeQuery<SupportComponent> SupportsQuery;
     public ArchetypeQuery SolidsQuery;
     public ArchetypeQuery<LethalComponent> LethalsQuery;
     public EntityStore Store;

@@ -31,10 +31,10 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
         }
     }
 
-    public static void DrawNineSlice(ref Sprite2D sprite, ref NineSliceComponent nineSlice, ref Vector2 position, float rotation, Vector2 scale, float depth, ref Vector2 origin)
+    private void DrawNineSlice(ref Sprite2D sprite, ref NineSliceComponent nineSlice, ref Vector2 position, float rotation, Vector2 scale, float depth, ref Vector2 origin)
     {
-        MTexture? mTex = sprite.Texture;
-        if (mTex is null || mTex.Base is null)
+        MTexture mTex = sprite.Texture!;
+        if (mTex.Base is null)
             return;
 
         Texture2D texture = mTex.Base;
@@ -108,7 +108,7 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
         Band(bottomSrcY, tileHeight, drawH - tileHeight);
     }
 
-    private static void GetDrawArgs(ref Sprite2D sprite, ref Entity entity, ref EntityData data, out Vector2 position, out float rotation, out Vector2 scale, out float depth, out Vector2 origin)
+    private void GetDrawArgs(ref Sprite2D sprite, ref Entity entity, ref EntityData data, out Vector2 position, out float rotation, out Vector2 scale, out float depth, out Vector2 origin)
     {
         position = entity.GetWorldPos(out rotation);
         if (data.TryGet(out Transform2D transform))

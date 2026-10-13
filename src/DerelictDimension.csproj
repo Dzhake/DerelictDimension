@@ -66,6 +66,11 @@
         <Content Include="$(NativeLibsDir)**" CopyToOutputDirectory="PreserveNewest" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
 
+
+    <ItemGroup>
+      <Folder Include="Content\Prefabs\" />
+    </ItemGroup>
+
     
     <!--  Release only actions  -->
     <Target Name="ReleaseActions" Condition="'$(Configuration)' == 'Release'" BeforeTargets="CompileEffects">

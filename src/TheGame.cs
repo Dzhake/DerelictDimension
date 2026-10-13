@@ -96,7 +96,7 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        entity = Store.CreateEntity(new MobileComponent(), new MobileInfoComponent() { Restitution = new(0, 0) }, new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new MortalComponent(), new PlayerAi());
+        entity = Store.CreateEntity(new MobileComponent(), new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new MortalComponent(), new PlayerAi());
         var body = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/body", [0, 1]), new RenderDepth(0.2f), Tags.Get<LookAtMouseTag>());
         entity.AddChild(body);
         var head = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/head", [0, 1]), new RenderDepth(0.1f));

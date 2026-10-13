@@ -17,8 +17,8 @@ public class FlipCollision : ICollision
         if (currentFrameMovement.Y != 0)
             mobile.SupportingEntityPid = -1;
 
-        PhysicsSystem.ApplyBounce(ref mobile.Velocity, Normal, Restitution);
-        PhysicsSystem.ApplyBounce(ref movement, Normal, Restitution);
+        //PhysicsSystem.ApplyBounce(ref mobile.Velocity, Normal, Restitution);
+        //PhysicsSystem.ApplyBounce(ref movement, Normal, Restitution);
         mobileTransform.FlipX = !mobileTransform.FlipX;
     }
 }

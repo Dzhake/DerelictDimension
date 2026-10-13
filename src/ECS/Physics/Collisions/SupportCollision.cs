@@ -1,5 +1,4 @@
 ﻿using DerelictDimension.ECS.Physics.Components;
-using DerelictDimension.ECS.Rewinding;
 using Monod.ECS.DefaultComponents;
 using Monod.MathModule;
 
@@ -35,7 +34,7 @@ public class SupportCollision : ICollision
             return;
         }
 
-        Vector2 restitution = PhysicsSystem.GetRestitution(ref mobileInfo, ref support);
+        Vector2 restitution = Vector2.One;//PhysicsSystem.GetRestitution(ref mobileInfo, ref support);
         if (Math.Abs(restitution.X) < 0.001f) restitution.X = 0;
         if (Math.Abs(restitution.Y) < 0.001f) restitution.Y = 0;
 
@@ -56,7 +55,7 @@ public class SupportCollision : ICollision
     {
         if (Math.Abs(value) > required)
         {
-            PhysicsSystem.ApplyBounce(ref value, restitution.Y);
+            //PhysicsSystem.ApplyBounce(ref value, restitution.Y);
             if (Math.Abs(value) < minimumResulting) value = 0;
         }
         else

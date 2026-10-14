@@ -1,6 +1,7 @@
 ﻿using Friflo.Engine.ECS.Systems;
 using Monod.Graphics.ECS.Sprite;
 using Monod.TimeModule;
+using Monod.Utils.Extensions;
 
 namespace DerelictDimension.ECS.Drawing;
 
@@ -25,7 +26,15 @@ public class AnimatedSpriteSystem : QuerySystem<AnimatedSpriteComponent>
         }
 
         string texturePath = animatedSprite.BaseTexturePath + animatedSprite.Frames[animatedSprite.FrameNumber];
-        if (data.Has<Sprite2D>())
+
+        ref var sprite2D = ref data.Ensure<Sprite2D>(CommandBuffer, out bool added);
+        if (added)// || frameChanged || animatedSprite.InvalidateTexture)
+        {
+            sprite2D.TexturePath = texturePath;
+            sprite2D.InvalidateTexture = true;
+        }
+
+        /*if (data.Has<Sprite2D>())
         {
             if (frameChanged || animatedSprite.InvalidateTexture)
             {
@@ -37,7 +46,7 @@ public class AnimatedSpriteSystem : QuerySystem<AnimatedSpriteComponent>
         else
         {
             CommandBuffer.AddComponent(data.Id, new Sprite2D(texturePath));
-        }
+        }*/
 
         animatedSprite.InvalidateTexture = false;
     }

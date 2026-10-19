@@ -1,4 +1,4 @@
-﻿using DerelictDimension.ECS.Physics.Components;
+﻿using DerelictDimension.ECS.PhysicsModule.Components;
 using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
 using Monod.InputModule;

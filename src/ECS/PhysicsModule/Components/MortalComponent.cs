@@ -1,6 +1,6 @@
 ﻿using DerelictDimension.ECS.Rewinding;
 
-namespace DerelictDimension.ECS.Physics.Components;
+namespace DerelictDimension.ECS.PhysicsModule.Components;
 
 public record struct MortalComponent : IComponent
 {

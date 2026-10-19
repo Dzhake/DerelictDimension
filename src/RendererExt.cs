@@ -1,4 +1,4 @@
-﻿using DerelictDimension.ECS.Physics;
+﻿using DerelictDimension.ECS.PhysicsModule;
 using Monod.Graphics;
 
 namespace DerelictDimension;

@@ -1,4 +1,4 @@
-﻿using DerelictDimension.ECS.Physics.Components;
+﻿using DerelictDimension.ECS.PhysicsModule.Components;
 using Monod.ECS;
 using Monod.ECS.DefaultComponents;
 using MonoGame.Extended;

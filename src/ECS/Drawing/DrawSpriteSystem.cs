@@ -1,4 +1,5 @@
-﻿using Friflo.Engine.ECS.Systems;
+﻿using DerelictDimension.ECS.PhysicsModule;
+using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
 using Monod.Graphics.ECS.Sprite;
@@ -11,7 +12,9 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
 {
     protected override void OnUpdate()
     {
+        Renderer.Begin(SpriteSortMode.BackToFront, samplerState: SamplerState.PointWrap);
         Query.ForEachEntity(Draw);
+        Renderer.End();
     }
 
     private void Draw(ref Sprite2D sprite, Entity entity)
@@ -20,6 +23,7 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
 
         EntityData data = entity.Data;
         GetDrawArgs(ref sprite, ref entity, ref data, out Vector2 position, out float rotation, out Vector2 scale, out float depth, out Vector2 origin);
+        position *= Physics.PixelsInMeter;
 
         if (data.Has<NineSliceComponent>())
         {

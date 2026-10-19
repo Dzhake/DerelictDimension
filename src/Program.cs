@@ -43,15 +43,20 @@ public static class Program
     /// </summary>
     public static void Main()
     {
+        //assuming debug configuration is launched with the debugger, which works better when the exception is not caught.
+#if RELEASE
         try
         {
-            SafeMain();
+#endif
+        SafeMain();
+#if RELEASE
         }
         catch (Exception exception)
         {
             Crash(exception);
             Environment.Exit(1);
         }
+#endif
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿namespace DerelictDimension.ECS.Physics;
+﻿namespace DerelictDimension.ECS.PhysicsModule;
 
 public record struct OrientedRectangle
 {

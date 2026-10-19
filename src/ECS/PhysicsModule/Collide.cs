@@ -1,7 +1,7 @@
 ﻿using Monod.MathModule;
 using System;
 
-namespace DerelictDimension.ECS.Physics;
+namespace DerelictDimension.ECS.PhysicsModule;
 
 //this file is vibecoded because collisions are some algorithms written in 500 pages long books i'm too lazy to read. sorry not sorry.
 public static class Collide

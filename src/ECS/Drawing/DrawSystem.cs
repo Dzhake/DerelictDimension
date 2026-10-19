@@ -32,9 +32,7 @@ public class DrawSystem : SystemGroup
         Renderer.SetRenderTarget(MainRT);
         Renderer.Clear(Color.Green);
 
-        Renderer.Begin(SpriteSortMode.BackToFront, samplerState: SamplerState.PointWrap);
         base.OnUpdateGroup();
-        Renderer.End();
 
         DrawFinal();
     }

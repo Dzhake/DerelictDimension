@@ -1,7 +1,7 @@
 ﻿using DerelictDimension.ECS.Ai;
 using DerelictDimension.ECS.Drawing;
-using DerelictDimension.ECS.Physics;
-using DerelictDimension.ECS.Physics.Components;
+using DerelictDimension.ECS.PhysicsModule;
+using DerelictDimension.ECS.PhysicsModule.Components;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
 using Friflo.EcGui;
@@ -96,17 +96,17 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        entity = Store.CreateEntity(new MobileComponent(), new HitboxComponent(0, 0, 30, 50), new Transform2D(300, 100), new MortalComponent(), new PlayerAi());
-        var body = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/body", [0, 1]), new RenderDepth(0.2f), Tags.Get<LookAtMouseTag>());
+        entity = Store.CreateEntity(new MobileComponent(), new HitboxComponent(0, 0, 0.3f, 0.5f), new Transform2D(3, 1), new MortalComponent(), new PlayerAi());
+        var body = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/body", [0, 1]), new RenderDepth(0.2f), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 0.82f, 0.27f), Tags.Get<LookAtMouseTag>());
         entity.AddChild(body);
-        var head = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/head", [0, 1]), new RenderDepth(0.1f));
+        var head = Store.CreateEntity(new Transform2D(0, 0), new HitboxComponent(0, 0, 0.22f, 0.37f), new AnimatedSpriteComponent("Sprites/Player/head", [0, 1]), new RenderDepth(0.1f), new PhysicsBodyComponent());
         body.AddChild(head);
         var legs = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/legs", [0, 1, 2, 1, 0, 3, 4, 3], 0.1f), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag, LegsTag>());
         entity.AddChild(legs);
 
 
-        Store.CreateEntity(new Transform2D(500, 500, scaleX: 2), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)));
-        Store.CreateEntity(new Transform2D(800, 300, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)));
+        Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 2.55f, 1));
+        Store.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 0.3f, 2));
         //var json = entitySerializer.WriteEntity(entity);
         //Log.Information($"\n{json}");
 
@@ -138,6 +138,8 @@ public class TheGame : MonodGame
 
         DrawSystem drawSystem = new();
         drawSystem.Add(new DrawSpriteSystem());
+        drawSystem.Add(new DrawHitboxesSystem());
+
         DrawSystemRoot.Add(drawSystem);
     }
 
@@ -152,8 +154,10 @@ public class TheGame : MonodGame
     protected static void LoadFont()
     {
         FontSystem defaultFontSystem = new();
-        defaultFontSystem.AddFont(Assets.Get<byte[]>("Fonts/m6x11plus"));
+        var font = Assets.Get<byte[]>("Fonts/m6x11plus");
+        defaultFontSystem.AddFont(font);
         GlobalFonts.MenuFont = new GenericStashFont(defaultFontSystem.GetFont(18));
+        GlobalFonts.ShapeMenuFont = new(font);
     }
 
     ///<inheritdoc/>

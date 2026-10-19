@@ -1,5 +1,5 @@
 ﻿using DerelictDimension.ECS.Drawing;
-using DerelictDimension.ECS.Physics.Components;
+using DerelictDimension.ECS.PhysicsModule.Components;
 using Monod.ECS;
 
 namespace DerelictDimension.ECS.Ai;

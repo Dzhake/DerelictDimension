@@ -54,6 +54,7 @@
         <!-- Build tasks project before this one -->
         <!--ProjectReference Include="../../Monod/src/MSBuildTasks/MSBuildTasks.csproj" /-->
         <ProjectReference Include="../../Monod/src/Main/Monod.csproj" />
+        <ProjectReference Include="../Box2D.NET/src/Box2D.NET/Box2D.NET.csproj" />
 
         <!--  Nuget packages  -->
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />

@@ -28,25 +28,11 @@ public class AnimatedSpriteSystem : QuerySystem<AnimatedSpriteComponent>
         string texturePath = animatedSprite.BaseTexturePath + animatedSprite.Frames[animatedSprite.FrameNumber];
 
         ref var sprite2D = ref data.Ensure<Sprite2D>(CommandBuffer, out bool added);
-        if (added)// || frameChanged || animatedSprite.InvalidateTexture)
+        if (added || frameChanged || animatedSprite.InvalidateTexture)
         {
             sprite2D.TexturePath = texturePath;
             sprite2D.InvalidateTexture = true;
         }
-
-        /*if (data.Has<Sprite2D>())
-        {
-            if (frameChanged || animatedSprite.InvalidateTexture)
-            {
-                ref var sprite2D = ref data.Get<Sprite2D>();
-                sprite2D.TexturePath = texturePath;
-                sprite2D.InvalidateTexture = true;
-            }
-        }
-        else
-        {
-            CommandBuffer.AddComponent(data.Id, new Sprite2D(texturePath));
-        }*/
 
         animatedSprite.InvalidateTexture = false;
     }

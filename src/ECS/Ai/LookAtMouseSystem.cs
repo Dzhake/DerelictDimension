@@ -31,7 +31,7 @@ public class LookAtMouseSystem : TagSystem<LookAtMouseTag>
             ref var transform = ref entity.Data.Ensure<Transform2D>(cb);
             var mouseOffset = Input.MousePos() - (entity.GetWorldPos() * Physics.PixelsInMeter);
             transform.Rotation = mouseOffset.ToAngle();
-            transform.PhysicsDirty = true;
+            entity.SetTransformDirtyRecursive();
             base.OnUpdateGroup();
         }
         cb.Playback();

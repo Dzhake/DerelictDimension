@@ -5,6 +5,7 @@ using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
 using Monod.TimeModule;
 using Monod.Utils.Extensions;
+using System.Runtime.CompilerServices;
 using static Box2D.NET.B2Bodies;
 using static Box2D.NET.B2Geometries;
 using static Box2D.NET.B2MathFunction;
@@ -16,8 +17,12 @@ namespace DerelictDimension.ECS.PhysicsModule;
 
 public sealed class PhysicsSystem : BaseSystem
 {
-    public ArchetypeQuery<HitboxComponent> HitboxQuery;
     public ArchetypeQuery<PhysicsBodyComponent> PhysicsBodyQuery;
+    public ArchetypeQuery<PhysicsShapeComponent> PhysicsShapeQuery;
+    public ArchetypeQuery<HitboxComponent> HitboxQuery;
+    public ArchetypeQuery<Transform2D> TransformQuery;
+
+
 
     /// <summary>
     /// Currently used only temporarly because i'm not sure whether it's safe to store this between frames/b2 step calls/something else.
@@ -28,8 +33,11 @@ public sealed class PhysicsSystem : BaseSystem
     protected override void OnAddStore(EntityStore store)
     {
         base.OnAddStore(store);
-        HitboxQuery = store.Query<HitboxComponent>();
         PhysicsBodyQuery = store.Query<PhysicsBodyComponent>();
+        PhysicsShapeQuery = store.Query<PhysicsShapeComponent>();
+        TransformQuery = store.Query<Transform2D>();
+        HitboxQuery = store.Query<HitboxComponent>();
+
         cb = store.GetCommandBuffer();
         cb.ReuseBuffer = true;
     }
@@ -37,6 +45,7 @@ public sealed class PhysicsSystem : BaseSystem
     protected override void OnRemoveStore(EntityStore store)
     {
         cb.ReturnBuffer();
+        //TODO (perf: mid) probably should clear the world instead of fully destroying it, but i'm not sure how
         b2DestroyWorld(Physics.WorldId);
         base.OnRemoveStore(store);
     }
@@ -52,6 +61,8 @@ public sealed class PhysicsSystem : BaseSystem
 
         //SynchronizeEcs();
         cb.Playback();
+
+        UnsetDirty();
     }
 
 
@@ -67,12 +78,13 @@ public sealed class PhysicsSystem : BaseSystem
     private void SynchronizeBox2d()
     {
         PhysicsBodyQuery.ForEachEntity(SynchronizeBodyToBox2d);
+        PhysicsShapeQuery.ForEachEntity(SynchronizeShapeToBox2d);
     }
+
 
     private void SynchronizeBodyToBox2d(ref PhysicsBodyComponent physicsBody, Entity entity)
     {
         var data = entity.Data;
-        ref var hitbox = ref data.Ensure<HitboxComponent>(cb);
         ref var transform = ref data.Ensure<Transform2D>(cb);
 
         //create the body if missing
@@ -80,38 +92,50 @@ public sealed class PhysicsSystem : BaseSystem
         {
             var bodyDef = b2DefaultBodyDef();
             bodyDef.position = entity.GetWorldPos(out float rotation).ToB2();
-            bodyDef.rotation = b2MakeRot(hitbox.Rect.Angle + rotation);
+            bodyDef.rotation = b2MakeRot(rotation);
             physicsBody.BodyId = b2CreateBody(Physics.WorldId, in bodyDef);
-
-            hitbox.ShapeId = CreateRectShape(ref physicsBody, ref hitbox);
-            //new body is guaranteed to be up-to-date
-            hitbox.PhysicsDirty = false;
-            transform.PhysicsDirty = false;
             return;
         }
 
         if (transform.PhysicsDirty)
-        {
-            b2Body_SetTransform(physicsBody.BodyId, entity.GetWorldPos(out float rotation).ToB2(), b2MakeRot(hitbox.Rect.Angle + rotation));
-            transform.PhysicsDirty = false;
-        }
-
-        if (hitbox.PhysicsDirty)
-        {
-            b2DestroyShape(hitbox.ShapeId, true);
-            hitbox.ShapeId = CreateRectShape(ref physicsBody, ref hitbox);
-            hitbox.PhysicsDirty = false;
-        }
+            b2Body_SetTransform(physicsBody.BodyId, entity.GetWorldPos(out float rotation).ToB2(), b2MakeRot(rotation));
     }
 
-    private static B2ShapeId CreateRectShape(ref PhysicsBodyComponent physicsBody, ref HitboxComponent hitbox)
+    private void SynchronizeShapeToBox2d(ref PhysicsShapeComponent physicsShape, Entity entity)
     {
-        var shapeDef = b2DefaultShapeDef();
-        physicsBody.ApplyTo(ref shapeDef);
+        var data = entity.Data;
+        ref var hitbox = ref data.Ensure<HitboxComponent>(cb);
+        bool validShape = b2Shape_IsValid(physicsShape.ShapeId);
+        bool hasTransform = data.Has<Transform2D>();
+        ref var transform = ref (hasTransform ? ref data.Get<Transform2D>() : ref Unsafe.NullRef<Transform2D>());
+
+        if (validShape && (!hasTransform || !transform.PhysicsDirty) && !hitbox.PhysicsDirty) return;
+
+        var bodyEntity = entity;
+        while (!bodyEntity.IsNull && !bodyEntity.HasComponent<PhysicsBodyComponent>())
+            bodyEntity = bodyEntity.Parent;
+        if (bodyEntity.IsNull) return;
+
+        var bodyData = bodyEntity.Data;
+        ref var physicsBody = ref bodyData.Get<PhysicsBodyComponent>();
+        var bodyPos = bodyEntity.GetWorldPos(out float bodyRot);
+        var position = entity.GetWorldPos(out float rotation);
+        var relativePos = position + hitbox.Rect.Center - bodyPos;
+        var relativeRot = rotation + hitbox.Rect.Angle - bodyRot;
 
         ref var rect = ref hitbox.Rect;
-        var polygon = b2MakeOffsetBox(rect.Width / 2, rect.Height / 2, rect.Center.ToB2(), b2MakeRot(rect.Angle));
-        return b2CreatePolygonShape(physicsBody.BodyId, in shapeDef, in polygon);
+        var polygon = b2MakeOffsetBox(rect.Width / 2, rect.Height / 2, relativePos.ToB2(), b2MakeRot(relativeRot));
+
+        if (validShape)
+        {
+            b2Shape_SetPolygon(physicsShape.ShapeId, ref polygon);
+        }
+        else
+        {
+            var shapeDef = b2DefaultShapeDef();
+            physicsShape.ApplyTo(ref shapeDef);
+            physicsShape.ShapeId = b2CreatePolygonShape(physicsBody.BodyId, in shapeDef, in polygon);
+        }
     }
 
     private void SynchronizeEcs()
@@ -132,4 +156,14 @@ public sealed class PhysicsSystem : BaseSystem
 
         //i think shapes are not modified by box2d?
     }
+
+    private void UnsetDirty()
+    {
+        TransformQuery.ForEachEntity(UnsetTransformDirty);
+        HitboxQuery.ForEachEntity(UnsetHitboxDirty);
+    }
+
+    private void UnsetTransformDirty(ref Transform2D transform, Entity entity) => transform.PhysicsDirty = false;
+    private void UnsetHitboxDirty(ref HitboxComponent hitbox, Entity entity) => hitbox.PhysicsDirty = false;
+
 }

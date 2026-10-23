@@ -96,10 +96,10 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        entity = Store.CreateEntity(new MobileComponent(), new HitboxComponent(0, 0, 0.3f, 0.5f), new Transform2D(3, 1), new MortalComponent(), new PlayerAi());
-        var body = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/body", [0, 1]), new RenderDepth(0.2f), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 0.82f, 0.27f), Tags.Get<LookAtMouseTag>());
+        entity = Store.CreateEntity(new MobileComponent(), new HitboxComponent(0, 0, 0.3f, 0.5f), new Transform2D(3, 1), new MortalComponent(), new PlayerAi(), new PhysicsBodyComponent());
+        var body = Store.CreateEntity(new AnimatedSpriteComponent("Sprites/Player/body", [0, 1]), new RenderDepth(0.2f), new HitboxComponent(0, 0, 0.82f, 0.27f), new PhysicsShapeComponent(), Tags.Get<LookAtMouseTag>());
         entity.AddChild(body);
-        var head = Store.CreateEntity(new Transform2D(0, 0), new HitboxComponent(0, 0, 0.22f, 0.37f), new AnimatedSpriteComponent("Sprites/Player/head", [0, 1]), new RenderDepth(0.1f), new PhysicsBodyComponent());
+        var head = Store.CreateEntity(new HitboxComponent(0, 0, 0.22f, 0.37f), new AnimatedSpriteComponent("Sprites/Player/head", [0, 1]), new RenderDepth(0.1f), new PhysicsShapeComponent());
         body.AddChild(head);
         var legs = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/legs", [0, 1, 2, 1, 0, 3, 4, 3], 0.1f), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag, LegsTag>());
         entity.AddChild(legs);

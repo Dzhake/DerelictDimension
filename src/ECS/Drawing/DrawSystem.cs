@@ -3,6 +3,7 @@ using Friflo.Engine.ECS.Systems;
 using Monod.Graphics;
 using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
+using Monod.InputModule;
 using Monod.TimeModule;
 
 namespace DerelictDimension.ECS.Drawing;
@@ -47,7 +48,7 @@ public class DrawSystem : SystemGroup
         Renderer.End();
 
         Renderer.Begin();
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Time:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nEntities:{TheGame.Store.Count}", renderOffset, Color.White);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Time:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nEntities:{TheGame.Store.Count}\nMousePos:{Input.MousePos()}", renderOffset, Color.White);
         Renderer.End();
     }
 

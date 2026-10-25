@@ -4,10 +4,12 @@ namespace DerelictDimension.ECS.PhysicsModule.Components;
 
 public record struct PhysicsShapeComponent : IComponent
 {
-    public float Density;
-    public float Friction;
-    public float Restitution;
+    public float Density = 1f;
+    public float Friction = 0.6f;
+    public float Restitution = 0f;
     public B2ShapeId ShapeId;
+
+    public PhysicsShapeComponent() { }
 
     public PhysicsShapeComponent(float density = 1f,
         float friction = 0.3f,

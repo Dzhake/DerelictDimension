@@ -59,7 +59,7 @@ public sealed class PhysicsSystem : BaseSystem
 
         b2World_Step(Physics.WorldId, Time.DeltaTime, 4);
 
-        //SynchronizeEcs();
+        SynchronizeEcs();
         cb.Playback();
 
         UnsetDirty();
@@ -71,6 +71,7 @@ public sealed class PhysicsSystem : BaseSystem
         if (!b2World_IsValid(Physics.WorldId))
         {
             var b2WorldDef = b2DefaultWorldDef();
+            b2WorldDef.gravity = new B2Vec2(0, 0);
             Physics.WorldId = b2CreateWorld(b2WorldDef);
         }
     }
@@ -88,17 +89,22 @@ public sealed class PhysicsSystem : BaseSystem
         ref var transform = ref data.Ensure<Transform2D>(cb);
 
         //create the body if missing
-        if (physicsBody.BodyId.index1 == 0)
+        if (!b2Body_IsValid(physicsBody.BodyId))
         {
             var bodyDef = b2DefaultBodyDef();
+            bodyDef.type = physicsBody.Type;
             bodyDef.position = entity.GetWorldPos(out float rotation).ToB2();
             bodyDef.rotation = b2MakeRot(rotation);
+            bodyDef.angularDamping = 4f;
             physicsBody.BodyId = b2CreateBody(Physics.WorldId, in bodyDef);
             return;
         }
 
         if (transform.PhysicsDirty)
+        {
             b2Body_SetTransform(physicsBody.BodyId, entity.GetWorldPos(out float rotation).ToB2(), b2MakeRot(rotation));
+            b2Body_SetAwake(physicsBody.BodyId, true);
+        }
     }
 
     private void SynchronizeShapeToBox2d(ref PhysicsShapeComponent physicsShape, Entity entity)
@@ -136,6 +142,8 @@ public sealed class PhysicsSystem : BaseSystem
             physicsShape.ApplyTo(ref shapeDef);
             physicsShape.ShapeId = b2CreatePolygonShape(physicsBody.BodyId, in shapeDef, in polygon);
         }
+
+        b2Body_SetAwake(physicsBody.BodyId, true);
     }
 
     private void SynchronizeEcs()

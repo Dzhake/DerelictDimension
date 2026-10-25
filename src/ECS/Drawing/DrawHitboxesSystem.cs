@@ -34,6 +34,11 @@ public class DrawHitboxesSystem : BaseSystem
         draw.DrawSolidPolygonFcn = DrawSolidPolygon;
         //draw.DrawSolidCapsuleFcn = DrawCapsule;
         draw.DrawStringFcn = DrawString;
+
+        //draw.drawBounds = true;
+        //draw.drawMass = true;
+        draw.drawShapes = true;
+
         base.OnAddStore(store);
     }
 

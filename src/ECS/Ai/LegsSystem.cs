@@ -1,5 +1,7 @@
-﻿using DerelictDimension.ECS.Drawing;
+﻿using Box2D.NET;
+using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.PhysicsModule.Components;
+using DerelictDimension.Utils.Extensions;
 using Monod.ECS;
 
 namespace DerelictDimension.ECS.Ai;
@@ -14,7 +16,7 @@ public class LegsSystem : TagSystem<LegsTag>
             var parent = entity.Parent;
             if (parent.IsNull) return;
             if (!entity.HasComponent<AnimatedSpriteComponent>()) continue;
-            var velocity = parent.GetComponent<MobileComponent>().Velocity.Length();
+            var velocity = B2Bodies.b2Body_GetLinearVelocity(parent.GetComponent<PhysicsBodyComponent>().BodyId).ToXNA().Length();
             if (velocity != 0)
                 continue;
             ref var animatedSprite = ref entity.GetComponent<AnimatedSpriteComponent>();

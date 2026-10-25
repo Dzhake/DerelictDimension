@@ -1,4 +1,5 @@
-﻿using DerelictDimension.ECS.Ai;
+﻿using Box2D.NET;
+using DerelictDimension.ECS.Ai;
 using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.ECS.PhysicsModule.Components;
@@ -57,7 +58,7 @@ public class TheGame : MonodGame
     [SetsRequiredMembers]
     public TheGame()
     {
-        IsMouseVisible = true;
+        IsMouseVisible = false;
         Instance = this;
         GameSize = new(1280, 720);
         IsFixedTimeStep = true;
@@ -96,7 +97,7 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        entity = Store.CreateEntity(new MobileComponent(), new HitboxComponent(0, 0, 0.3f, 0.5f), new Transform2D(3, 1), new MortalComponent(), new PlayerAi(), new PhysicsBodyComponent());
+        entity = Store.CreateEntity(new HitboxComponent(0, 0, 0.3f, 0.5f), new Transform2D(3, 1), new MortalComponent(), new PlayerAi(), new PhysicsBodyComponent(B2BodyType.b2_dynamicBody));
         var body = Store.CreateEntity(new AnimatedSpriteComponent("Sprites/Player/body", [0, 1]), new RenderDepth(0.2f), new HitboxComponent(0, 0, 0.82f, 0.27f), new PhysicsShapeComponent(), Tags.Get<LookAtMouseTag>());
         entity.AddChild(body);
         var head = Store.CreateEntity(new HitboxComponent(0, 0, 0.22f, 0.37f), new AnimatedSpriteComponent("Sprites/Player/head", [0, 1]), new RenderDepth(0.1f), new PhysicsShapeComponent());
@@ -105,8 +106,8 @@ public class TheGame : MonodGame
         entity.AddChild(legs);
 
 
-        Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 2.55f, 1));
-        Store.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 0.3f, 2));
+        Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 2.55f, 1), new PhysicsShapeComponent());
+        Store.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 0.3f, 2), new PhysicsShapeComponent());
         //var json = entitySerializer.WriteEntity(entity);
         //Log.Information($"\n{json}");
 
@@ -163,22 +164,11 @@ public class TheGame : MonodGame
     ///<inheritdoc/>
     protected override void UpdateM()
     {
-        if (Input.KeyDown(Key.Right))
-            offset.X -= 10;
-        else if (Input.KeyDown(Key.Left))
-            offset.X += 10;
-
-        if (Input.KeyDown(Key.Up))
-            offset.Y += 10;
-        else if (Input.KeyDown(Key.Down))
-            offset.Y -= 10;
-
         if (Input.KeyPressed(Key.R)) Reload();
 
-        //if (Input.ActionDown((InputActionIndex)0)) text = "Active";
-        //else text = "Inactive";
-
-        int i = 0;
+        /* Mod manager:
+         * 
+         * int i = 0;
 
         if (Input.KeyPressed(Key.D)) Page++;
         else if (Input.KeyPressed(Key.A)) Page--;
@@ -194,35 +184,18 @@ public class TheGame : MonodGame
         {
             ModManager.EnqueueToggleMods(ModsToToggle);
             ModsToToggle.Clear();
-        }
+        }*/
 
         if (Input.KeyPressed(Key.F1)) Settings.ShowDemoWindow = !Settings.ShowDemoWindow;
         if (Input.KeyPressed(Key.F2)) Settings.ShowSettingsWindow = !Settings.ShowSettingsWindow;
         if (Input.KeyPressed(Key.F3)) Settings.ShowInspector = !Settings.ShowInspector;
         if (Input.KeyPressed(Key.F5)) Settings.ShowReloadWindow = !Settings.ShowReloadWindow;
+        if (Input.KeyPressed(Key.M)) IsMouseVisible = !IsMouseVisible;
 
         Rebind?.Update();
 
         if (Input.KeyboardKeysPressed.Count > 0) pressed = Input.KeyboardKeysPressed.ElementAt(0);
         if (Input.KeyboardKeysReleased.Count > 0) released = Input.KeyboardKeysReleased.ElementAt(0);
-        Vector2 mousepos = (Input.MousePos() - Renderer.RenderOffset) / DrawSystem.Upscale;
-        /*if (Input.KeyDown(Key.Mouse1) && !entity.IsNull)
-        {
-            var data = entity.Data;
-            if (data.Has<Transform2D>())
-            {
-                ref var transform = ref data.Get<Transform2D>();
-                transform.Position = mousepos;
-
-                if (data.Has<MobileComponent>())
-                {
-                    ref var mobile = ref data.Get<MobileComponent>();
-                    mobile.Velocity = Vector2.Zero;
-                }
-            }
-        }*/
-
-
 
         UpdateLogicSystems();
     }
@@ -230,12 +203,9 @@ public class TheGame : MonodGame
     /// <inheritdoc/>
     protected override void DrawM()
     {
-        GenericFont? font = GlobalFonts.MenuFont;
         Renderer.Clear(new(0, 0, 0));
         UpdateDrawSystems();
-
-        /*Renderer.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
-        Renderer.End();*/
+        //GenericFont? font = GlobalFonts.MenuFont;
         //DrawModMenu(font, ref transform);
     }
 

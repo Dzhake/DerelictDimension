@@ -1,4 +1,6 @@
-﻿using DerelictDimension.ECS.PhysicsModule.Components;
+﻿using Box2D.NET;
+using DerelictDimension.ECS.PhysicsModule.Components;
+using DerelictDimension.Utils.Extensions;
 using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
 using Monod.InputModule;
@@ -17,10 +19,11 @@ public class PlayerAiSystem : QuerySystem<PlayerAi>
     private void UpdatePlayer(ref PlayerAi player, Entity entity)
     {
         var data = entity.Data;
-        if (!data.Has<MobileComponent>() || !data.Has<Transform2D>()) return;
+        ref var physicsBody = ref data.Ensure<PhysicsBodyComponent>(CommandBuffer);
+        if (!B2Worlds.b2Body_IsValid(physicsBody.BodyId)) return;
+        ref var transform = ref data.Ensure<Transform2D>(CommandBuffer);
 
-        ref var mobile = ref data.Get<MobileComponent>();
-        ref var transform = ref data.Get<Transform2D>();
+        Vector2 velocity = B2Bodies.b2Body_GetLinearVelocity(physicsBody.BodyId).ToXNA();
 
         Vector2 targetDirection = Vector2.Zero;
         if (Input.KeyDown(Key.A)) targetDirection.X--;
@@ -28,7 +31,6 @@ public class PlayerAiSystem : QuerySystem<PlayerAi>
         if (Input.KeyDown(Key.W)) targetDirection.Y--;
         if (Input.KeyDown(Key.S)) targetDirection.Y++;
 
-        ref var velocity = ref mobile.Velocity;
         targetDirection.NormalizeSafe();
         var targetVelocity = targetDirection * player.TargetVelocity;
         var velChange = targetVelocity - velocity;
@@ -43,5 +45,7 @@ public class PlayerAiSystem : QuerySystem<PlayerAi>
             velChange *= player.Acceleration * Time.DeltaTime;
             velocity += velChange;
         }
+
+        B2Bodies.b2Body_SetLinearVelocity(physicsBody.BodyId, velocity.ToB2());
     }
 }

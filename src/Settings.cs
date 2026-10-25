@@ -167,6 +167,9 @@ public static class Settings
 
         ImGui.Begin("B2 Debug"u8);
 
+        ImGui.Checkbox("Enable box2d's debug draw"u8, ref DrawHitboxesSystem.Enabled);
+        ImGui.Separator();
+
         ImGui.Checkbox("drawContacts"u8, ref draw.drawContacts);
         ImGui.SameLine();
         ImGui.TextDisabled("Option to draw contact points"u8);

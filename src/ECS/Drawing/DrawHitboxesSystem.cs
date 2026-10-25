@@ -12,10 +12,12 @@ namespace DerelictDimension.ECS.Drawing;
 
 public class DrawHitboxesSystem : BaseSystem
 {
-    public static B2DebugDraw draw;
+    public static B2DebugDraw draw = b2DefaultDebugDraw();
+    public static bool Enabled;
 
     protected override void OnUpdateGroup()
     {
+        if (!Enabled) return;
         Renderer.ShapeBegin();
         b2World_Draw(Physics.WorldId, in draw);
         Renderer.ShapeEnd();
@@ -24,7 +26,6 @@ public class DrawHitboxesSystem : BaseSystem
 
     protected override void OnAddStore(EntityStore store)
     {
-        draw = b2DefaultDebugDraw();
         draw.DrawPointFcn = DrawPoint;
         draw.DrawLineFcn = DrawLine;
         draw.DrawTransformFcn = DrawTransform;
@@ -34,12 +35,6 @@ public class DrawHitboxesSystem : BaseSystem
         draw.DrawSolidPolygonFcn = DrawSolidPolygon;
         draw.DrawSolidCapsuleFcn = DrawSolidCapsule;
         draw.DrawStringFcn = DrawString;
-
-        //draw.drawBounds = true;
-        //draw.drawMass = true;      // also enables DrawTransformFcn (center of mass axes)
-        //draw.drawJoints = true;
-        //draw.drawContacts = true;  // uses DrawPointFcn with pixel sizes
-        draw.drawShapes = true;
 
         base.OnAddStore(store);
     }

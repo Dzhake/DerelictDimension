@@ -1,6 +1,4 @@
-﻿using Box2D.NET;
-using DerelictDimension.ECS.PhysicsModule.Components;
-using DerelictDimension.Utils.Extensions;
+﻿using DerelictDimension.ECS.PhysicsModule.Components;
 using Monod.ECS;
 using Monod.ECS.DefaultComponents;
 using Monod.Utils.Extensions;
@@ -31,7 +29,7 @@ public class ParentVelocityDirSystem : TagSystem<ParentVelocityDirTag>
         {
             var parent = entity.Parent;
             if (parent.IsNull || !parent.HasComponent<PhysicsBodyComponent>()) continue;
-            var velocity = B2Bodies.b2Body_GetLinearVelocity(parent.GetComponent<PhysicsBodyComponent>().BodyId).ToXNA();
+            var velocity = parent.GetComponent<PhysicsBodyComponent>().LinearVelocity;
             if (velocity == Vector2.Zero) continue;
             ref var transform = ref entity.Data.Ensure<Transform2D>(cb);
             transform.Rotation = velocity.ToAngle();

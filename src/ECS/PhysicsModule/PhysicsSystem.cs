@@ -96,15 +96,29 @@ public sealed class PhysicsSystem : BaseSystem
             bodyDef.position = entity.GetWorldPos(out float rotation).ToB2();
             bodyDef.rotation = b2MakeRot(rotation);
             bodyDef.angularDamping = 4f;
+
+            bodyDef.angularVelocity = physicsBody.AngularVelocity;
+            bodyDef.linearVelocity = physicsBody.LinearVelocity.ToB2();
+            if (physicsBody.FixedRotation) bodyDef.motionLocks = new B2MotionLocks { angularZ = true };
+
             physicsBody.BodyId = b2CreateBody(Physics.WorldId, in bodyDef);
             return;
         }
 
+        bool setAwake = false;
         if (transform.PhysicsDirty)
         {
             b2Body_SetTransform(physicsBody.BodyId, entity.GetWorldPos(out float rotation).ToB2(), b2MakeRot(rotation));
-            b2Body_SetAwake(physicsBody.BodyId, true);
+            setAwake = true;
         }
+
+        if (physicsBody.PhysicsDirty)
+        {
+            b2Body_SetLinearVelocity(physicsBody.BodyId, physicsBody.LinearVelocity.ToB2());
+            b2Body_SetAngularVelocity(physicsBody.BodyId, physicsBody.AngularVelocity);
+        }
+
+        if (setAwake) b2Body_SetAwake(physicsBody.BodyId, true);
     }
 
     private void SynchronizeShapeToBox2d(ref PhysicsShapeComponent physicsShape, Entity entity)
@@ -162,6 +176,10 @@ public sealed class PhysicsSystem : BaseSystem
         transform.Position = b2transform.p.ToXNA() - hitbox.Rect.Center - entity.GetParentPos(out float rotation);
         transform.Rotation = b2Rot_GetAngle(b2transform.q) - hitbox.Rect.Angle - rotation;
 
+        physicsBody.LinearVelocity = b2Body_GetLinearVelocity(physicsBody.BodyId).ToXNA();
+        physicsBody.AngularVelocity = b2Body_GetAngularVelocity(physicsBody.BodyId);
+
+
         //i think shapes are not modified by box2d?
     }
 
@@ -169,9 +187,12 @@ public sealed class PhysicsSystem : BaseSystem
     {
         TransformQuery.ForEachEntity(UnsetTransformDirty);
         HitboxQuery.ForEachEntity(UnsetHitboxDirty);
+        PhysicsBodyQuery.ForEachEntity(UnsetPhysicsBodyDirty);
     }
 
     private void UnsetTransformDirty(ref Transform2D transform, Entity entity) => transform.PhysicsDirty = false;
     private void UnsetHitboxDirty(ref HitboxComponent hitbox, Entity entity) => hitbox.PhysicsDirty = false;
+    private void UnsetPhysicsBodyDirty(ref PhysicsBodyComponent physicsBody, Entity entity) => physicsBody.PhysicsDirty = false;
+
 
 }

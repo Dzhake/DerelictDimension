@@ -58,7 +58,7 @@ public class TheGame : MonodGame
     [SetsRequiredMembers]
     public TheGame()
     {
-        IsMouseVisible = false;
+        IsMouseVisible = true;
         Instance = this;
         GameSize = new(1280, 720);
         IsFixedTimeStep = true;
@@ -97,7 +97,7 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        entity = Store.CreateEntity(new HitboxComponent(0, 0, 0.3f, 0.5f), new Transform2D(3, 1), new MortalComponent(), new PlayerAi(), new PhysicsBodyComponent(B2BodyType.b2_dynamicBody));
+        entity = Store.CreateEntity(new Transform2D(3, 1), new MortalComponent(), new PlayerAi(), new PhysicsBodyComponent(B2BodyType.b2_dynamicBody, fixedRotation: true));
         var body = Store.CreateEntity(new AnimatedSpriteComponent("Sprites/Player/body", [0, 1]), new RenderDepth(0.2f), new HitboxComponent(0, 0, 0.82f, 0.27f), new PhysicsShapeComponent(), Tags.Get<LookAtMouseTag>());
         entity.AddChild(body);
         var head = Store.CreateEntity(new HitboxComponent(0, 0, 0.22f, 0.37f), new AnimatedSpriteComponent("Sprites/Player/head", [0, 1]), new RenderDepth(0.1f), new PhysicsShapeComponent());

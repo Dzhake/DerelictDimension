@@ -1,8 +1,8 @@
-﻿using Box2D.NET;
-using DerelictDimension.ECS.Ai;
+﻿using DerelictDimension.ECS.Ai;
 using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.ECS.PhysicsModule.Components;
+using DerelictDimension.ECS.Prefabs;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
 using Friflo.EcGui;
@@ -97,13 +97,13 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        entity = Store.CreateEntity(new Transform2D(3, 1), new MortalComponent(), new PlayerAi(), new PhysicsBodyComponent(B2BodyType.b2_dynamicBody, fixedRotation: true));
-        var body = Store.CreateEntity(new AnimatedSpriteComponent("Sprites/Player/body", [0, 1]), new RenderDepth(0.2f), new HitboxComponent(0, 0, 0.82f, 0.27f), new PhysicsShapeComponent(), Tags.Get<LookAtMouseTag>());
-        entity.AddChild(body);
-        var head = Store.CreateEntity(new HitboxComponent(0, 0, 0.22f, 0.37f), new AnimatedSpriteComponent("Sprites/Player/head", [0, 1]), new RenderDepth(0.1f), new PhysicsShapeComponent());
-        body.AddChild(head);
-        var legs = Store.CreateEntity(new Transform2D(0, 0), new AnimatedSpriteComponent("Sprites/Player/legs", [0, 1, 2, 1, 0, 3, 4, 3], 0.1f), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag, LegsTag>());
-        entity.AddChild(legs);
+        var player = CodePrefabs.CreateHuman(new(3, 1), 0, "Sprites/Player/", out var body, out _, out _);
+        player.AddComponent(new PlayerAi());
+        body.AddTag<LookAtMouseTag>();
+
+        CodePrefabs.CreateHuman(new(3, 2), 0, "Sprites/Swordsman/", out _, out _, out _);
+        CodePrefabs.CreateHuman(new(2, 3), 0, "Sprites/Swordsman/", out _, out _, out _);
+        CodePrefabs.CreateHuman(new(4, 3), 0, "Sprites/Swordsman/", out _, out _, out _);
 
 
         Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 2.55f, 1), new PhysicsShapeComponent());

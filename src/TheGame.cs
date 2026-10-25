@@ -189,8 +189,8 @@ public class TheGame : MonodGame
         if (Input.KeyPressed(Key.F1)) Settings.ShowDemoWindow = !Settings.ShowDemoWindow;
         if (Input.KeyPressed(Key.F2)) Settings.ShowSettingsWindow = !Settings.ShowSettingsWindow;
         if (Input.KeyPressed(Key.F3)) Settings.ShowInspector = !Settings.ShowInspector;
+        if (Input.KeyPressed(Key.F4)) Settings.ShowB2Debug = !Settings.ShowB2Debug;
         if (Input.KeyPressed(Key.F5)) Settings.ShowReloadWindow = !Settings.ShowReloadWindow;
-        if (Input.KeyPressed(Key.M)) IsMouseVisible = !IsMouseVisible;
 
         Rebind?.Update();
 

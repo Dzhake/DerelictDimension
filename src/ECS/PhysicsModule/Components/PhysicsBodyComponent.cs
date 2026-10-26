@@ -14,6 +14,7 @@ public record struct PhysicsBodyComponent : IComponent
 
     public Vector2 LinearVelocity;
     public float AngularVelocity;
+
     public bool PhysicsDirty;
 
     [Ignore]

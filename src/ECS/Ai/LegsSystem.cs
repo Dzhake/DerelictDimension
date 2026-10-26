@@ -15,7 +15,7 @@ public class LegsSystem : TagSystem<LegsTag>
             if (parent.IsNull) continue;
             if (!entity.HasComponent<AnimatedSpriteComponent>()) continue;
             var velocity = parent.GetComponent<PhysicsBodyComponent>().LinearVelocity.Length();
-            if (velocity != 0)
+            if (velocity > 0.1f)
                 continue;
             ref var animatedSprite = ref entity.GetComponent<AnimatedSpriteComponent>();
             animatedSprite.FrameRemainder = 0;

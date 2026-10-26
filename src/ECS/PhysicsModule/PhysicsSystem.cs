@@ -88,20 +88,9 @@ public sealed class PhysicsSystem : BaseSystem
         var data = entity.Data;
         ref var transform = ref data.Ensure<Transform2D>(cb);
 
-        //create the body if missing
         if (!b2Body_IsValid(physicsBody.BodyId))
         {
-            var bodyDef = b2DefaultBodyDef();
-            bodyDef.type = physicsBody.Type;
-            bodyDef.position = entity.GetWorldPos(out float rotation).ToB2();
-            bodyDef.rotation = b2MakeRot(rotation);
-            bodyDef.angularDamping = 4f;
-
-            bodyDef.angularVelocity = physicsBody.AngularVelocity;
-            bodyDef.linearVelocity = physicsBody.LinearVelocity.ToB2();
-            if (physicsBody.FixedRotation) bodyDef.motionLocks = new B2MotionLocks { angularZ = true };
-
-            physicsBody.BodyId = b2CreateBody(Physics.WorldId, in bodyDef);
+            physicsBody.BodyId = CreateBody(ref physicsBody, ref entity);
             return;
         }
 
@@ -121,6 +110,22 @@ public sealed class PhysicsSystem : BaseSystem
         if (setAwake) b2Body_SetAwake(physicsBody.BodyId, true);
     }
 
+    private static B2BodyId CreateBody(ref PhysicsBodyComponent physicsBody, ref Entity entity)
+    {
+        var bodyDef = b2DefaultBodyDef();
+        bodyDef.type = physicsBody.Type;
+        bodyDef.position = entity.GetWorldPos(out float rotation).ToB2();
+        bodyDef.rotation = b2MakeRot(rotation);
+        bodyDef.angularDamping = 4f;
+        bodyDef.linearDamping = 3f;
+
+        bodyDef.angularVelocity = physicsBody.AngularVelocity;
+        bodyDef.linearVelocity = physicsBody.LinearVelocity.ToB2();
+        if (physicsBody.FixedRotation) bodyDef.motionLocks = new B2MotionLocks { angularZ = true };
+
+        return b2CreateBody(Physics.WorldId, in bodyDef); ;
+    }
+
     private void SynchronizeShapeToBox2d(ref PhysicsShapeComponent physicsShape, Entity entity)
     {
         var data = entity.Data;
@@ -130,20 +135,17 @@ public sealed class PhysicsSystem : BaseSystem
         ref var transform = ref (hasTransform ? ref data.Get<Transform2D>() : ref Unsafe.NullRef<Transform2D>());
 
         if (validShape && (!hasTransform || !transform.PhysicsDirty) && !hitbox.PhysicsDirty) return;
-
-        var bodyEntity = entity;
-        while (!bodyEntity.IsNull && !bodyEntity.HasComponent<PhysicsBodyComponent>())
-            bodyEntity = bodyEntity.Parent;
+        Entity bodyEntity = entity.GetFirstEntityWithComp<PhysicsBodyComponent>();
         if (bodyEntity.IsNull) return;
 
         var bodyData = bodyEntity.Data;
         ref var physicsBody = ref bodyData.Get<PhysicsBodyComponent>();
         var bodyPos = bodyEntity.GetWorldPos(out float bodyRot);
         var position = entity.GetWorldPos(out float rotation);
-        var relativePos = position + hitbox.Rect.Center - bodyPos;
-        var relativeRot = rotation + hitbox.Rect.Angle - bodyRot;
+        var relativePos = position + hitbox.Hitbox.Center - bodyPos;
+        var relativeRot = rotation + hitbox.Hitbox.Angle - bodyRot;
 
-        ref var rect = ref hitbox.Rect;
+        ref var rect = ref hitbox.Hitbox;
         var polygon = b2MakeOffsetBox(rect.Width / 2, rect.Height / 2, relativePos.ToB2(), b2MakeRot(relativeRot));
 
         if (validShape)
@@ -173,8 +175,8 @@ public sealed class PhysicsSystem : BaseSystem
         ref var transform = ref data.Ensure<Transform2D>(cb);
 
         B2Transform b2transform = b2GetBodyTransform(World, physicsBody.BodyId.index1 - 1);
-        transform.Position = b2transform.p.ToXNA() - hitbox.Rect.Center - entity.GetParentPos(out float rotation);
-        transform.Rotation = b2Rot_GetAngle(b2transform.q) - hitbox.Rect.Angle - rotation;
+        transform.Position = b2transform.p.ToXNA() - hitbox.Hitbox.Center - entity.GetParentPos(out float rotation);
+        transform.Rotation = b2Rot_GetAngle(b2transform.q) - hitbox.Hitbox.Angle - rotation;
 
         physicsBody.LinearVelocity = b2Body_GetLinearVelocity(physicsBody.BodyId).ToXNA();
         physicsBody.AngularVelocity = b2Body_GetAngularVelocity(physicsBody.BodyId);

@@ -97,13 +97,15 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        var player = CodePrefabs.CreateHuman(new(3, 1), 0, "Sprites/Player/", out var body, out _, out _);
+        var player = CodePrefabs.CreateHuman(new(3, 1), 0, "Sprites/Player/", out var body, out _, out var leftLeg, out _);
         player.AddComponent(new PlayerAi());
         body.AddTag<LookAtMouseTag>();
+        leftLeg.AddComponent<PhysicsShapeComponent>();
+        leftLeg.AddComponent<HitboxComponent>
 
-        CodePrefabs.CreateHuman(new(3, 2), 0, "Sprites/Swordsman/", out _, out _, out _);
-        CodePrefabs.CreateHuman(new(2, 3), 0, "Sprites/Swordsman/", out _, out _, out _);
-        CodePrefabs.CreateHuman(new(4, 3), 0, "Sprites/Swordsman/", out _, out _, out _);
+        CodePrefabs.CreateHuman(new(3, 2), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
+        CodePrefabs.CreateHuman(new(2, 3), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
+        CodePrefabs.CreateHuman(new(4, 3), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
 
 
         Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 2.55f, 1), new PhysicsShapeComponent());

@@ -33,6 +33,7 @@ public class ParentVelocityDirSystem : TagSystem<ParentVelocityDirTag>
             if (velocity == Vector2.Zero) continue;
             ref var transform = ref entity.Data.Ensure<Transform2D>(cb);
             transform.Rotation = velocity.ToAngle();
+            entity.SetTransformDirtyRecursive();
         }
         base.OnUpdateGroup();
     }

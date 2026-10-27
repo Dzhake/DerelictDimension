@@ -26,10 +26,10 @@ public class PlayerAiSystem : QuerySystem<PlayerAi>
         Vector2 velocity = B2Bodies.b2Body_GetLinearVelocity(physicsBody.BodyId).ToXNA();
 
         Vector2 targetDirection = Vector2.Zero;
-        if (Input.KeyDown(Key.A)) targetDirection.X--;
-        if (Input.KeyDown(Key.D)) targetDirection.X++;
-        if (Input.KeyDown(Key.W)) targetDirection.Y--;
-        if (Input.KeyDown(Key.S)) targetDirection.Y++;
+        if (Input.ActionDown(InputActions.MoveLeft)) targetDirection.X--;
+        if (Input.ActionDown(InputActions.MoveRight)) targetDirection.X++;
+        if (Input.ActionDown(InputActions.MoveUp)) targetDirection.Y--;
+        if (Input.ActionDown(InputActions.MoveDown)) targetDirection.Y++;
 
         targetDirection.NormalizeSafe();
         var targetVelocity = targetDirection * player.TargetVelocity;

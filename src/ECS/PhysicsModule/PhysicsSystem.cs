@@ -3,6 +3,7 @@ using DerelictDimension.ECS.PhysicsModule.Components;
 using DerelictDimension.Utils.Extensions;
 using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
+using Monod.Shared.Exceptions;
 using Monod.TimeModule;
 using Monod.Utils.Extensions;
 using System.Runtime.CompilerServices;
@@ -27,7 +28,7 @@ public sealed class PhysicsSystem : BaseSystem
     /// <summary>
     /// Currently used only temporarly because i'm not sure whether it's safe to store this between frames/b2 step calls/something else.
     /// </summary>
-    public static B2World World;
+    public static B2World? World;
     public CommandBuffer cb;
 
     protected override void OnAddStore(EntityStore store)
@@ -123,7 +124,7 @@ public sealed class PhysicsSystem : BaseSystem
         bodyDef.linearVelocity = physicsBody.LinearVelocity.ToB2();
         if (physicsBody.FixedRotation) bodyDef.motionLocks = new B2MotionLocks { angularZ = true };
 
-        return b2CreateBody(Physics.WorldId, in bodyDef); ;
+        return b2CreateBody(Physics.WorldId, in bodyDef);
     }
 
     private void SynchronizeShapeToBox2d(ref PhysicsShapeComponent physicsShape, Entity entity)
@@ -142,21 +143,49 @@ public sealed class PhysicsSystem : BaseSystem
         ref var physicsBody = ref bodyData.Get<PhysicsBodyComponent>();
         var bodyPos = bodyEntity.GetWorldPos(out float bodyRot);
         var position = entity.GetWorldPos(out float rotation);
-        var relativePos = position + hitbox.Hitbox.Center - bodyPos;
-        var relativeRot = rotation + hitbox.Hitbox.Angle - bodyRot;
+        var relativePos = hitbox.Rect.Center;
+        relativePos.Rotate(rotation - bodyRot);
+        relativePos += position - bodyPos;
+        var relativeRot = rotation - bodyRot;
 
-        ref var rect = ref hitbox.Hitbox;
-        var polygon = b2MakeOffsetBox(rect.Width / 2, rect.Height / 2, relativePos.ToB2(), b2MakeRot(relativeRot));
+        switch (hitbox.Type)
+        {
+        case HitboxType.OrientedRect:
+            ref var rect = ref hitbox.Rect;
+            relativeRot += rect.Angle;
+            var polygon = b2MakeOffsetBox(rect.Width / 2, rect.Height / 2, relativePos.ToB2(), b2MakeRot(relativeRot));
 
-        if (validShape)
-        {
-            b2Shape_SetPolygon(physicsShape.ShapeId, ref polygon);
-        }
-        else
-        {
-            var shapeDef = b2DefaultShapeDef();
-            physicsShape.ApplyTo(ref shapeDef);
-            physicsShape.ShapeId = b2CreatePolygonShape(physicsBody.BodyId, in shapeDef, in polygon);
+            if (validShape)
+            {
+                b2Shape_SetPolygon(physicsShape.ShapeId, ref polygon);
+            }
+            else
+            {
+                var shapeDef = b2DefaultShapeDef();
+                physicsShape.ApplyTo(ref shapeDef);
+                physicsShape.ShapeId = b2CreatePolygonShape(physicsBody.BodyId, in shapeDef, in polygon);
+            }
+            break;
+        case HitboxType.Capsule:
+            var capsule = hitbox.Capsule.ToB2();
+            var rot = b2MakeRot(relativeRot);
+            capsule.center1 = b2RotateVector(in rot, in capsule.center1);
+            capsule.center2 = b2RotateVector(in rot, in capsule.center2);
+
+            if (validShape)
+            {
+                b2Shape_SetCapsule(physicsShape.ShapeId, in capsule);
+            }
+            else
+            {
+                var shapeDef = b2DefaultShapeDef();
+                physicsShape.ApplyTo(ref shapeDef);
+                physicsShape.ShapeId = b2CreateCapsuleShape(physicsBody.BodyId, in shapeDef, in capsule);
+            }
+            break;
+        default:
+            Guard.Exception($"Hitbox component on entity with id {entity.Id} is not a valid type: {hitbox.Type}");
+            break;
         }
 
         b2Body_SetAwake(physicsBody.BodyId, true);
@@ -175,8 +204,8 @@ public sealed class PhysicsSystem : BaseSystem
         ref var transform = ref data.Ensure<Transform2D>(cb);
 
         B2Transform b2transform = b2GetBodyTransform(World, physicsBody.BodyId.index1 - 1);
-        transform.Position = b2transform.p.ToXNA() - hitbox.Hitbox.Center - entity.GetParentPos(out float rotation);
-        transform.Rotation = b2Rot_GetAngle(b2transform.q) - hitbox.Hitbox.Angle - rotation;
+        transform.Position = b2transform.p.ToXNA() - hitbox.Rect.Center - entity.GetParentPos(out float rotation);
+        transform.Rotation = b2Rot_GetAngle(b2transform.q) - hitbox.Rect.Angle - rotation;
 
         physicsBody.LinearVelocity = b2Body_GetLinearVelocity(physicsBody.BodyId).ToXNA();
         physicsBody.AngularVelocity = b2Body_GetAngularVelocity(physicsBody.BodyId);

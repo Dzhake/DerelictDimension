@@ -1,6 +1,7 @@
 ﻿using Box2D.NET;
 using DerelictDimension.ECS.Ai;
 using DerelictDimension.ECS.Drawing;
+using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using Monod.ECS.DefaultComponents;
 
@@ -14,10 +15,10 @@ public static class CodePrefabs
 
         var entity = store.CreateEntity(new Transform2D(position, rotation: rotation), new MortalComponent(), new PhysicsBodyComponent(B2BodyType.b2_dynamicBody, fixedRotation: true));
 
-        body = store.CreateEntity(new AnimatedSpriteComponent($"{baseTexturePath}body", [0, 1]), new RenderDepth(0.2f), new HitboxComponent(0, 0, 0.82f, 0.27f), new PhysicsShapeComponent());
+        body = store.CreateEntity(new AnimatedSpriteComponent($"{baseTexturePath}body", [0, 1]), new RenderDepth(0.2f), new HitboxComponent(new Capsule(new(-.25f, 0), new(.25f, 0), 0.1f)), new PhysicsShapeComponent());
         entity.AddChild(body);
 
-        head = store.CreateEntity(new HitboxComponent(0, 0, 0.22f, 0.37f), new AnimatedSpriteComponent($"{baseTexturePath}head", [0, 1]), new RenderDepth(0.1f), new PhysicsShapeComponent());
+        head = store.CreateEntity(new HitboxComponent(new OrientedRect(0, 0, 0.22f, 0.37f)), new AnimatedSpriteComponent($"{baseTexturePath}head", [0, 1]), new RenderDepth(0.1f), new PhysicsShapeComponent(isSensor: true));
         body.AddChild(head);
 
 

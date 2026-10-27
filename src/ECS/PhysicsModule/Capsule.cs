@@ -1,4 +1,7 @@
-﻿namespace DerelictDimension.ECS.PhysicsModule;
+﻿using Box2D.NET;
+using System.Runtime.CompilerServices;
+
+namespace DerelictDimension.ECS.PhysicsModule;
 
 public record struct Capsule
 {
@@ -25,4 +28,6 @@ public record struct Capsule
     }
 
     public readonly override string ToString() => $"Capsule {{Center1: {Center1}; Center2: {Center2}; Radius: {Radius}}}";
+
+    public B2Capsule ToB2() => Unsafe.As<Capsule, B2Capsule>(ref this);
 }

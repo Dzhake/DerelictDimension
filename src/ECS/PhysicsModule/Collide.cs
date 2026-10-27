@@ -6,7 +6,7 @@ namespace DerelictDimension.ECS.PhysicsModule;
 //this file is vibecoded because collisions are some algorithms written in 500 pages long books i'm too lazy to read. sorry not sorry.
 public static class Collide
 {
-    public static bool CheckAABBToRotatedRectangle(AABB aabb, OrientedRectangle obb, out Vector2 mtv)
+    public static bool CheckAABBToRotatedRectangle(AABB aabb, OrientedRect obb, out Vector2 mtv)
     {
         mtv = Vector2.Zero;
         Vector2 obbHalfSize = new Vector2(obb.Width * 0.5f, obb.Height * 0.5f);

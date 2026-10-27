@@ -1,31 +1,49 @@
 ﻿using Box2D.NET;
 using System;
+using System.Runtime.InteropServices;
 
 namespace DerelictDimension.ECS.PhysicsModule.Components;
 
 [ComponentKey("HitboxComponent")]
 [ComponentSymbol("H")]
+[StructLayout(LayoutKind.Explicit)]
 public record struct HitboxComponent : IComponent, IEquatable<HitboxComponent>
 {
-    public OrientedRectangle Hitbox;
-    public bool Collidable;
+    [FieldOffset(0)]
+    public bool Collidable = true;
+
+    [FieldOffset(1)]
     public B2ShapeId ShapeId;
-    public bool PhysicsDirty;
 
-    public readonly override string? ToString() => $"Hitbox: {Hitbox}, Collidable: {Collidable}";
+    [FieldOffset(9)]
+    public bool PhysicsDirty = true;
 
-    public HitboxComponent(OrientedRectangle value)
+    [FieldOffset(10)]
+    public HitboxType Type = HitboxType.None;
+
+    [FieldOffset(14)]
+    public OrientedRect Rect;
+
+    [FieldOffset(14)]
+    public Capsule Capsule;
+
+    public readonly override string? ToString() => $"Hitbox: {Rect}, Collidable: {Collidable}";
+
+    public HitboxComponent(OrientedRect hitbox)
     {
-        Hitbox = value;
-        PhysicsDirty = true;
-        Collidable = true;
+        Rect = hitbox;
+        Type = HitboxType.OrientedRect;
     }
 
-    public HitboxComponent(float centerX, float centerY, float halfWidth, float halfHeight, float angle = 0) : this(new(centerX, centerY, halfWidth, halfHeight, angle)) { }
+    public HitboxComponent(Capsule hitbox)
+    {
+        Capsule = hitbox;
+        Type = HitboxType.Capsule;
+    }
 
-    public static bool operator ==(in HitboxComponent h1, in HitboxComponent h2) => h1.Hitbox == h2.Hitbox && h1.Collidable == h2.Collidable;
+    public static bool operator ==(in HitboxComponent h1, in HitboxComponent h2) => h1.Rect == h2.Rect && h1.Collidable == h2.Collidable;
     public static bool operator !=(in HitboxComponent h1, in HitboxComponent h2) => !(h1 == h2);
 
-    public readonly override int GetHashCode() => Hitbox.GetHashCode();
-    public readonly bool Equals(HitboxComponent other) => Hitbox == other.Hitbox && Collidable == other.Collidable;
+    public readonly override int GetHashCode() => Rect.GetHashCode();
+    public readonly bool Equals(HitboxComponent other) => Rect == other.Rect && Collidable == other.Collidable;
 }

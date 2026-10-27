@@ -1,6 +1,6 @@
 ﻿namespace DerelictDimension.ECS.PhysicsModule;
 
-public record struct OrientedRectangle
+public record struct OrientedRect
 {
     public Vector2 Center;
     public float Width;
@@ -10,7 +10,7 @@ public record struct OrientedRectangle
     /// </summary>
     public float Angle;
 
-    public OrientedRectangle(Vector2 center, float width, float height, float angle)
+    public OrientedRect(Vector2 center, float width, float height, float angle = 0)
     {
         Center = center;
         Width = width;
@@ -18,7 +18,7 @@ public record struct OrientedRectangle
         Angle = angle;
     }
 
-    public OrientedRectangle(float centerX, float centerY, float width, float height, float angle) : this(new(centerX, centerY), width, height, angle) { }
+    public OrientedRect(float centerX, float centerY, float width, float height, float angle = 0) : this(new(centerX, centerY), width, height, angle) { }
 
     public override string ToString() => $"Center: {Center}; Width: {Width}; Height: {Height}; Angle: {Angle}";
 }

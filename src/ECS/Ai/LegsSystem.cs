@@ -18,9 +18,7 @@ public class LegsSystem : TagSystem<LegsTag>
             if (velocity > 0.1f)
                 continue;
             ref var animatedSprite = ref entity.GetComponent<AnimatedSpriteComponent>();
-            animatedSprite.FrameRemainder = 0;
-            animatedSprite.FrameNumber = 0;
-            animatedSprite.InvalidateTexture = true;
+            animatedSprite.Reset();
         }
     }
 }

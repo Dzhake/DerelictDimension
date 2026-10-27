@@ -19,7 +19,7 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
 
     private void Draw(ref Sprite2D sprite, Entity entity)
     {
-        if (sprite.Texture is null) return;
+        if (sprite.Texture is null || !sprite.Visible) return;
 
         EntityData data = entity.Data;
         GetDrawArgs(ref sprite, ref entity, ref data, out Vector2 position, out float rotation, out Vector2 scale, out float depth, out Vector2 origin);
@@ -31,7 +31,7 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
         }
         else
         {
-            Renderer.DrawTexture(sprite.Texture!.Base, position, sprite.color, sprite.Texture.Region, rotation, origin, scale, SpriteEffects.None, depth);
+            Renderer.DrawTexture(sprite.Texture!.Base, position, sprite.color, sprite.Texture.Region, rotation, origin, scale, sprite.spriteEffects, depth);
         }
     }
 

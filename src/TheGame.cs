@@ -14,6 +14,7 @@ using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
 using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
+using Monod.Graphics.Settings;
 using Monod.InputModule;
 using Monod.ModsModule;
 using Monod.Utils.Extensions;
@@ -71,6 +72,7 @@ public class TheGame : MonodGame
     protected override void Initialize()
     {
         base.Initialize();
+        InputActions.Initialize();
         EcGui.AddExplorerStore("Main", Store);
         EcGui.AddExplorerStore("Prefabs", PrefabsStore);
     }
@@ -100,16 +102,16 @@ public class TheGame : MonodGame
         var player = CodePrefabs.CreateHuman(new(3, 1), 0, "Sprites/Player/", out var body, out _, out var leftLeg, out _);
         player.AddComponent(new PlayerAi());
         body.AddTag<LookAtMouseTag>();
-        leftLeg.AddComponent<PhysicsShapeComponent>();
-        leftLeg.AddComponent<HitboxComponent>
+        Entity kickLeg = Store.CreateEntity(new PhysicsShapeComponent(isSensor: true), new HitboxComponent(new OrientedRect(-.14f, -.28f, .14f, .38f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/leg_kick", [0, 1, 2, 1], timeBetweenFrames: 0.1f), new Transform2D(), new RenderDepth(0.25f));
+        body.AddChild(kickLeg);
 
         CodePrefabs.CreateHuman(new(3, 2), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
         CodePrefabs.CreateHuman(new(2, 3), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
         CodePrefabs.CreateHuman(new(4, 3), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
 
 
-        Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 2.55f, 1), new PhysicsShapeComponent());
-        Store.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(0, 0, 0.3f, 2), new PhysicsShapeComponent());
+        Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 2.55f, 1)), new PhysicsShapeComponent());
+        Store.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 0.3f, 2)), new PhysicsShapeComponent());
         //var json = entitySerializer.WriteEntity(entity);
         //Log.Information($"\n{json}");
 
@@ -131,6 +133,7 @@ public class TheGame : MonodGame
 
 
         LogicSystemRoot.Add(new PlayerAiSystem());
+        LogicSystemRoot.Add(new KickLegSystem());
         LogicSystemRoot.Add(new PhysicsSystem());
         LogicSystemRoot.Add(new ParentVelocityDirSystem());
         LogicSystemRoot.Add(new LegsSystem());
@@ -194,6 +197,12 @@ public class TheGame : MonodGame
         if (Input.KeyPressed(Key.F4)) Settings.ShowB2Debug = !Settings.ShowB2Debug;
         if (Input.KeyPressed(Key.F5)) Settings.ShowReloadWindow = !Settings.ShowReloadWindow;
 
+        if (Input.KeyPressed(Key.M))
+        {
+            GraphicsSettings.VSync = !GraphicsSettings.VSync;
+            GraphicsSettings.ApplyVSync();
+        }
+
         Rebind?.Update();
 
         if (Input.KeyboardKeysPressed.Count > 0) pressed = Input.KeyboardKeysPressed.ElementAt(0);
@@ -242,27 +251,27 @@ public class TheGame : MonodGame
             Color color;
             switch (mod.Status)
             {
-                case ModStatus.Enabled:
-                    if (ModsToToggle.Contains(mod.GetName()))
-                    {
-                        color = Color.DarkSlateBlue;
-                        break;
-                    }
-                    color = Color.White;
+            case ModStatus.Enabled:
+                if (ModsToToggle.Contains(mod.GetName()))
+                {
+                    color = Color.DarkSlateBlue;
                     break;
+                }
+                color = Color.White;
+                break;
 
-                case ModStatus.Disabled:
-                    if (ModsToToggle.Contains(mod.GetName()))
-                    {
-                        color = Color.Green;
-                        break;
-                    }
-                    color = Color.Gray;
+            case ModStatus.Disabled:
+                if (ModsToToggle.Contains(mod.GetName()))
+                {
+                    color = Color.Green;
                     break;
+                }
+                color = Color.Gray;
+                break;
 
-                default:
-                    color = Color.Orange;
-                    break;
+            default:
+                color = Color.Orange;
+                break;
             }
             font.DrawString(Renderer.spriteBatch, $"{i}. {mod.GetName()}", pos, color);
             pos.Y += 16;

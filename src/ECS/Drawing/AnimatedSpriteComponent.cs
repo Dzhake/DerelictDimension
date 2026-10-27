@@ -17,7 +17,7 @@ public record struct AnimatedSpriteComponent : IComponent
     /// <summary>
     /// Time (in seconds) between frames.
     /// </summary>
-    public float TimeBetweenFrames;
+    public float TimeBetweenFrames = 1f;
 
     public float EffectiveTimeBetweenFrames => TimeBetweenFrames / AnimationSpeedMultiplier;
 
@@ -29,10 +29,19 @@ public record struct AnimatedSpriteComponent : IComponent
     public string BaseTexturePath;
     public bool InvalidateTexture = true;
 
+    public AnimatedSpriteComponent() { }
+
     public AnimatedSpriteComponent(string baseTexturePath, int[] frames, float timeBetweenFrames = 1f)
     {
         BaseTexturePath = baseTexturePath;
         Frames = frames;
         TimeBetweenFrames = timeBetweenFrames;
+    }
+
+    public void Reset()
+    {
+        FrameNumber = 0;
+        FrameRemainder = 0;
+        InvalidateTexture = true;
     }
 }

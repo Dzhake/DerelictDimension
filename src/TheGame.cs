@@ -6,7 +6,6 @@ using DerelictDimension.ECS.Prefabs;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
 using Friflo.EcGui;
-using Microsoft.Xna.Framework.Audio;
 using MLEM.Extended.Font;
 using MLEM.Font;
 using Monod;
@@ -19,6 +18,7 @@ using Monod.Graphics.Settings;
 using Monod.InputModule;
 using Monod.ModsModule;
 using Monod.Utils.Extensions;
+using SoLoud;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -53,8 +53,8 @@ public class TheGame : MonodGame
     public static Entity entity;
     public static float WantedFPS = 60;
 
-    public SoundEffectInstance? LightPiano;
-    public SoundEffectInstance? DarkPiano;
+    public Wav? LightPiano;
+    public Wav? DarkPiano;
 
 
 
@@ -96,6 +96,7 @@ public class TheGame : MonodGame
 
         Renderer.deviceManager.PreferMultiSampling = true;
         Assets.OnLoad += LoadFont;
+        Assets.OnLoad += OnAssetsLoaded;
         InitWorld();
     }
 
@@ -162,16 +163,13 @@ public class TheGame : MonodGame
 
     public void OnAssetsLoaded()
     {
-        LightPiano?.Dispose();
-        DarkPiano?.Dispose();
+        LightPiano = Assets.Get<Wav>("Audio/LightPiano");
+        LightPiano.setLooping(1);
+        soloud.play(LightPiano);
 
-        LightPiano = Assets.Get<SoundEffect>("Audio/LightPiano").CreateInstance();
-        LightPiano.IsLooped = true;
-        LightPiano.Play();
-
-        DarkPiano = Assets.Get<SoundEffect>("Audio/DarkPiano").CreateInstance();
-        DarkPiano.IsLooped = true;
-        DarkPiano.Play();
+        DarkPiano = Assets.Get<Wav>("Audio/DarkPiano");
+        DarkPiano.setLooping(1);
+        soloud.play(DarkPiano);
     }
 
     ///<inheritdoc/>

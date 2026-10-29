@@ -43,20 +43,22 @@ public static class Program
     /// </summary>
     public static void Main()
     {
-        //assuming debug configuration is launched with the debugger, which works better when the exception is not caught.
-#if RELEASE
-        try
+        if (Debugger.IsAttached)
         {
-#endif
-        SafeMain();
-#if RELEASE
+            SafeMain();
         }
-        catch (Exception exception)
+        else
         {
-            Crash(exception);
-            Environment.Exit(1);
+            try
+            {
+                SafeMain();
+            }
+            catch (Exception exception)
+            {
+                Crash(exception);
+                Environment.Exit(1);
+            }
         }
-#endif
     }
 
     /// <summary>
@@ -159,11 +161,11 @@ public static class Program
             string? command = await Console.In.ReadLineAsync();
             switch (command)
             {
-                case null:
-                    continue;
-                case "exit":
-                    Environment.Exit(0);
-                    break;
+            case null:
+                continue;
+            case "exit":
+                Environment.Exit(0);
+                break;
             }
 
             DevConsole.CommandsQueue.Enqueue(command);

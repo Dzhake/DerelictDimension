@@ -6,6 +6,7 @@ using DerelictDimension.ECS.Prefabs;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
 using Friflo.EcGui;
+using Microsoft.Xna.Framework.Audio;
 using MLEM.Extended.Font;
 using MLEM.Font;
 using Monod;
@@ -52,6 +53,10 @@ public class TheGame : MonodGame
     public static Entity entity;
     public static float WantedFPS = 60;
 
+    public SoundEffectInstance? LightPiano;
+    public SoundEffectInstance? DarkPiano;
+
+
 
     /// <summary>
     /// Creates a new <see cref="TheGame"/>.
@@ -90,8 +95,7 @@ public class TheGame : MonodGame
         base.LoadContent();
 
         Renderer.deviceManager.PreferMultiSampling = true;
-        //Renderer.DefaultBlendState = Renderer.NonPremultipliedBlend;
-        Assets.OnReload += LoadFont;
+        Assets.OnLoad += LoadFont;
         InitWorld();
     }
 
@@ -154,6 +158,20 @@ public class TheGame : MonodGame
         InitWorld();
         Rewind.RecordedComponents.Clear();
         Rewind.CurrentFrame = 0;
+    }
+
+    public void OnAssetsLoaded()
+    {
+        LightPiano?.Dispose();
+        DarkPiano?.Dispose();
+
+        LightPiano = Assets.Get<SoundEffect>("Audio/LightPiano").CreateInstance();
+        LightPiano.IsLooped = true;
+        LightPiano.Play();
+
+        DarkPiano = Assets.Get<SoundEffect>("Audio/DarkPiano").CreateInstance();
+        DarkPiano.IsLooped = true;
+        DarkPiano.Play();
     }
 
     ///<inheritdoc/>

@@ -114,6 +114,7 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
     private void GetDrawArgs(ref Sprite2D sprite, ref Entity entity, ref EntityData data, out Vector2 position, out float rotation, out Vector2 scale, out float depth, out Vector2 origin)
     {
         position = entity.GetWorldPos(out rotation);
+        rotation += sprite.Rotation;
         ref var transform = ref data.Ensure<Transform2D>(CommandBuffer);
         scale = transform.Scale;
 

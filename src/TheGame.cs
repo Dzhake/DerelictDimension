@@ -141,6 +141,7 @@ public class TheGame : MonodGame
         LogicSystemRoot.Add(new PhysicsSystem());
         LogicSystemRoot.Add(new ParentVelocityDirSystem());
         LogicSystemRoot.Add(new LegsSystem());
+        LogicSystemRoot.Add(new BodySystem());
         LogicSystemRoot.Add(new LookAtMouseSystem());
 
         LogicSystemRoot.Add(new AnimatedSpriteSystem());

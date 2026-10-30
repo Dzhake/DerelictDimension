@@ -63,9 +63,10 @@ public sealed class PhysicsSystem : BaseSystem
         SynchronizeEcs();
         cb.Playback();
 
+        ResolveEvents();
+
         UnsetDirty();
     }
-
 
     private void EnsureWorld()
     {
@@ -158,11 +159,11 @@ public sealed class PhysicsSystem : BaseSystem
             if (validShape)
             {
                 b2Shape_SetPolygon(physicsShape.ShapeId, ref polygon);
+                UpdateExistingShape(ref physicsShape, ref hitbox);
             }
             else
             {
-                var shapeDef = b2DefaultShapeDef();
-                physicsShape.ApplyTo(ref shapeDef);
+                var shapeDef = CreateShapeDef(ref physicsShape, ref hitbox);
                 physicsShape.ShapeId = b2CreatePolygonShape(physicsBody.BodyId, in shapeDef, in polygon);
             }
             break;
@@ -175,11 +176,11 @@ public sealed class PhysicsSystem : BaseSystem
             if (validShape)
             {
                 b2Shape_SetCapsule(physicsShape.ShapeId, in capsule);
+                UpdateExistingShape(ref physicsShape, ref hitbox);
             }
             else
             {
-                var shapeDef = b2DefaultShapeDef();
-                physicsShape.ApplyTo(ref shapeDef);
+                B2ShapeDef shapeDef = CreateShapeDef(ref physicsShape, ref hitbox);
                 physicsShape.ShapeId = b2CreateCapsuleShape(physicsBody.BodyId, in shapeDef, in capsule);
             }
             break;
@@ -189,6 +190,18 @@ public sealed class PhysicsSystem : BaseSystem
         }
 
         b2Body_SetAwake(physicsBody.BodyId, true);
+    }
+
+    private static void UpdateExistingShape(ref PhysicsShapeComponent physicsShape, ref HitboxComponent hitbox)
+    {
+        b2Shape_EnableSensorEvents(physicsShape.ShapeId, hitbox.Collidable);
+    }
+    private static B2ShapeDef CreateShapeDef(ref PhysicsShapeComponent physicsShape, ref HitboxComponent hitbox)
+    {
+        var shapeDef = b2DefaultShapeDef();
+        physicsShape.ApplyTo(ref shapeDef);
+        shapeDef.enableSensorEvents = hitbox.Collidable;
+        return shapeDef;
     }
 
     private void SynchronizeEcs()
@@ -226,4 +239,9 @@ public sealed class PhysicsSystem : BaseSystem
     private void UnsetPhysicsBodyDirty(ref PhysicsBodyComponent physicsBody, Entity entity) => physicsBody.PhysicsDirty = false;
 
 
+    private void ResolveEvents()
+    {
+        //var sensorEvents = b2World_GetSensorEvents(Physics.WorldId);
+        //sensorEvents.beginEvents
+    }
 }

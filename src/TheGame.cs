@@ -14,7 +14,6 @@ using Monod.ECS.DefaultComponents;
 using Monod.Graphics;
 using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
-using Monod.Graphics.Settings;
 using Monod.InputModule;
 using Monod.ModsModule;
 using Monod.Utils.Extensions;
@@ -55,6 +54,8 @@ public class TheGame : MonodGame
 
     public Wav? LightPiano;
     public Wav? DarkPiano;
+    public uint LightPianoH;
+    public uint DarkPianoH;
 
 
 
@@ -88,8 +89,6 @@ public class TheGame : MonodGame
     protected override void LoadContent()
     {
         MainAssetManager.LoadAsset("Fonts/m6x11plus.ttf");
-        MainAssetManager.LoadAsset("Prefabs/MonstarCannon.prefab.json");
-        MainAssetManager.LoadAsset("Prefabs/Platform.prefab.json");
 
         LoadFont();
         base.LoadContent();
@@ -165,11 +164,11 @@ public class TheGame : MonodGame
     {
         LightPiano = Assets.Get<Wav>("Audio/LightPiano");
         LightPiano.setLooping(1);
-        soloud.play(LightPiano);
+        LightPianoH = soloud.play(LightPiano);
 
         DarkPiano = Assets.Get<Wav>("Audio/DarkPiano");
         DarkPiano.setLooping(1);
-        soloud.play(DarkPiano);
+        DarkPianoH = soloud.play(DarkPiano);
     }
 
     ///<inheritdoc/>
@@ -215,8 +214,8 @@ public class TheGame : MonodGame
 
         if (Input.KeyPressed(Key.M))
         {
-            GraphicsSettings.VSync = !GraphicsSettings.VSync;
-            GraphicsSettings.ApplyVSync();
+            var lightPianoVol = soloud.getVolume(LightPianoH);
+            soloud.fadeVolume(LightPianoH, 1 - lightPianoVol, 0.5);
         }
 
         Rebind?.Update();

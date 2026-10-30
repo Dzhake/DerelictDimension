@@ -1,4 +1,5 @@
 ﻿using DerelictDimension.ECS.Drawing;
+using DerelictDimension.ECS.PhysicsModule.Components;
 using Friflo.Engine.ECS.Systems;
 using Monod.Graphics.ECS.Sprite;
 using Monod.InputModule;
@@ -26,12 +27,16 @@ public class KickLegSystem : QuerySystem<KickLegComponent>
     private void UpdateKickLeg(ref KickLegComponent kickLeg, Entity entity)
     {
         float dt = Time.DeltaTime;
+        ref var kickLegHitbox = ref entity.Data.Ensure<HitboxComponent>(CommandBuffer);
 
         if (kickLeg.KickTimeRemaining > dt)
         {
+            kickLegHitbox.Collidable = true;
             kickLeg.KickTimeRemaining -= dt;
             return;
         }
+
+        kickLegHitbox.Collidable = false;
 
         if (kickLeg.KickCooldownRemaining > dt)
         {

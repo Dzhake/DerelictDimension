@@ -165,11 +165,11 @@ public class TheGame : MonodGame
     {
         LightPiano = Assets.Get<Wav>("Audio/LightPiano");
         LightPiano.setLooping(1);
-        LightPianoH = soloud.play(LightPiano);
+        //LightPianoH = soloud.play(LightPiano);
 
         DarkPiano = Assets.Get<Wav>("Audio/DarkPiano");
         DarkPiano.setLooping(1);
-        DarkPianoH = soloud.play(DarkPiano);
+        //DarkPianoH = soloud.play(DarkPiano);
     }
 
     ///<inheritdoc/>

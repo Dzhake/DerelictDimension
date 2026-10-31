@@ -1,9 +1,10 @@
 ﻿using Box2D.NET;
+using DerelictDimension.Utils;
 using Friflo.Json.Fliox;
 
 namespace DerelictDimension.ECS.PhysicsModule.Components;
 
-public record struct PhysicsShapeComponent : IComponent
+public record struct PhysicsShapeComponent : IAutoIndexedComponent<PhysicsShapeComponent, B2ShapeId>
 {
     public float Density = 1f;
     public float Friction = 0.6f;
@@ -11,7 +12,11 @@ public record struct PhysicsShapeComponent : IComponent
     public bool IsSensor;
 
     [Ignore]
-    public B2ShapeId ShapeId;
+    private B2ShapeId shapeId;
+    /// <summary>
+    /// Get <see cref="B2ShapeId"/> associated with this shape. Use <see cref="IAutoIndexedComponentExt.SetIndexedValue"/> to set this value.
+    /// </summary>
+    public readonly B2ShapeId ShapeId => shapeId;
 
     public PhysicsShapeComponent() { }
 
@@ -23,11 +28,17 @@ public record struct PhysicsShapeComponent : IComponent
         IsSensor = isSensor;
     }
 
-    public void ApplyTo(ref B2ShapeDef shapeDef)
+    public readonly void ApplyTo(ref B2ShapeDef shapeDef)
     {
         shapeDef.density = Density;
         shapeDef.material.friction = Friction;
         shapeDef.material.restitution = Restitution;
         shapeDef.isSensor = IsSensor;
     }
+
+    ///<inheritdoc/>
+    public readonly B2ShapeId GetIndexedValue() => shapeId;
+
+    ///<inheritdoc/>
+    public void SetIndexedValueDIRECTLY(B2ShapeId value) => shapeId = value;
 }

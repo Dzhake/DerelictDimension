@@ -1,5 +1,6 @@
 ﻿using Box2D.NET;
 using DerelictDimension.ECS.PhysicsModule.Components;
+using DerelictDimension.Utils;
 using DerelictDimension.Utils.Extensions;
 using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
@@ -23,7 +24,8 @@ public sealed class PhysicsSystem : BaseSystem
     public ArchetypeQuery<HitboxComponent> HitboxQuery;
     public ArchetypeQuery<Transform2D> TransformQuery;
 
-
+    public ComponentIndex<PhysicsShapeComponent, B2ShapeId> ShapesIndex;
+    public ComponentIndex<PhysicsBodyComponent, B2BodyId> BodiesIndex;
 
     /// <summary>
     /// Currently used only temporarly because i'm not sure whether it's safe to store this between frames/b2 step calls/something else.
@@ -34,10 +36,14 @@ public sealed class PhysicsSystem : BaseSystem
     protected override void OnAddStore(EntityStore store)
     {
         base.OnAddStore(store);
+
         PhysicsBodyQuery = store.Query<PhysicsBodyComponent>();
         PhysicsShapeQuery = store.Query<PhysicsShapeComponent>();
         TransformQuery = store.Query<Transform2D>();
         HitboxQuery = store.Query<HitboxComponent>();
+
+        ShapesIndex = store.ComponentIndex<PhysicsShapeComponent, B2ShapeId>();
+        BodiesIndex = store.ComponentIndex<PhysicsBodyComponent, B2BodyId>();
 
         cb = store.GetCommandBuffer();
         cb.ReuseBuffer = true;
@@ -92,7 +98,7 @@ public sealed class PhysicsSystem : BaseSystem
 
         if (!b2Body_IsValid(physicsBody.BodyId))
         {
-            physicsBody.BodyId = CreateBody(ref physicsBody, ref entity);
+            physicsBody.SetIndexedValue(in entity, CreateBody(ref physicsBody, ref entity), in BodiesIndex);
             return;
         }
 
@@ -164,7 +170,7 @@ public sealed class PhysicsSystem : BaseSystem
             else
             {
                 var shapeDef = CreateShapeDef(ref physicsShape, ref hitbox);
-                physicsShape.ShapeId = b2CreatePolygonShape(physicsBody.BodyId, in shapeDef, in polygon);
+                physicsShape.SetIndexedValue(in entity, b2CreatePolygonShape(physicsBody.BodyId, in shapeDef, in polygon), in ShapesIndex);
             }
             break;
         case HitboxType.Capsule:
@@ -181,7 +187,7 @@ public sealed class PhysicsSystem : BaseSystem
             else
             {
                 B2ShapeDef shapeDef = CreateShapeDef(ref physicsShape, ref hitbox);
-                physicsShape.ShapeId = b2CreateCapsuleShape(physicsBody.BodyId, in shapeDef, in capsule);
+                physicsShape.SetIndexedValue(in entity, b2CreateCapsuleShape(physicsBody.BodyId, in shapeDef, in capsule), in ShapesIndex);
             }
             break;
         default:
@@ -241,7 +247,16 @@ public sealed class PhysicsSystem : BaseSystem
 
     private void ResolveEvents()
     {
-        //var sensorEvents = b2World_GetSensorEvents(Physics.WorldId);
-        //sensorEvents.beginEvents
+        var sensorEvents = b2World_GetSensorEvents(Physics.WorldId);
+        foreach (var e in sensorEvents.beginEvents)
+        {
+            var sensorEntities = ShapesIndex[e.sensorShapeId];
+            if (sensorEntities.Count == 0) continue;
+            var sensorEntity = sensorEntities[0];
+            var visitorEntities = ShapesIndex[e.visitorShapeId];
+            if (visitorEntities.Count == 0) continue;
+            var visitorEntity = visitorEntities[0];
+            Log.Information("Sensor event, sensor: {SensorId}, visitor: {VisitorId}", sensorEntity.Id, visitorEntity.Id);
+        }
     }
 }

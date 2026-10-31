@@ -1,4 +1,5 @@
 ﻿using Box2D.NET;
+using DerelictDimension.ECS.Ai;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using DerelictDimension.Utils;
 using DerelictDimension.Utils.Extensions;
@@ -135,11 +136,17 @@ public sealed class PhysicsSystem : BaseSystem
         var data = entity.Data;
         ref var hitbox = ref data.Ensure<HitboxComponent>(cb);
         bool validShape = b2Shape_IsValid(physicsShape.ShapeId);
+        if (validShape && physicsShape.PhysicsDirty)
+        {
+            b2DestroyShape(physicsShape.ShapeId, true);
+            validShape = false;
+        }
+
         bool hasTransform = data.Has<Transform2D>();
         ref var transform = ref (hasTransform ? ref data.Get<Transform2D>() : ref Unsafe.NullRef<Transform2D>());
 
         if (validShape && (!hasTransform || !transform.PhysicsDirty) && !hitbox.PhysicsDirty) return;
-        Entity bodyEntity = entity.GetFirstEntityWithComp<PhysicsBodyComponent>();
+        var bodyEntity = entity.GetFirstEntityWithComp<PhysicsBodyComponent>();
         if (bodyEntity.IsNull) return;
 
         var bodyData = bodyEntity.Data;
@@ -149,7 +156,7 @@ public sealed class PhysicsSystem : BaseSystem
         var position = entity.GetWorldPos(out float rotation);
 
         var relativePos = hitbox.Rect.Center + position - bodyPos;
-        var relativeRot = rotation - bodyRot;
+        float relativeRot = rotation - bodyRot;
         relativePos.Rotate(rotation - bodyRot);
 
         switch (hitbox.Type)
@@ -183,7 +190,7 @@ public sealed class PhysicsSystem : BaseSystem
             }
             else
             {
-                B2ShapeDef shapeDef = CreateShapeDef(ref physicsShape, ref hitbox);
+                var shapeDef = CreateShapeDef(ref physicsShape, ref hitbox);
                 physicsShape.SetIndexedValue(in entity, b2CreateCapsuleShape(physicsBody.BodyId, in shapeDef, in capsule), in ShapesIndex);
             }
             break;
@@ -218,7 +225,7 @@ public sealed class PhysicsSystem : BaseSystem
         var data = entity.Data;
         ref var transform = ref data.Ensure<Transform2D>(cb);
 
-        B2Transform b2transform = b2Body_GetTransform(physicsBody.BodyId);
+        var b2transform = b2Body_GetTransform(physicsBody.BodyId);
         transform.Position = b2transform.p.ToXNA() - entity.GetParentPos(out float parentRotation);
         transform.Rotation = b2Rot_GetAngle(b2transform.q) - parentRotation;
 
@@ -234,11 +241,13 @@ public sealed class PhysicsSystem : BaseSystem
         TransformQuery.ForEachEntity(UnsetTransformDirty);
         HitboxQuery.ForEachEntity(UnsetHitboxDirty);
         PhysicsBodyQuery.ForEachEntity(UnsetPhysicsBodyDirty);
+        PhysicsShapeQuery.ForEachEntity(UnsetPhysicsShapeDirty);
     }
 
     private void UnsetTransformDirty(ref Transform2D transform, Entity entity) => transform.PhysicsDirty = false;
     private void UnsetHitboxDirty(ref HitboxComponent hitbox, Entity entity) => hitbox.PhysicsDirty = false;
     private void UnsetPhysicsBodyDirty(ref PhysicsBodyComponent physicsBody, Entity entity) => physicsBody.PhysicsDirty = false;
+    private void UnsetPhysicsShapeDirty(ref PhysicsShapeComponent physicsShape, Entity entity) => physicsShape.PhysicsDirty = false;
 
 
     private void ResolveEvents()
@@ -262,6 +271,11 @@ public sealed class PhysicsSystem : BaseSystem
 
     private void HandleCollision(Entity sensorEntity, Entity visitorEntity)
     {
-
+        var sensorData = sensorEntity.Data;
+        var visitorData = visitorEntity.Data;
+        if (visitorData.Has<BodyComponent>() && sensorData.Has<DamagerComponent>())
+        {
+            visitorEntity.AddRelation(new DamageRelation(sensorEntity));
+        }
     }
 }

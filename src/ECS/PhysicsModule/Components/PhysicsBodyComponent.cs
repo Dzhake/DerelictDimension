@@ -4,7 +4,7 @@ using Friflo.Json.Fliox;
 
 namespace DerelictDimension.ECS.PhysicsModule.Components;
 
-public record struct PhysicsBodyComponent : IAutoIndexedComponent<PhysicsBodyComponent,B2BodyId>
+public record struct PhysicsBodyComponent : IAutoIndexedComponent<PhysicsBodyComponent, B2BodyId>
 {
     public B2BodyType Type;
 

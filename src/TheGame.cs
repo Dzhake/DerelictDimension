@@ -104,9 +104,11 @@ public class TheGame : MonodGame
         ClearStore();
 
         var player = CodePrefabs.CreateHuman(new(3, 1), 0, "Sprites/Player/", out var body, out _, out var leftLeg, out _);
+        player.Name.value = "Player";
         player.AddComponent(new PlayerAi());
         body.AddTag<LookAtMouseTag>();
-        Entity kickLeg = Store.CreateEntity(new EntityName("Kick leg"), new PhysicsShapeComponent(isSensor: true), new HitboxComponent(new OrientedRect(-.14f, -.28f, .14f, .38f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/leg_kick", [0, 1, 2, 1], timeBetweenFrames: 0.1f), new Transform2D(), new RenderDepth(0.25f));
+        body.GetComponent<PhysicsShapeComponent>().CollisionCategories = CollisionLayer.Player;
+        var kickLeg = Store.CreateEntity(new EntityName("Kick leg"), new PhysicsShapeComponent(isSensor: true, categories: CollisionLayer.PlayerAttacks, mask: CollisionLayer.Walls | CollisionLayer.Enemy | CollisionLayer.EnemyAttacks), new HitboxComponent(new OrientedRect(-.14f, -.28f, .14f, .38f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/leg_kick", [0, 1, 2, 1], timeBetweenFrames: 0.1f), new Transform2D(), new RenderDepth(0.25f), new DamagerComponent());
         body.AddChild(kickLeg);
 
         CodePrefabs.CreateHuman(new(3, 2), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
@@ -114,8 +116,8 @@ public class TheGame : MonodGame
         CodePrefabs.CreateHuman(new(4, 3), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
 
 
-        Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 2.55f, 1)), new PhysicsShapeComponent());
-        Store.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 0.3f, 2)), new PhysicsShapeComponent());
+        Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 2.55f, 1)), new PhysicsShapeComponent(categories: CollisionLayer.Walls));
+        Store.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 0.3f, 2)), new PhysicsShapeComponent(categories: CollisionLayer.Walls));
         //var json = entitySerializer.WriteEntity(entity);
         //Log.Information($"\n{json}");
 
@@ -139,10 +141,13 @@ public class TheGame : MonodGame
         LogicSystemRoot.Add(new PlayerAiSystem());
         LogicSystemRoot.Add(new KickLegSystem());
         LogicSystemRoot.Add(new PhysicsSystem());
+        LogicSystemRoot.Add(new DamageSystem());
         LogicSystemRoot.Add(new ParentVelocityDirSystem());
         LogicSystemRoot.Add(new LegsSystem());
         LogicSystemRoot.Add(new BodySystem());
         LogicSystemRoot.Add(new LookAtMouseSystem());
+
+        LogicSystemRoot.Add(new DamageCleaupSystem());
 
         LogicSystemRoot.Add(new AnimatedSpriteSystem());
         LogicSystemRoot.Add(new UpdateSpriteSystem());
@@ -176,7 +181,7 @@ public class TheGame : MonodGame
     protected static void LoadFont()
     {
         FontSystem defaultFontSystem = new();
-        var font = Assets.Get<byte[]>("Fonts/m6x11plus");
+        byte[] font = Assets.Get<byte[]>("Fonts/m6x11plus");
         defaultFontSystem.AddFont(font);
         GlobalFonts.MenuFont = new GenericStashFont(defaultFontSystem.GetFont(18));
         GlobalFonts.ShapeMenuFont = new(font);
@@ -215,7 +220,7 @@ public class TheGame : MonodGame
 
         if (Input.KeyPressed(Key.M))
         {
-            var lightPianoVol = soloud.getVolume(LightPianoH);
+            float lightPianoVol = soloud.getVolume(LightPianoH);
             soloud.fadeVolume(LightPianoH, 1 - lightPianoVol, 0.5);
         }
 

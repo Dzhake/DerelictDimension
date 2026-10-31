@@ -27,10 +27,6 @@ public sealed class PhysicsSystem : BaseSystem
     public ComponentIndex<PhysicsShapeComponent, B2ShapeId> ShapesIndex;
     public ComponentIndex<PhysicsBodyComponent, B2BodyId> BodiesIndex;
 
-    /// <summary>
-    /// Currently used only temporarly because i'm not sure whether it's safe to store this between frames/b2 step calls/something else.
-    /// </summary>
-    public static B2World? World;
     public CommandBuffer cb;
 
     protected override void OnAddStore(EntityStore store)
@@ -148,12 +144,13 @@ public sealed class PhysicsSystem : BaseSystem
 
         var bodyData = bodyEntity.Data;
         ref var physicsBody = ref bodyData.Get<PhysicsBodyComponent>();
+
         var bodyPos = bodyEntity.GetWorldPos(out float bodyRot);
         var position = entity.GetWorldPos(out float rotation);
-        var relativePos = hitbox.Rect.Center;
-        relativePos.Rotate(rotation - bodyRot);
-        relativePos += position - bodyPos;
+
+        var relativePos = hitbox.Rect.Center + position - bodyPos;
         var relativeRot = rotation - bodyRot;
+        relativePos.Rotate(rotation - bodyRot);
 
         switch (hitbox.Type)
         {
@@ -213,19 +210,17 @@ public sealed class PhysicsSystem : BaseSystem
 
     private void SynchronizeEcs()
     {
-        World = b2GetWorldFromId(Physics.WorldId);
         PhysicsBodyQuery.ForEachEntity(SynchronizeBodyToEcs);
     }
 
     private void SynchronizeBodyToEcs(ref PhysicsBodyComponent physicsBody, Entity entity)
     {
         var data = entity.Data;
-        ref var hitbox = ref data.Ensure<HitboxComponent>(cb);
         ref var transform = ref data.Ensure<Transform2D>(cb);
 
-        B2Transform b2transform = b2GetBodyTransform(World, physicsBody.BodyId.index1 - 1);
-        transform.Position = b2transform.p.ToXNA() - hitbox.Rect.Center - entity.GetParentPos(out float rotation);
-        transform.Rotation = b2Rot_GetAngle(b2transform.q) - hitbox.Rect.Angle - rotation;
+        B2Transform b2transform = b2Body_GetTransform(physicsBody.BodyId);
+        transform.Position = b2transform.p.ToXNA() - entity.GetParentPos(out float parentRotation);
+        transform.Rotation = b2Rot_GetAngle(b2transform.q) - parentRotation;
 
         physicsBody.LinearVelocity = b2Body_GetLinearVelocity(physicsBody.BodyId).ToXNA();
         physicsBody.AngularVelocity = b2Body_GetAngularVelocity(physicsBody.BodyId);
@@ -249,16 +244,24 @@ public sealed class PhysicsSystem : BaseSystem
     private void ResolveEvents()
     {
         var sensorEvents = b2World_GetSensorEvents(Physics.WorldId);
-        foreach (var e in sensorEvents.beginEvents)
+
+        for (int i = 0; i < sensorEvents.beginCount; i++)
         {
+            var e = sensorEvents.beginEvents[i];
             var sensorEntities = ShapesIndex[e.sensorShapeId];
             if (sensorEntities.Count == 0) continue;
             var sensorEntity = sensorEntities[0];
             var visitorEntities = ShapesIndex[e.visitorShapeId];
             if (visitorEntities.Count == 0) continue;
             var visitorEntity = visitorEntities[0];
-            Log.Information("Sensor event, sensor: {SensorId}, visitor: {VisitorId}", sensorEntity.Id, visitorEntity.Id);
+
+            HandleCollision(sensorEntity, visitorEntity);
         }
+
+    }
+
+    private void HandleCollision(Entity sensorEntity, Entity visitorEntity)
+    {
 
     }
 }

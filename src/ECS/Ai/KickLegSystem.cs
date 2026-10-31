@@ -31,12 +31,20 @@ public class KickLegSystem : QuerySystem<KickLegComponent>
 
         if (kickLeg.KickTimeRemaining > dt)
         {
-            kickLegHitbox.Collidable = true;
+            if (!kickLegHitbox.Collidable)
+            {
+                kickLegHitbox.Collidable = true;
+                kickLegHitbox.PhysicsDirty = true;
+            }
             kickLeg.KickTimeRemaining -= dt;
             return;
         }
 
-        kickLegHitbox.Collidable = false;
+        if (kickLegHitbox.Collidable)
+        {
+            kickLegHitbox.Collidable = false;
+            kickLegHitbox.PhysicsDirty = true;
+        }
 
         if (kickLeg.KickCooldownRemaining > dt)
         {

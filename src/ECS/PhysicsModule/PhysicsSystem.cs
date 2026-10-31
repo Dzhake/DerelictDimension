@@ -202,6 +202,7 @@ public sealed class PhysicsSystem : BaseSystem
     {
         b2Shape_EnableSensorEvents(physicsShape.ShapeId, hitbox.Collidable);
     }
+
     private static B2ShapeDef CreateShapeDef(ref PhysicsShapeComponent physicsShape, ref HitboxComponent hitbox)
     {
         var shapeDef = b2DefaultShapeDef();
@@ -258,5 +259,6 @@ public sealed class PhysicsSystem : BaseSystem
             var visitorEntity = visitorEntities[0];
             Log.Information("Sensor event, sensor: {SensorId}, visitor: {VisitorId}", sensorEntity.Id, visitorEntity.Id);
         }
+
     }
 }

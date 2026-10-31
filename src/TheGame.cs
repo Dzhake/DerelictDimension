@@ -106,7 +106,7 @@ public class TheGame : MonodGame
         var player = CodePrefabs.CreateHuman(new(3, 1), 0, "Sprites/Player/", out var body, out _, out var leftLeg, out _);
         player.AddComponent(new PlayerAi());
         body.AddTag<LookAtMouseTag>();
-        Entity kickLeg = Store.CreateEntity(new PhysicsShapeComponent(isSensor: true), new HitboxComponent(new OrientedRect(-.14f, -.28f, .14f, .38f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/leg_kick", [0, 1, 2, 1], timeBetweenFrames: 0.1f), new Transform2D(), new RenderDepth(0.25f));
+        Entity kickLeg = Store.CreateEntity(new EntityName("Kick leg"), new PhysicsShapeComponent(isSensor: true), new HitboxComponent(new OrientedRect(-.14f, -.28f, .14f, .38f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/leg_kick", [0, 1, 2, 1], timeBetweenFrames: 0.1f), new Transform2D(), new RenderDepth(0.25f));
         body.AddChild(kickLeg);
 
         CodePrefabs.CreateHuman(new(3, 2), 0, "Sprites/Swordsman/", out _, out _, out _, out _);

@@ -13,19 +13,19 @@ public static class CodePrefabs
     {
         var store = TheGame.Store;
 
-        var entity = store.CreateEntity(new Transform2D(position, rotation: rotation), new MortalComponent(), new PhysicsBodyComponent(B2BodyType.b2_dynamicBody, fixedRotation: true));
+        var entity = store.CreateEntity(new EntityName("Human base"), new Transform2D(position, rotation: rotation), new MortalComponent(), new PhysicsBodyComponent(B2BodyType.b2_dynamicBody, fixedRotation: true));
 
-        body = store.CreateEntity(new AnimatedSpriteComponent($"{baseTexturePath}body", [0, 1]), new RenderDepth(0.2f), new HitboxComponent(new Capsule(new(-.25f, 0), new(.25f, 0), 0.1f)), new PhysicsShapeComponent(), new BodyComponent());
+        body = store.CreateEntity(new EntityName("Body"), new AnimatedSpriteComponent($"{baseTexturePath}body", [0, 1]), new RenderDepth(0.2f), new HitboxComponent(new Capsule(new(-.25f, 0), new(.25f, 0), 0.1f)), new PhysicsShapeComponent(), new BodyComponent());
         entity.AddChild(body);
 
-        head = store.CreateEntity(new HitboxComponent(new OrientedRect(0, 0, 0.22f, 0.37f)), new AnimatedSpriteComponent($"{baseTexturePath}head", [0, 1]), new RenderDepth(0.1f), new PhysicsShapeComponent(isSensor: true));
+        head = store.CreateEntity(new EntityName("Head"), new AnimatedSpriteComponent($"{baseTexturePath}head", [0, 1]), new RenderDepth(0.1f));
         body.AddChild(head);
 
 
-        leftLeg = store.CreateEntity(new AnimatedSpriteComponent($"{baseTexturePath}left_leg", [0, 1, 2, 1, 0, 3, 4, 3], 0.1f), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag, LegsTag>());
+        leftLeg = store.CreateEntity(new EntityName("Left leg"), new AnimatedSpriteComponent($"{baseTexturePath}left_leg", [0, 1, 2, 1, 0, 3, 4, 3], 0.1f), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag, LegsTag>());
         entity.AddChild(leftLeg);
 
-        rightLeg = store.CreateEntity(new AnimatedSpriteComponent($"{baseTexturePath}right_leg", [0, 1, 2, 1, 0, 3, 4, 3], 0.1f), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag, LegsTag>());
+        rightLeg = store.CreateEntity(new EntityName("Right leg"), new AnimatedSpriteComponent($"{baseTexturePath}right_leg", [0, 1, 2, 1, 0, 3, 4, 3], 0.1f), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag, LegsTag>());
         entity.AddChild(rightLeg);
 
         return entity;

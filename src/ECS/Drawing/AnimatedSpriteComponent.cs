@@ -1,11 +1,15 @@
-﻿namespace DerelictDimension.ECS.Drawing;
+﻿using Friflo.Json.Fliox;
+using Monod.Graphics.Animations;
+
+namespace DerelictDimension.ECS.Drawing;
 
 public record struct AnimatedSpriteComponent : IComponent
 {
-    /// <summary>
-    /// An array of frames in order, for example [1,2,2,3,2].
-    /// </summary>
-    public int[] Frames;
+    public string AnimId;
+
+    [Ignore]
+    public Animation? Anim;
+
     /// <summary>
     /// Current frame in <see cref="Frames"/>.
     /// </summary>
@@ -14,12 +18,8 @@ public record struct AnimatedSpriteComponent : IComponent
     /// Time since last frame switch.
     /// </summary>
     public float FrameRemainder;
-    /// <summary>
-    /// Time (in seconds) between frames.
-    /// </summary>
-    public float TimeBetweenFrames = 1f;
 
-    public float EffectiveTimeBetweenFrames => TimeBetweenFrames / AnimationSpeedMultiplier;
+    public readonly float EffectiveTimeBetweenFrames => (Anim?.TimeBetweenFrames ?? 1f) / AnimationSpeedMultiplier;
 
     /// <summary>
     /// Use when gameplay effects are affecting <see cref="TimeBetweenFrames"/>.
@@ -27,21 +27,30 @@ public record struct AnimatedSpriteComponent : IComponent
     public float AnimationSpeedMultiplier = 1;
 
     public string BaseTexturePath;
-    public bool InvalidateTexture = true;
+
+    [Ignore]
+    public bool InvalidateCurrentTexture = true;
 
     public AnimatedSpriteComponent() { }
 
-    public AnimatedSpriteComponent(string baseTexturePath, int[] frames, float timeBetweenFrames = 1f)
+    public AnimatedSpriteComponent(string baseTexturePath, string animId)
     {
         BaseTexturePath = baseTexturePath;
-        Frames = frames;
-        TimeBetweenFrames = timeBetweenFrames;
+        AnimId = animId;
     }
 
     public void Reset()
     {
         FrameNumber = 0;
         FrameRemainder = 0;
-        InvalidateTexture = true;
+        InvalidateCurrentTexture = true;
+    }
+
+    public void SetAnim(string animId)
+    {
+        if (animId == AnimId) return;
+        AnimId = animId;
+        Anim = null;
+        Reset();
     }
 }

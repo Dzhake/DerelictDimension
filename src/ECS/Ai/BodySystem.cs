@@ -29,15 +29,25 @@ public class BodySystem : QuerySystem<BodyComponent>
         float dt = Time.DeltaTime;
         foreach (var entity in Query.Entities)
         {
+            var data = entity.Data;
+            ref var body = ref data.Get<BodyComponent>();
+            ref var sprite = ref data.Ensure<Sprite2D>(cb);
+
+
             var parent = entity.Parent;
             if (parent.IsNull || !parent.HasComponent<PhysicsBodyComponent>()) continue;
 
-            var velocity = parent.GetComponent<PhysicsBodyComponent>().LinearVelocity;
+            var parentData = parent.Data;
+            if (parentData.Has<MortalComponent>() && parentData.Get<MortalComponent>().Dead)
+            {
+                sprite.Rotation -= body.Rotation;
+                body.Rotation = 0;
+                return;
+            }
+
+            var velocity = parentData.Get<PhysicsBodyComponent>().LinearVelocity;
             if (MathF.Abs(velocity.X) < 0.1f && MathF.Abs(velocity.Y) < 0.1f) continue;
 
-            var data = entity.Data;
-            ref var sprite = ref data.Ensure<Sprite2D>(cb);
-            ref var body = ref data.Get<BodyComponent>();
             float oldRotation = body.Rotation;
             body.TimeSinceStartingState = (body.TimeSinceStartingState + dt) % body.RotationTime;
             body.Rotation = MathF.Sin((float)(body.TimeSinceStartingState / body.RotationTime * MathF.PI * 2)) * body.MaxRotation;

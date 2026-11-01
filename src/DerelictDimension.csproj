@@ -69,6 +69,7 @@
 
 
     <ItemGroup>
+      <Folder Include="Content\Anims\" />
       <Folder Include="Content\Prefabs\" />
     </ItemGroup>
 

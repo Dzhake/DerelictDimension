@@ -3,9 +3,11 @@ using DerelictDimension.ECS.Links;
 using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using Friflo.Engine.ECS.Systems;
+using Monod.ECS.DefaultComponents;
 using Monod.MathModule;
 using Monod.Shared.Exceptions;
 using Monod.Utils.Extensions;
+using MonoGame.Extended;
 
 namespace DerelictDimension.ECS.Ai;
 
@@ -72,14 +74,22 @@ public class DamageSystem : BaseSystem
             cb.DeleteEntity(childId);
         }
 
+        foreach (int childId in body.ChildIds)
+        {
+            cb.DeleteEntity(childId);
+        }
+
         mortal.Dead = true;
         mortal.Hp = 0;
 
+        ref var victimTransform = ref victimBaseData.Ensure<Transform2D>(cb);
+        victimTransform.PhysicsDirty = true;
+        victimTransform.Rotation = direction.ToAngle();
         ref var physicsBody = ref victimBaseData.Ensure<PhysicsBodyComponent>(cb);
         physicsBody.LinearVelocity = direction * 5;
         physicsBody.PhysicsDirty = true;
         ref var bodyAnim = ref body.Data.Ensure<AnimatedSpriteComponent>(cb);
-        // TODO: bodyAnim.SetAnim(Animations.HumanDeath)
+        bodyAnim.SetAnim(Anims.HumanDeath);
         ref var bodyShape = ref body.Data.Ensure<PhysicsShapeComponent>(cb);
         bodyShape.CollisionMask &= CollisionLayer.Walls;
         bodyShape.PhysicsDirty = true;

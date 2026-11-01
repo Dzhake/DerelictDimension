@@ -1,0 +1,39 @@
+[
+    {
+        "Id": "HumanLeftLeg",
+        "Frames": "0-2-0,3,4,3",
+        "TimeBetweenFrames": 0.1,
+        "PathSuffix": "LeftLeg",
+    },
+    {
+        "Id": "HumanRightLeg",
+        "Frames": "0-2-0,3,4,3",
+        "TimeBetweenFrames": 0.1,
+        "PathSuffix": "RightLeg",
+    },
+    {
+        "Id": "HumanBodyBreathe",
+        "Frames": "0,1",
+        "TimeBetweenFrames": 1,
+        "PathSuffix": "Body",
+    },
+    {
+        "Id": "HumanHeadBreathe",
+        "Frames": "0,1",
+        "TimeBetweenFrames": 1,
+        "PathSuffix": "Head",
+    },
+    {
+        "Id": "HumanLegKick",
+        "Frames": "0-2-1",
+        "TimeBetweenFrames": 0.1,
+        "PathSuffix": "LegKick",
+    },
+    {
+        "Id": "HumanDeath",
+        "Frames": "0",
+        "TimeBetweenFrames": 0.1,
+        "PathSuffix": "Death",
+        "OnEnd": "Stop",
+    },
+]

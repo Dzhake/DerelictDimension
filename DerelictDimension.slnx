@@ -1,0 +1,82 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <BuildType Name="TasksDebug" />
+    <BuildType Name="TasksRelease" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path="../Monod/LICENSE.txt" />
+    <File Path="../Monod/README.md" />
+    <File Path="../Monod/src/.editorconfig" />
+    <File Path="../Monod/src/Analyzers.props" />
+    <File Path=".gitignore" />
+    <File Path="EXITCODES.txt" />
+    <File Path="LICENSE.txt" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="../Monod/src/EcGui/Friflo.EcGui.csproj">
+    <BuildType Solution="TasksDebug|*" Project="Release" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+    <Build Solution="TasksDebug|*" Project="false" />
+    <Build Solution="TasksRelease|*" Project="false" />
+  </Project>
+  <Project Path="../Monod/src/FileWatcherEx/Source/D2Phap.FileWatcherEx/D2Phap.FileWatcherEx.csproj">
+    <BuildType Solution="TasksDebug|*" Project="Debug" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+    <Build Solution="TasksDebug|*" Project="false" />
+    <Build Solution="TasksRelease|*" Project="false" />
+  </Project>
+  <Project Path="../Monod/src/Friflo.Engine.ECS/src/ECS.Boost/Friflo.Engine.ECS.Boost.csproj">
+    <BuildType Solution="TasksDebug|*" Project="Release" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+    <Build Solution="TasksDebug|*" Project="false" />
+    <Build Solution="TasksRelease|*" Project="false" />
+  </Project>
+  <Project Path="../Monod/src/Friflo.Engine.ECS/src/ECS/Friflo.Engine.ECS.csproj">
+    <BuildType Solution="TasksDebug|*" Project="Release" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+    <Build Solution="TasksDebug|*" Project="false" />
+    <Build Solution="TasksRelease|*" Project="false" />
+  </Project>
+  <Project Path="../Monod/src/Main/Monod.csproj">
+    <BuildType Solution="TasksDebug|*" Project="Debug" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+    <Build Solution="TasksDebug|*" Project="false" />
+    <Build Solution="TasksRelease|*" Project="false" />
+  </Project>
+  <Project Path="../Monod/src/Monod.Examples/Monod.Examples.csproj">
+    <BuildType Solution="TasksDebug|*" Project="Debug" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+    <Build Solution="TasksDebug|*" Project="false" />
+    <Build Solution="TasksRelease|*" Project="false" />
+  </Project>
+  <Project Path="../Monod/src/Monod.Tests/Monod.Tests.csproj">
+    <BuildType Solution="TasksDebug|*" Project="Debug" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+    <Build Solution="TasksDebug|*" Project="false" />
+    <Build Solution="TasksRelease|*" Project="false" />
+  </Project>
+  <Project Path="../Monod/src/MSBuildTasks/MSBuildTasks.csproj">
+    <BuildType Solution="TasksDebug|*" Project="Debug" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+    <Build Solution="Debug|*" Project="false" />
+    <Build Solution="Release|*" Project="false" />
+  </Project>
+  <Project Path="../Monod/src/SDL3-CS/SDL3/SDL3.Core.csproj">
+    <BuildType Solution="TasksDebug|*" Project="Debug" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+    <Build Solution="TasksDebug|*" Project="false" />
+    <Build Solution="TasksRelease|*" Project="false" />
+  </Project>
+  <Project Path="Box2D.NET/src/Box2D.NET/Box2D.NET.csproj">
+    <BuildType Solution="TasksDebug|*" Project="Release" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+  </Project>
+  <Project Path="src/DerelictDimension.csproj">
+    <BuildType Solution="TasksDebug|*" Project="Debug" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+    <Build Solution="TasksDebug|*" Project="false" />
+    <Build Solution="TasksRelease|*" Project="false" />
+  </Project>
+</Solution>

@@ -51,8 +51,7 @@
 
     <ItemGroup>
         <!--  Monod repo clone next to DerelictDimension repo  -->
-        <!-- Build tasks project before this one -->
-        <!--ProjectReference Include="../../Monod/src/MSBuildTasks/MSBuildTasks.csproj" /-->
+        <!-- Build in the TasksDebug/Release configuration first, then in normal Debug/Release -->
         <ProjectReference Include="../../Monod/src/Main/Monod.csproj" />
         <ProjectReference Include="../Box2D.NET/src/Box2D.NET/Box2D.NET.csproj" />
 
@@ -66,13 +65,6 @@
         <!-- Native libraries -->
         <Content Include="$(NativeLibsDir)**" CopyToOutputDirectory="PreserveNewest" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
-
-
-    <ItemGroup>
-      <Folder Include="Content\Anims\" />
-      <Folder Include="Content\Prefabs\" />
-    </ItemGroup>
-
 
     <ItemGroup>
       <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" Version="18.12.1" />

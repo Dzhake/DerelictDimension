@@ -36,12 +36,11 @@ public class AnimatedSpriteSystem : QuerySystem<AnimatedSpriteComponent>
             animSprite.FrameRemainder %= animSprite.EffectiveTimeBetweenFrames;
         }
 
-        string texturePath = animSprite.BaseTexturePath + animSprite.Anim.PathSuffix + animSprite.Anim.Frames[animSprite.FrameNumber];
 
         ref var sprite2D = ref data.Ensure<Sprite2D>(CommandBuffer, out bool added);
         if (added || frameChanged || animSprite.InvalidateCurrentTexture)
         {
-            sprite2D.TexturePath = texturePath;
+            sprite2D.TexturePath = animSprite.BaseTexturePath + animSprite.Anim.PathSuffix + animSprite.Anim.Frames[animSprite.FrameNumber];
             sprite2D.InvalidateTexture = true;
         }
 

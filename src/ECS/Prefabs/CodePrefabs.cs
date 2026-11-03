@@ -1,10 +1,12 @@
 ﻿using Box2D.NET;
 using DerelictDimension.ECS.Ai;
+using DerelictDimension.ECS.Ai.Visual;
 using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.Links;
 using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using Monod.ECS.DefaultComponents;
+using Monod.Graphics.ECS.Sprite;
 
 namespace DerelictDimension.ECS.Prefabs;
 
@@ -32,5 +34,10 @@ public static class CodePrefabs
         entity.AddChild(rightLeg);
 
         return entity;
+    }
+
+    public static Entity CreateDoor(Vector2 position, float rotation, Vector2 hitboxSize, string texturePath)
+    {
+        return TheGame.Store.CreateEntity(new EntityName("Door"), new Transform2D(position, rotation: rotation), new HitboxComponent(new OrientedRect(Vector2.Zero, hitboxSize)), new Sprite2D(texturePath), Tags.Get<DoorTag>());
     }
 }

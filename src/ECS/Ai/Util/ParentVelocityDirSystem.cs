@@ -4,7 +4,7 @@ using Monod.ECS.DefaultComponents;
 using Monod.Utils.Extensions;
 using MonoGame.Extended;
 
-namespace DerelictDimension.ECS.Ai;
+namespace DerelictDimension.ECS.Ai.Visual;
 
 public class ParentVelocityDirSystem : TagSystem<ParentVelocityDirTag>
 {

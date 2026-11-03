@@ -9,7 +9,7 @@ using Monod.Shared.Exceptions;
 using Monod.Utils.Extensions;
 using MonoGame.Extended;
 
-namespace DerelictDimension.ECS.Ai;
+namespace DerelictDimension.ECS.Ai.Damage;
 
 public class DamageSystem : BaseSystem
 {

@@ -1,5 +1,6 @@
 ﻿using Box2D.NET;
 using DerelictDimension.ECS.Ai;
+using DerelictDimension.ECS.Ai.Damage;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using DerelictDimension.Utils;
 using DerelictDimension.Utils.Extensions;

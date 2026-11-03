@@ -10,11 +10,11 @@ public record struct OrientedRect
     /// </summary>
     public float Angle;
 
-    public OrientedRect(Vector2 center, float width, float height, float angle = 0)
+    public OrientedRect(Vector2 center, Vector2 size, float angle = 0)
     {
         Center = center;
-        Width = width;
-        Height = height;
+        Width = size.X;
+        Height = size.Y;
         Angle = angle;
     }
 

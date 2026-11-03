@@ -1,4 +1,4 @@
-﻿namespace DerelictDimension.ECS.Ai;
+﻿namespace DerelictDimension.ECS.Ai.Damage;
 
 public record struct DamagerComponent : IComponent
 {

@@ -1,5 +1,6 @@
 ﻿using DerelictDimension.Debug;
 using DerelictDimension.ECS.Ai;
+using DerelictDimension.ECS.Ai.Visual;
 using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.ECS.PhysicsModule.Components;

@@ -1,6 +1,6 @@
 ﻿using Friflo.Engine.ECS.Systems;
 
-namespace DerelictDimension.ECS.Ai;
+namespace DerelictDimension.ECS.Ai.Damage;
 
 public class DamageCleaupSystem : BaseSystem
 {

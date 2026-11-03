@@ -1,3 +1,3 @@
-﻿namespace DerelictDimension.ECS.Ai;
+﻿namespace DerelictDimension.ECS.Ai.Visual;
 
 public record struct ParentVelocityDirTag : ITag;

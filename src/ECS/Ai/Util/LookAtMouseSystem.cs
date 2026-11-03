@@ -9,7 +9,7 @@ using MonoGame.Extended;
 using SDL3;
 using System;
 
-namespace DerelictDimension.ECS.Ai;
+namespace DerelictDimension.ECS.Ai.Visual;
 
 public class LookAtMouseSystem : TagSystem<LookAtMouseTag>
 {

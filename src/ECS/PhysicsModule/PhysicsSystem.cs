@@ -1,6 +1,7 @@
 ﻿using Box2D.NET;
 using DerelictDimension.ECS.Ai;
 using DerelictDimension.ECS.Ai.Damage;
+using DerelictDimension.ECS.Ai.Objects;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using DerelictDimension.Utils;
 using DerelictDimension.Utils.Extensions;
@@ -26,7 +27,7 @@ public sealed class PhysicsSystem : BaseSystem
     public ArchetypeQuery<HitboxComponent> HitboxQuery;
     public ArchetypeQuery<Transform2D> TransformQuery;
 
-    public ComponentIndex<PhysicsShapeComponent, B2ShapeId> ShapesIndex;
+    public EntityStore Store;
     public ComponentIndex<PhysicsBodyComponent, B2BodyId> BodiesIndex;
 
     public CommandBuffer cb;
@@ -35,12 +36,13 @@ public sealed class PhysicsSystem : BaseSystem
     {
         base.OnAddStore(store);
 
+        Store = store;
+
         PhysicsBodyQuery = store.Query<PhysicsBodyComponent>();
         PhysicsShapeQuery = store.Query<PhysicsShapeComponent>();
         TransformQuery = store.Query<Transform2D>();
         HitboxQuery = store.Query<HitboxComponent>();
 
-        ShapesIndex = store.ComponentIndex<PhysicsShapeComponent, B2ShapeId>();
         BodiesIndex = store.ComponentIndex<PhysicsBodyComponent, B2BodyId>();
 
         cb = store.GetCommandBuffer();
@@ -174,8 +176,8 @@ public sealed class PhysicsSystem : BaseSystem
             }
             else
             {
-                var shapeDef = CreateShapeDef(ref physicsShape, ref hitbox);
-                physicsShape.SetIndexedValue(in entity, b2CreatePolygonShape(physicsBody.BodyId, in shapeDef, in polygon), in ShapesIndex);
+                var shapeDef = CreateShapeDef(ref physicsShape, ref hitbox, ref entity);
+                physicsShape.ShapeId = b2CreatePolygonShape(physicsBody.BodyId, in shapeDef, in polygon);
             }
             break;
         case HitboxType.Capsule:
@@ -191,8 +193,8 @@ public sealed class PhysicsSystem : BaseSystem
             }
             else
             {
-                var shapeDef = CreateShapeDef(ref physicsShape, ref hitbox);
-                physicsShape.SetIndexedValue(in entity, b2CreateCapsuleShape(physicsBody.BodyId, in shapeDef, in capsule), in ShapesIndex);
+                var shapeDef = CreateShapeDef(ref physicsShape, ref hitbox, ref entity);
+                physicsShape.ShapeId = b2CreateCapsuleShape(physicsBody.BodyId, in shapeDef, in capsule);
             }
             break;
         default:
@@ -206,12 +208,16 @@ public sealed class PhysicsSystem : BaseSystem
     private static void UpdateExistingShape(ref PhysicsShapeComponent physicsShape, ref HitboxComponent hitbox)
     {
         b2Shape_EnableSensorEvents(physicsShape.ShapeId, hitbox.Collidable);
+        b2Shape_SetFilter(physicsShape.ShapeId, b2Shape_GetFilter(physicsShape.ShapeId) with
+        { categoryBits = hitbox.Collidable ? (ulong)physicsShape.CollisionCategories : 0 }
+        );
     }
 
-    private static B2ShapeDef CreateShapeDef(ref PhysicsShapeComponent physicsShape, ref HitboxComponent hitbox)
+    private static B2ShapeDef CreateShapeDef(ref PhysicsShapeComponent physicsShape, ref HitboxComponent hitbox, ref Entity entity)
     {
         var shapeDef = b2DefaultShapeDef();
         physicsShape.ApplyTo(ref shapeDef);
+        shapeDef.userData = B2UserData.Ref(new ShapeUserData(entity.Id));
         shapeDef.enableSensorEvents = hitbox.Collidable;
         return shapeDef;
     }
@@ -258,23 +264,18 @@ public sealed class PhysicsSystem : BaseSystem
         for (int i = 0; i < sensorEvents.beginCount; i++)
         {
             var e = sensorEvents.beginEvents[i];
-            var sensorEntities = ShapesIndex[e.sensorShapeId];
-            if (sensorEntities.Count == 0) continue;
-            var sensorEntity = sensorEntities[0];
-            var visitorEntities = ShapesIndex[e.visitorShapeId];
-            if (visitorEntities.Count == 0) continue;
-            var visitorEntity = visitorEntities[0];
+            var sensorEntity = Store.GetEntityById(b2Shape_GetUserData(e.sensorShapeId).GetRef<ShapeUserData>().EntityId);
+            var visitorEntity = Store.GetEntityById(b2Shape_GetUserData(e.visitorShapeId).GetRef<ShapeUserData>().EntityId);
 
             HandleCollision(sensorEntity, visitorEntity);
         }
-
     }
 
     private void HandleCollision(Entity sensorEntity, Entity visitorEntity)
     {
         var sensorData = sensorEntity.Data;
         var visitorData = visitorEntity.Data;
-        if (visitorData.Has<BodyComponent>() && sensorData.Has<DamagerComponent>())
+        if ((visitorData.Has<BodyComponent>() || visitorData.Has<DoorComponent>()) && sensorData.Has<DamagerComponent>())
         {
             visitorEntity.AddRelation(new DamageRelation(sensorEntity));
         }

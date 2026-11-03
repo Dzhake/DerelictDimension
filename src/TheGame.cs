@@ -1,5 +1,6 @@
 ﻿using DerelictDimension.Debug;
 using DerelictDimension.ECS.Ai;
+using DerelictDimension.ECS.Ai.Damage;
 using DerelictDimension.ECS.Ai.Visual;
 using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.PhysicsModule;
@@ -110,19 +111,20 @@ public class TheGame : MonodGame
         player.AddComponent(new PlayerAi());
         body.AddTag<LookAtMouseTag>();
         body.GetComponent<PhysicsShapeComponent>().CollisionCategories = CollisionLayer.Player;
-        var kickLeg = Store.CreateEntity(new EntityName("Kick leg"), new PhysicsShapeComponent(isSensor: true, categories: CollisionLayer.PlayerAttacks, mask: CollisionLayer.Walls | CollisionLayer.Enemy | CollisionLayer.EnemyAttacks), new HitboxComponent(new OrientedRect(-.14f, -.28f, .14f, .38f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/", Anims.HumanLegKick), new Transform2D(), new RenderDepth(0.25f), new DamagerComponent());
+        var kickLeg = Store.CreateEntity(new EntityName("Kick leg"), new PhysicsShapeComponent(isSensor: true, categories: CollisionLayer.PlayerAttacks, mask: CollisionLayer.Environment | CollisionLayer.Enemy | CollisionLayer.EnemyAttacks), new HitboxComponent(new OrientedRect(-.14f, -.28f, .14f, .38f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/", Anims.HumanLegKick), new Transform2D(), new RenderDepth(0.25f), new DamagerComponent());
         body.AddChild(kickLeg);
 
-        CodePrefabs.CreateHuman(new(3, 2), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
+        CodePrefabs.CreateHuman(new(3, 4.2f), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
         CodePrefabs.CreateHuman(new(2, 3), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
         CodePrefabs.CreateHuman(new(4, 3), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
+
+        CodePrefabs.CreateDoor(new(3, 4), 0, new(1, 0.1f), "Sprites/WoodenDoor", new("Sprites/WoodenDoorDebris"));
 
 
         Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 2.55f, 1)), new PhysicsShapeComponent(categories: CollisionLayer.Walls));
         Store.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 0.3f, 2)), new PhysicsShapeComponent(categories: CollisionLayer.Walls));
         //var json = entitySerializer.WriteEntity(entity);
         //Log.Information($"\n{json}");
-
         InitializeSystems();
     }
 

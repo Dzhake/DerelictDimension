@@ -4,7 +4,7 @@ using Friflo.Json.Fliox;
 
 namespace DerelictDimension.ECS.PhysicsModule.Components;
 
-public record struct PhysicsShapeComponent : IAutoIndexedComponent<PhysicsShapeComponent, B2ShapeId>
+public record struct PhysicsShapeComponent : IComponent
 {
     public bool IsSensor;
     public float Density = 1f;
@@ -15,13 +15,11 @@ public record struct PhysicsShapeComponent : IAutoIndexedComponent<PhysicsShapeC
 
     public bool PhysicsDirty = true;
 
-    [Ignore]
-    private B2ShapeId shapeId;
-
     /// <summary>
     /// Get <see cref="B2ShapeId"/> associated with this shape. Use <see cref="IAutoIndexedComponentExt.SetIndexedValue"/> to set this value.
     /// </summary>
-    public readonly B2ShapeId ShapeId => shapeId;
+    [Ignore]
+    public B2ShapeId ShapeId;
 
     public PhysicsShapeComponent() { }
 
@@ -44,10 +42,4 @@ public record struct PhysicsShapeComponent : IAutoIndexedComponent<PhysicsShapeC
         shapeDef.filter.categoryBits = (ulong)CollisionCategories;
         shapeDef.filter.maskBits = (ulong)CollisionMask;
     }
-
-    ///<inheritdoc/>
-    public readonly B2ShapeId GetIndexedValue() => shapeId;
-
-    ///<inheritdoc/>
-    public void SetIndexedValueDIRECTLY(B2ShapeId value) => shapeId = value;
 }

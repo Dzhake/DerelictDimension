@@ -12,6 +12,7 @@ public enum CollisionLayer : ulong
     PlayerAttacks = 1 << 2,
     Enemy = 1 << 3,
     EnemyAttacks = 1 << 4,
+    Environment = 1 << 5,
 
     All = ulong.MaxValue,
 }

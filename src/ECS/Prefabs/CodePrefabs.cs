@@ -46,7 +46,7 @@ public static class CodePrefabs
     }
 
     // Created through the command buffer so it can be called during query iteration.
-    public static void CreateDoorDebris(CommandBuffer cb, Vector2 position, float rotation, Vector2 linearVelocity, string texturePath)
+    public static void CreateDoorDebris(CommandBuffer cb, Vector2 position, float rotation, Vector2 linearVelocity, float angularVelocity, string texturePath)
     {
         const float debrisHitboxSize = 0.25f;
 
@@ -55,8 +55,8 @@ public static class CodePrefabs
         cb.AddComponent(id, new Transform2D(position, rotation: rotation));
         cb.AddComponent(id, new HitboxComponent(new OrientedRect(Vector2.Zero, new Vector2(debrisHitboxSize, debrisHitboxSize))));
         cb.AddComponent(id, new Sprite2D(texturePath));
-        cb.AddComponent(id, new PhysicsBodyComponent(B2BodyType.b2_dynamicBody, fixedRotation: false) { LinearVelocity = linearVelocity });
-        cb.AddComponent(id, new PhysicsShapeComponent(mask: CollisionLayer.Walls)); // debris collide with walls only
+        cb.AddComponent(id, new PhysicsBodyComponent(B2BodyType.b2_dynamicBody, fixedRotation: false) { LinearVelocity = linearVelocity, AngularVelocity = angularVelocity });
+        cb.AddComponent(id, new PhysicsShapeComponent(categories: CollisionLayer.Environment, mask: CollisionLayer.Walls));
         cb.AddTag<DebrisTag>(id);
     }
 }

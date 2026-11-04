@@ -118,7 +118,7 @@ public class TheGame : MonodGame
         CodePrefabs.CreateHuman(new(2, 3), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
         CodePrefabs.CreateHuman(new(4, 3), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
 
-        CodePrefabs.CreateDoor(new(3, 4), 0, new(1, 0.1f), "Sprites/WoodenDoor", new("Sprites/WoodenDoorDebris"));
+        CodePrefabs.CreateDoor(new(3, 4), 0, new(2, 0.1f), "Sprites/WoodenDoor", new("Sprites/WoodenDoorDebris"));
 
 
         Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 2.55f, 1)), new PhysicsShapeComponent(categories: CollisionLayer.Walls));

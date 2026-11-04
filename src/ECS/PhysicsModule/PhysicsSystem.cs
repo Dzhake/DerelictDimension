@@ -124,7 +124,7 @@ public sealed class PhysicsSystem : BaseSystem
         bodyDef.type = physicsBody.Type;
         bodyDef.position = entity.GetWorldPos(out float rotation).ToB2();
         bodyDef.rotation = b2MakeRot(rotation);
-        bodyDef.angularDamping = 4f;
+        bodyDef.angularDamping = 1f;
         bodyDef.linearDamping = 3f;
 
         bodyDef.angularVelocity = physicsBody.AngularVelocity;

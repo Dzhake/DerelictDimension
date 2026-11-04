@@ -10,6 +10,7 @@ using Monod.ECS.DefaultComponents;
 using Monod.Graphics.ECS.Sprite;
 using Monod.MathModule;
 using Monod.Shared.Exceptions;
+using Monod.Utils;
 using Monod.Utils.Extensions;
 using MonoGame.Extended;
 using System;
@@ -126,19 +127,25 @@ public class DamageSystem : BaseSystem
         _killContext.Killed = 0;
         b2World_OverlapShape(worldId, ref proxy, filter, OnKillZoneHit, _killContext);
 
-        // spawn debris
-        for (int i = 0; i < doorInfo.DebrisCount; i++)
+        int debrisCount = doorInfo.DebrisCount;
+        const float spreadAngle = 120f * (MathF.PI / 180f);
+
+        var spawnPosition = rectCenterWorld;
+        float baseAngle = breakDir.ToAngle();
+
+        for (int i = 0; i < debrisCount; i++)
         {
-            float spread = ((i + 0.5f) / doorInfo.DebrisCount * 2f) - 1f; // evenly spaced across the leaf
-            float lateral = (spread * halfWidth * 0.8f) + Jitter(doorInfo.DebrisLateralJitter);
+            // Evenly distribute across the forward 120-degree arc.
+            float t = (float)i / (debrisCount - 1);
+            float angle = baseAngle + ((t - 0.5f) * spreadAngle);
 
-            var localOffset = widthLocal * lateral;// + (normalLocal * ((halfThickness + doorInfo.DebrisSpawnOffset) * breakSign));
-            var pos = doorTransform.Position + Rotate(center + localOffset, cos, sin);
+            var direction = MathM.VectorFromRot(angle);
 
-            float speed = doorInfo.DebrisSpeedMin + (Random.Shared.NextSingle() * (doorInfo.DebrisSpeedMax - doorInfo.DebrisSpeedMin));
-            var vel = (breakDir * speed) + (widthDir * Jitter(doorInfo.DebrisLateralJitter * 0.5f));
+            float speed = doorInfo.DebrisSpeedMin +
+                (Randoms.Visual.NextSingle() *
+                (doorInfo.DebrisSpeedMax - doorInfo.DebrisSpeedMin));
 
-            CodePrefabs.CreateDoorDebris(cb, pos, Random.Shared.NextSingle() * MathF.PI * 2f, vel, doorInfo.DebrisTexturePath);
+            CodePrefabs.CreateDoorDebris(cb, spawnPosition, Randoms.Visual.NextSingle() * MathF.PI * 2f, direction * speed, Randoms.Visual.NextSingle() * MathF.PI * 16f, doorInfo.DebrisTexturePath + (i % 3));
         }
 
 

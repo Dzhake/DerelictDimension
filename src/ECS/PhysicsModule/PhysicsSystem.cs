@@ -3,7 +3,6 @@ using DerelictDimension.ECS.Ai;
 using DerelictDimension.ECS.Ai.Damage;
 using DerelictDimension.ECS.Ai.Objects;
 using DerelictDimension.ECS.PhysicsModule.Components;
-using DerelictDimension.Utils;
 using DerelictDimension.Utils.Extensions;
 using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
@@ -28,7 +27,6 @@ public sealed class PhysicsSystem : BaseSystem
     public ArchetypeQuery<Transform2D> TransformQuery;
 
     public EntityStore Store;
-    public ComponentIndex<PhysicsBodyComponent, B2BodyId> BodiesIndex;
 
     public CommandBuffer cb;
 
@@ -42,8 +40,6 @@ public sealed class PhysicsSystem : BaseSystem
         PhysicsShapeQuery = store.Query<PhysicsShapeComponent>();
         TransformQuery = store.Query<Transform2D>();
         HitboxQuery = store.Query<HitboxComponent>();
-
-        BodiesIndex = store.ComponentIndex<PhysicsBodyComponent, B2BodyId>();
 
         cb = store.GetCommandBuffer();
         cb.ReuseBuffer = true;
@@ -98,7 +94,7 @@ public sealed class PhysicsSystem : BaseSystem
 
         if (!b2Body_IsValid(physicsBody.BodyId))
         {
-            physicsBody.SetIndexedValue(in entity, CreateBody(ref physicsBody, ref entity), in BodiesIndex);
+            physicsBody.BodyId = CreateBody(ref physicsBody, ref entity);
             return;
         }
 
@@ -126,6 +122,7 @@ public sealed class PhysicsSystem : BaseSystem
         bodyDef.rotation = b2MakeRot(rotation);
         bodyDef.angularDamping = 1f;
         bodyDef.linearDamping = 3f;
+        bodyDef.userData = B2UserData.Ref(new BodyUserData(entity.Id));
 
         bodyDef.angularVelocity = physicsBody.AngularVelocity;
         bodyDef.linearVelocity = physicsBody.LinearVelocity.ToB2();

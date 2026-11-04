@@ -4,7 +4,7 @@ using Friflo.Json.Fliox;
 
 namespace DerelictDimension.ECS.PhysicsModule.Components;
 
-public record struct PhysicsBodyComponent : IAutoIndexedComponent<PhysicsBodyComponent, B2BodyId>
+public record struct PhysicsBodyComponent : IComponent
 {
     public B2BodyType Type;
 
@@ -18,21 +18,15 @@ public record struct PhysicsBodyComponent : IAutoIndexedComponent<PhysicsBodyCom
 
     public bool PhysicsDirty;
 
-    [Ignore]
-    private B2BodyId bodyId;
-
     /// <summary>
     /// Get <see cref="B2BodyId"/> associated with this body. Use <see cref="IAutoIndexedComponentExt.SetIndexedValue"/> to set this value.
     /// </summary>
-    public readonly B2BodyId BodyId => bodyId;
+    [Ignore]
+    public B2BodyId BodyId;
 
     public PhysicsBodyComponent(B2BodyType type = B2BodyType.b2_dynamicBody, bool fixedRotation = false)
     {
         Type = type;
         FixedRotation = fixedRotation;
     }
-
-    ///<inheritdoc/>
-    public readonly B2BodyId GetIndexedValue() => bodyId;
-    public void SetIndexedValueDIRECTLY(B2BodyId value) => bodyId = value;
 }

@@ -106,12 +106,12 @@ public class TheGame : MonodGame
     {
         ClearStore();
 
-        var player = CodePrefabs.CreateHuman(new(3, 1), 0, "Sprites/Player/", out var body, out _, out var leftLeg, out _);
+        var player = CodePrefabs.CreateHuman(new(3, 1), 0, "Sprites/Player/", out var body, out _, out var leftLeg, out var rightLeg);
         player.Name.value = "Player";
         player.AddComponent(new PlayerAi());
         body.AddTag<LookAtMouseTag>();
         body.GetComponent<PhysicsShapeComponent>().CollisionCategories = CollisionLayer.Player;
-        var kickLeg = Store.CreateEntity(new EntityName("Kick leg"), new PhysicsShapeComponent(isSensor: true, categories: CollisionLayer.PlayerAttacks, mask: CollisionLayer.Environment | CollisionLayer.Enemy | CollisionLayer.EnemyAttacks), new HitboxComponent(new OrientedRect(-.14f, -.28f, .14f, .38f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/", Anims.HumanLegKick), new Transform2D(), new RenderDepth(0.25f), new DamagerComponent());
+        var kickLeg = Store.CreateEntity(new EntityName("Kick leg"), new PhysicsShapeComponent(isSensor: true, categories: CollisionLayer.PlayerAttacks, mask: CollisionLayer.Environment | CollisionLayer.Enemy | CollisionLayer.EnemyAttacks), new HitboxComponent(new OrientedRect(-.14f, -.28f, .14f, .38f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid, rightLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/", Anims.HumanLegKick), new Transform2D(), new RenderDepth(0.25f), new DamagerComponent());
         body.AddChild(kickLeg);
 
         CodePrefabs.CreateHuman(new(3, 4.2f), 0, "Sprites/Swordsman/", out _, out _, out _, out _);

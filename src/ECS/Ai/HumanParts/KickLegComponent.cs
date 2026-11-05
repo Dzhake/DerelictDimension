@@ -2,7 +2,9 @@
 
 public record struct KickLegComponent : IComponent
 {
-    public long LegPid;
+    public long LeftLegPid;
+    public long RightLegPid;
+
     public float KickTimeRemaining;
     public float KickTimeStarting = 0.4f;
     public float KickCooldownRemaining;
@@ -10,8 +12,9 @@ public record struct KickLegComponent : IComponent
 
     public readonly bool KickActive => KickTimeRemaining > 0;
 
-    public KickLegComponent(long legPid)
+    public KickLegComponent(long leftLegPid, long rightLegPid)
     {
-        LegPid = legPid;
+        LeftLegPid = leftLegPid;
+        RightLegPid = rightLegPid;
     }
 }

@@ -62,35 +62,36 @@ public class KickLegSystem : QuerySystem<KickLegComponent>
 
         if (kickLeg.KickTimeRemaining > 0)
         {
-            EndKick(ref kickLeg, ref GetLegSprite(ref kickLeg));
+            EndKick(ref kickLeg);
             return;
         }
 
         if (Input.ActionPressed(InputActions.Kick))
         {
-            StartKick(ref kickLeg, ref entity.Data.Ensure<AnimatedSpriteComponent>(CommandBuffer), ref GetLegSprite(ref kickLeg));
+            StartKick(ref kickLeg, ref entity.Data.Ensure<AnimatedSpriteComponent>(CommandBuffer));
         }
     }
 
-    private ref Sprite2D GetLegSprite(ref KickLegComponent kickLeg)
-    {
-        var leg = Store.GetEntityByPid(kickLeg.LegPid);
-        var legData = leg.Data;
-        return ref legData.Ensure<Sprite2D>(CommandBuffer);
-    }
 
-    private void StartKick(ref KickLegComponent kickLeg, ref AnimatedSpriteComponent kickLegAnim, ref Sprite2D legSprite)
+
+    private void StartKick(ref KickLegComponent kickLeg, ref AnimatedSpriteComponent kickLegAnim)
     {
         kickLeg.KickTimeRemaining = kickLeg.KickTimeStarting;
         kickLegAnim.AnimationSpeedMultiplier = 1;
         kickLegAnim.Reset();
-        legSprite.Visible = false;
+        SetLegsVisible(ref kickLeg, false);
     }
 
-    private void EndKick(ref KickLegComponent kickLeg, ref Sprite2D legSprite)
+    private void EndKick(ref KickLegComponent kickLeg)
     {
         kickLeg.KickTimeRemaining = 0;
         kickLeg.KickCooldownRemaining = kickLeg.KickCooldownStarting;
-        legSprite.Visible = true;
+        SetLegsVisible(ref kickLeg, true);
+    }
+
+    private void SetLegsVisible(ref KickLegComponent kickLeg, bool visible)
+    {
+        Store.GetEntityByPid(kickLeg.LeftLegPid).Data.Ensure<Sprite2D>(CommandBuffer).Visible = visible;
+        Store.GetEntityByPid(kickLeg.RightLegPid).Data.Ensure<Sprite2D>(CommandBuffer).Visible = visible;
     }
 }

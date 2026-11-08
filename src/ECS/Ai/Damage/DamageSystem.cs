@@ -37,29 +37,31 @@ public class DamageSystem : SystemBase
 
     public override void Update(SystemCtx ctx)
     {
-        foreach (var victimEnt in ctx.GetQuery(Queries.DamageRelation).Entities)
-        {
-            var victimData = victimEnt.Data;
-            if (victimData.Has<BodyComponent>())
-            {
-                var victimBodyLinks = victimEnt.GetIncomingLinks<HumanBody>();
-                if (victimBodyLinks.Count != 1)
-                {
-                    Log.Warning("A entity with id '{Id}' and 'BodyComponent' but with {LinksAmount} (1 expected) incoming 'HumanBody' link was attacked", victimEnt.Id, victimBodyLinks.Count);
-                    continue;
-                }
-                var victimBodyLink = victimBodyLinks[0];
-                var victimBase = victimBodyLink.Entity;
-                AttackHuman(in victimBase, in victimEnt, ctx);
-            }
-            else if (victimData.Has<DoorComponent>())
-            {
-                var damager = victimEnt.GetRelations<DamageRelation>()[0].Damager; // any hit decides the break side
-                BreakDoor(in victimEnt, damager.GetWorldPos(out _), ctx);
-            }
-        }
+        ctx.GetQuery(Queries.DamageRelation).ForEachEntityM(UpdateEnt, ctx);
 
         ctx.cb.Playback();
+    }
+
+    private void UpdateEnt(ref DamageRelation relation, Entity victimEnt, SystemCtx ctx)
+    {
+        var victimData = victimEnt.Data;
+        if (victimData.Has<BodyComponent>())
+        {
+            var victimBodyLinks = victimEnt.GetIncomingLinks<HumanBody>();
+            if (victimBodyLinks.Count != 1)
+            {
+                Log.Warning("A entity with id '{Id}' and 'BodyComponent' but with {LinksAmount} (1 expected) incoming 'HumanBody' link was attacked", victimEnt.Id, victimBodyLinks.Count);
+                return;
+            }
+            var victimBodyLink = victimBodyLinks[0];
+            var victimBase = victimBodyLink.Entity;
+            AttackHuman(in victimBase, in victimEnt, ctx);
+        }
+        else if (victimData.Has<DoorComponent>())
+        {
+            var damager = relation.Damager; // any hit decides the break side
+            BreakDoor(in victimEnt, damager.GetWorldPos(out _), ctx);
+        }
     }
 
     private void AttackHuman(in Entity victimBase, in Entity victimPart, SystemCtx ctx)

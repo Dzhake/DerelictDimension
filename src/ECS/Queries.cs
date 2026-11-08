@@ -5,10 +5,12 @@ using DerelictDimension.ECS.PhysicsModule.Components;
 using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
 using Monod.Graphics.ECS.Sprite;
+using Monod.SourceGenerators.Queries;
 
 namespace DerelictDimension.ECS;
 
-public static class Queries
+[GenerateQueryRegistration]
+public static partial class Queries
 {
     public static QueryKey<ArchetypeQuery<Transform2D>> Transform2D;
     public static QueryKey<ArchetypeQuery<Sprite2D>> Sprite2D;
@@ -16,12 +18,12 @@ public static class Queries
     public static QueryKey<ArchetypeQuery<PhysicsBodyComponent>> PhysicsBody;
     public static QueryKey<ArchetypeQuery<HitboxComponent>> Hitbox;
 
+    [QueryRelation]
     public static QueryKey<ArchetypeQuery<DamageRelation>> DamageRelation;
 
     public static QueryKey<ArchetypeQuery> LegsTag;
     public static QueryKey<ArchetypeQuery> ParentVelocityDirTag;
     public static QueryKey<ArchetypeQuery> LookAtMouseTag;
-
 
 
     public static void Register(SystemCtx ctx)

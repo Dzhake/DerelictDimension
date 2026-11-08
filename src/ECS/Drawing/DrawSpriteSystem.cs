@@ -1,6 +1,6 @@
 ﻿using DerelictDimension.ECS.PhysicsModule;
-using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
+using Monod.ECS.Systems;
 using Monod.Graphics;
 using Monod.Graphics.ECS.Sprite;
 using Monod.Utils.Extensions;
@@ -8,21 +8,21 @@ using System;
 
 namespace DerelictDimension.ECS.Drawing;
 
-public class DrawSpriteSystem : QuerySystem<Sprite2D>
+public class DrawSpriteSystem : SystemBase
 {
-    protected override void OnUpdate()
+    public override void Update(SystemCtx ctx)
     {
         Renderer.Begin(SpriteSortMode.BackToFront, samplerState: SamplerState.PointWrap);
-        Query.ForEachEntity(Draw);
+        ctx.GetQuery(Queries.Sprite2D).ForEachEntityM(Draw, ctx);
         Renderer.End();
     }
 
-    private void Draw(ref Sprite2D sprite, Entity entity)
+    private void Draw(ref Sprite2D sprite, Entity entity, SystemCtx ctx)
     {
         if (sprite.Texture is null || !sprite.Visible) return;
 
         var data = entity.Data;
-        GetDrawArgs(ref sprite, ref entity, ref data, out var position, out float rotation, out var scale, out float depth, out var origin);
+        GetDrawArgs(ref sprite, ref entity, ref data, ctx, out var position, out float rotation, out var scale, out float depth, out var origin);
         position *= Physics.PixelsInMeter;
 
         if (data.Has<NineSliceComponent>())
@@ -111,11 +111,11 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
         Band(bottomSrcY, tileHeight, drawH - tileHeight);
     }
 
-    private void GetDrawArgs(ref Sprite2D sprite, ref Entity entity, ref EntityData data, out Vector2 position, out float rotation, out Vector2 scale, out float depth, out Vector2 origin)
+    private void GetDrawArgs(ref Sprite2D sprite, ref Entity entity, ref EntityData data, SystemCtx ctx, out Vector2 position, out float rotation, out Vector2 scale, out float depth, out Vector2 origin)
     {
         position = entity.GetWorldPos(out rotation);
         rotation += sprite.Rotation;
-        ref var transform = ref data.Ensure<Transform2D>(CommandBuffer);
+        ref var transform = ref data.Ensure<Transform2D>(ctx.cb);
         scale = transform.Scale;
 
         if (data.Has<RenderDepth>())

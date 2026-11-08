@@ -6,33 +6,53 @@ using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using DerelictDimension.ECS.Prefabs;
 using Friflo.EcGui;
-using Friflo.Engine.ECS.Systems;
+using Monod;
 using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
 using Monod.Graphics.ECS.Sprite;
-using Monod.Utils.Extensions;
 
 namespace DerelictDimension.ECS;
 
 public static class EcsMain
 {
-    public static EntityStore Store => TheGame.Store;
-    public static EntityStore PrefabsStore => TheGame.PrefabsStore;
-    public static EntityStore EditorStore => TheGame.EditorStore;
-    public static SystemRoot LogicSystemRoot => TheGame.Instance.LogicSystemRoot;
-    public static SystemRoot DrawSystemRoot => TheGame.Instance.DrawSystemRoot;
+    public static SystemRoot LogicSystemRoot;
+    public static SystemRoot DrawSystemRoot;
 
     public static SystemCtx StoreCtx;
     public static SystemCtx EditorStoreCtx;
-
     public static SystemCtx CurrentCtx;
+
+
+    /// <summary>
+    /// Main <see cref="EntityStore"/> of the game.
+    /// </summary>
+    public static EntityStore Store;
+
+    public static EntityStore PrefabsStore;
+
+    public static EntityStore EditorStore;
 
 
     public static void Initialize()
     {
+        Store = new(PidType.RandomPids);
+        PrefabsStore = new(PidType.RandomPids);
+        EditorStore = new(PidType.RandomPids);
+
+        LogicSystemRoot = new("Logic System Root");
+        DrawSystemRoot = new("Draw System Root");
+        MonodGame.LogicSystemRoot = LogicSystemRoot;
+        MonodGame.DrawSystemRoot = DrawSystemRoot;
+
+        MonodGame.PrefabsStore = PrefabsStore;
+
         StoreCtx = new(Store);
         EditorStoreCtx = new(EditorStore);
         CurrentCtx = StoreCtx;
+
+        LogicSystemRoot.SetContext(CurrentCtx);
+        DrawSystemRoot.SetContext(CurrentCtx);
+
         EcGui.AddExplorerStore("Main", Store);
         EcGui.AddExplorerStore("Prefabs", PrefabsStore);
     }
@@ -65,6 +85,8 @@ public static class EcsMain
         Store.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 0.3f, 2)), new PhysicsShapeComponent(categories: CollisionLayer.Walls));
         //var json = entitySerializer.WriteEntity(entity);
         //Log.Information($"\n{json}");
+
+
         RegisterQueries(CurrentCtx);
         InitializeSystems();
     }
@@ -107,6 +129,9 @@ public static class EcsMain
             new DrawSpriteSystem(),
             new DrawHitboxesSystem(),
         });
+
+        LogicSystemRoot.OnCtxChanged(CurrentCtx);
+        DrawSystemRoot.OnCtxChanged(CurrentCtx);
     }
 
     public static void RegisterQueries(SystemCtx ctx)

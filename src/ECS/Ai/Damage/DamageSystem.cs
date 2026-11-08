@@ -5,8 +5,8 @@ using DerelictDimension.ECS.Links;
 using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using DerelictDimension.ECS.Prefabs;
-using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
+using Monod.ECS.Systems;
 using Monod.Graphics.ECS.Sprite;
 using Monod.MathModule;
 using Monod.Shared.Exceptions;
@@ -14,35 +14,30 @@ using Monod.Utils;
 using Monod.Utils.Extensions;
 using MonoGame.Extended;
 using System;
-using static Box2D.NET.B2Distances;  // b2MakeProxy
-using static Box2D.NET.B2Geometries; // b2MakeOffsetBox, b2MakeRot
-using static Box2D.NET.B2Shapes;     // b2Shape_GetUserData
-using static Box2D.NET.B2Worlds;     // b2World_OverlapShape
+using static Box2D.NET.B2Distances;
+using static Box2D.NET.B2Geometries;
+using static Box2D.NET.B2Shapes;
+using static Box2D.NET.B2Worlds;
 
 namespace DerelictDimension.ECS.Ai.Damage;
 
-public class DamageSystem : BaseSystem
+public class DamageSystem : SystemBase
 {
-    public ArchetypeQuery Query;
-    public CommandBuffer cb;
-
     /// <summary>
     /// Context for the overlap query performed by box2d.
     /// </summary>
     private readonly DoorKillContext _killContext = new();
 
-    protected override void OnAddStore(EntityStore store)
+
+    public override void OnCtxChanged(SystemCtx ctx)
     {
-        Query = store.QueryRelation<DamageRelation>();
-        cb = store.GetCommandBuffer();
-        cb.ReuseBuffer = true;
-        _killContext.cb = cb;
-        base.OnAddStore(store);
+        _killContext.cb = ctx.cb;
+        _killContext.Store = ctx.Store;
     }
 
-    protected override void OnUpdateGroup()
+    public override void Update(SystemCtx ctx)
     {
-        foreach (var victimEnt in Query.Entities)
+        foreach (var victimEnt in ctx.GetQuery(Queries.DamageRelation).Entities)
         {
             var victimData = victimEnt.Data;
             if (victimData.Has<BodyComponent>())
@@ -55,22 +50,22 @@ public class DamageSystem : BaseSystem
                 }
                 var victimBodyLink = victimBodyLinks[0];
                 var victimBase = victimBodyLink.Entity;
-                AttackHuman(in victimBase, in victimEnt);
+                AttackHuman(in victimBase, in victimEnt, ctx);
             }
             else if (victimData.Has<DoorComponent>())
             {
                 var damager = victimEnt.GetRelations<DamageRelation>()[0].Damager; // any hit decides the break side
-                BreakDoor(in victimEnt, damager.GetWorldPos(out _));
+                BreakDoor(in victimEnt, damager.GetWorldPos(out _), ctx);
             }
         }
 
-        cb.Playback();
+        ctx.cb.Playback();
     }
 
-    private void AttackHuman(in Entity victimBase, in Entity victimPart)
+    private void AttackHuman(in Entity victimBase, in Entity victimPart, SystemCtx ctx)
     {
         var victimBaseData = victimBase.Data;
-        ref var mortal = ref victimBaseData.Ensure<MortalComponent>(cb);
+        ref var mortal = ref victimBaseData.Ensure<MortalComponent>(ctx.cb);
         if (mortal.Dead) return;
 
         foreach (var relation in victimPart.GetRelations<DamageRelation>())
@@ -80,13 +75,13 @@ public class DamageSystem : BaseSystem
             if (damagerData.Has<KickLegComponent>())
             {
                 damagerEnt.GetWorldPos(out float rotation);
-                KillHuman(in victimBase, in victimBaseData, ref mortal, MathM.VectorFromRot(rotation));
+                KillHuman(in victimBase, in victimBaseData, ref mortal, MathM.VectorFromRot(rotation), ctx.cb);
             }
         }
     }
 
 
-    private void BreakDoor(in Entity door, Vector2 damagerPos)
+    private void BreakDoor(in Entity door, Vector2 damagerPos, SystemCtx ctx)
     {
         var doorData = door.Data;
         var doorTransform = doorData.Get<Transform2D>();
@@ -145,14 +140,14 @@ public class DamageSystem : BaseSystem
                 (Randoms.Visual.NextSingle() *
                 (doorInfo.DebrisSpeedMax - doorInfo.DebrisSpeedMin));
 
-            CodePrefabs.CreateDoorDebris(cb, spawnPosition, Randoms.Visual.NextSingle() * MathF.PI * 2f, direction * speed, Randoms.Visual.NextSingle() * MathF.PI * 16f, doorInfo.DebrisTexturePath + (i % 3));
+            CodePrefabs.CreateDoorDebris(ctx.cb, spawnPosition, Randoms.Visual.NextSingle() * MathF.PI * 2f, direction * speed, Randoms.Visual.NextSingle() * MathF.PI * 16f, doorInfo.DebrisTexturePath + (i % 3));
         }
 
 
-        ref var hitbox = ref doorData.Ensure<HitboxComponent>(cb);
+        ref var hitbox = ref doorData.Ensure<HitboxComponent>(ctx.cb);
         hitbox.Collidable = false;
         hitbox.PhysicsDirty = true;
-        ref var doorSprite = ref doorData.Ensure<Sprite2D>(cb);
+        ref var doorSprite = ref doorData.Ensure<Sprite2D>(ctx.cb);
         doorSprite.Visible = false;
 
         Log.Information("Door {Id} broken, {Killed} human(s) crushed behind it", door.Id, _killContext.Killed);
@@ -161,21 +156,21 @@ public class DamageSystem : BaseSystem
     // Called by b2 for every shape overlapping the kill zone. Returns true to continue the query.
     private bool OnKillZoneHit(B2ShapeId shapeId, object context)
     {
-        var ctx = (DoorKillContext)context;
+        var doorCtx = (DoorKillContext)context;
 
         int partId = b2Shape_GetUserData(shapeId).GetRef<ShapeUserData>().EntityId;
-        var part = TheGame.Store.GetEntityById(partId);
+        var part = doorCtx.Store.GetEntityById(partId);
 
         var links = part.GetIncomingLinks<HumanBody>();
         if (links.Count != 1) return true;
         var humanBase = links[0].Entity;
         var baseData = humanBase.Data;
 
-        ref var mortal = ref baseData.Ensure<MortalComponent>(ctx.cb);
+        ref var mortal = ref baseData.Ensure<MortalComponent>(doorCtx.cb);
         if (mortal.Dead) return true;
 
-        KillHuman(in humanBase, in baseData, ref mortal, ctx.BreakDir);
-        ctx.Killed++;
+        KillHuman(in humanBase, in baseData, ref mortal, doorCtx.BreakDir, doorCtx.cb);
+        doorCtx.Killed++;
         return true;
     }
 
@@ -183,7 +178,7 @@ public class DamageSystem : BaseSystem
 
     private static float Jitter(float amplitude) => ((Random.Shared.NextSingle() * 2f) - 1f) * amplitude;
 
-    private void KillHuman(in Entity victimBase, in EntityData victimBaseData, ref MortalComponent mortal, Vector2 direction)
+    private void KillHuman(in Entity victimBase, in EntityData victimBaseData, ref MortalComponent mortal, Vector2 direction, CommandBuffer cb)
     {
         if (!victimBaseData.Has<HumanBody>()) Guard.Exception($"Tried to kill a human without body, human id: {victimBase.Id}");
         var body = victimBaseData.Get<HumanBody>().Body;
@@ -218,6 +213,7 @@ public class DamageSystem : BaseSystem
     private sealed class DoorKillContext
     {
         public CommandBuffer cb;
+        public EntityStore Store;
         public Vector2 BreakDir;
         public int Killed;
     }

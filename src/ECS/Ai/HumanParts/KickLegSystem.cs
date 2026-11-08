@@ -1,6 +1,6 @@
 ﻿using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.PhysicsModule.Components;
-using Friflo.Engine.ECS.Systems;
+using Monod.ECS.Systems;
 using Monod.Graphics.ECS.Sprite;
 using Monod.InputModule;
 using Monod.TimeModule;
@@ -8,26 +8,17 @@ using Monod.Utils.Extensions;
 
 namespace DerelictDimension.ECS.Ai;
 
-public class KickLegSystem : QuerySystem<KickLegComponent>
+public class KickLegSystem : SystemBase
 {
-    public EntityStore Store;
-
-    protected override void OnAddStore(EntityStore store)
+    public override void Update(SystemCtx ctx)
     {
-        Store = store;
-        base.OnAddStore(store);
+        ctx.GetQuery(Queries.KickLegComponent).ForEachEntityM(UpdateKickLeg, ctx);
     }
 
-    protected override void OnUpdate()
-    {
-        Query.ForEachEntity(UpdateKickLeg);
-        CommandBuffer.Playback();
-    }
-
-    private void UpdateKickLeg(ref KickLegComponent kickLeg, Entity entity)
+    private void UpdateKickLeg(ref KickLegComponent kickLeg, Entity entity, SystemCtx ctx)
     {
         float dt = Time.DeltaTime;
-        ref var kickLegHitbox = ref entity.Data.Ensure<HitboxComponent>(CommandBuffer);
+        ref var kickLegHitbox = ref entity.Data.Ensure<HitboxComponent>(ctx.cb);
 
         if (kickLeg.KickTimeRemaining > dt)
         {
@@ -56,42 +47,42 @@ public class KickLegSystem : QuerySystem<KickLegComponent>
             kickLeg.KickCooldownRemaining = 0;
         }
 
-        ref var kickLegAnim = ref entity.Data.Ensure<AnimatedSpriteComponent>(CommandBuffer);
+        ref var kickLegAnim = ref entity.Data.Ensure<AnimatedSpriteComponent>(ctx.cb);
         kickLegAnim.AnimationSpeedMultiplier = 0;
         kickLegAnim.Reset();
 
         if (kickLeg.KickTimeRemaining > 0)
         {
-            EndKick(ref kickLeg);
+            EndKick(ref kickLeg, ctx);
             return;
         }
 
         if (Input.ActionPressed(InputActions.Kick))
         {
-            StartKick(ref kickLeg, ref entity.Data.Ensure<AnimatedSpriteComponent>(CommandBuffer));
+            StartKick(ref kickLeg, ref entity.Data.Ensure<AnimatedSpriteComponent>(ctx.cb), ctx);
         }
     }
 
 
 
-    private void StartKick(ref KickLegComponent kickLeg, ref AnimatedSpriteComponent kickLegAnim)
+    private void StartKick(ref KickLegComponent kickLeg, ref AnimatedSpriteComponent kickLegAnim, SystemCtx ctx)
     {
         kickLeg.KickTimeRemaining = kickLeg.KickTimeStarting;
         kickLegAnim.AnimationSpeedMultiplier = 1;
         kickLegAnim.Reset();
-        SetLegsVisible(ref kickLeg, false);
+        SetLegsVisible(ref kickLeg, false, ctx);
     }
 
-    private void EndKick(ref KickLegComponent kickLeg)
+    private void EndKick(ref KickLegComponent kickLeg, SystemCtx ctx)
     {
         kickLeg.KickTimeRemaining = 0;
         kickLeg.KickCooldownRemaining = kickLeg.KickCooldownStarting;
-        SetLegsVisible(ref kickLeg, true);
+        SetLegsVisible(ref kickLeg, true, ctx);
     }
 
-    private void SetLegsVisible(ref KickLegComponent kickLeg, bool visible)
+    private void SetLegsVisible(ref KickLegComponent kickLeg, bool visible, SystemCtx ctx)
     {
-        Store.GetEntityByPid(kickLeg.LeftLegPid).Data.Ensure<Sprite2D>(CommandBuffer).Visible = visible;
-        Store.GetEntityByPid(kickLeg.RightLegPid).Data.Ensure<Sprite2D>(CommandBuffer).Visible = visible;
+        ctx.Store.GetEntityByPid(kickLeg.LeftLegPid).Data.Ensure<Sprite2D>(ctx.cb).Visible = visible;
+        ctx.Store.GetEntityByPid(kickLeg.RightLegPid).Data.Ensure<Sprite2D>(ctx.cb).Visible = visible;
     }
 }

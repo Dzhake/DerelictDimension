@@ -1,5 +1,5 @@
 ﻿using DerelictDimension.ECS.PhysicsModule.Components;
-using Friflo.Engine.ECS.Systems;
+using Monod.ECS.Systems;
 using Monod.Graphics.ECS.Sprite;
 using Monod.TimeModule;
 using Monod.Utils.Extensions;
@@ -7,31 +7,16 @@ using System;
 
 namespace DerelictDimension.ECS.Ai;
 
-public class BodySystem : QuerySystem<BodyComponent>
+public class BodySystem : SystemBase
 {
-    public CommandBuffer cb;
-
-    protected override void OnAddStore(EntityStore store)
-    {
-        cb = store.GetCommandBuffer();
-        cb.ReuseBuffer = true;
-        base.OnAddStore(store);
-    }
-
-    protected override void OnRemoveStore(EntityStore store)
-    {
-        cb.ReturnBuffer();
-        base.OnRemoveStore(store);
-    }
-
-    protected override void OnUpdate()
+    public override void Update(SystemCtx ctx)
     {
         float dt = Time.DeltaTime;
-        foreach (var entity in Query.Entities)
+        foreach (var entity in ctx.GetQuery(Queries.BodyComponent).Entities)
         {
             var data = entity.Data;
             ref var body = ref data.Get<BodyComponent>();
-            ref var sprite = ref data.Ensure<Sprite2D>(cb);
+            ref var sprite = ref data.Ensure<Sprite2D>(ctx.cb);
 
 
             var parent = entity.Parent;

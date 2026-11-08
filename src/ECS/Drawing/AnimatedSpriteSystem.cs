@@ -1,5 +1,5 @@
-﻿using Friflo.Engine.ECS.Systems;
-using Monod.AssetsModule;
+﻿using Monod.AssetsModule;
+using Monod.ECS.Systems;
 using Monod.Graphics.Animations;
 using Monod.Graphics.ECS.Sprite;
 using Monod.TimeModule;
@@ -7,14 +7,14 @@ using Monod.Utils.Extensions;
 
 namespace DerelictDimension.ECS.Drawing;
 
-public class AnimatedSpriteSystem : QuerySystem<AnimatedSpriteComponent>
+public class AnimatedSpriteSystem : SystemBase
 {
-    protected override void OnUpdate()
+    public override void Update(SystemCtx ctx)
     {
-        Query.ForEachEntity(UpdateEntity);
+        ctx.GetQuery(Queries.AnimatedSpriteComponent).ForEachEntityM(UpdateEntity, ctx);
     }
 
-    private void UpdateEntity(ref AnimatedSpriteComponent animSprite, Entity entity)
+    private void UpdateEntity(ref AnimatedSpriteComponent animSprite, Entity entity, SystemCtx ctx)
     {
         var data = entity.Data;
 
@@ -37,7 +37,7 @@ public class AnimatedSpriteSystem : QuerySystem<AnimatedSpriteComponent>
         }
 
 
-        ref var sprite2D = ref data.Ensure<Sprite2D>(CommandBuffer, out bool added);
+        ref var sprite2D = ref data.Ensure<Sprite2D>(ctx.cb, out bool added);
         if (added || frameChanged || animSprite.InvalidateCurrentTexture)
         {
             sprite2D.TexturePath = animSprite.BaseTexturePath + animSprite.Anim.PathSuffix + animSprite.Anim.Frames[animSprite.FrameNumber];

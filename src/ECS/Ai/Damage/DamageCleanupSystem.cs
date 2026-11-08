@@ -1,20 +1,12 @@
-﻿using Friflo.Engine.ECS.Systems;
+﻿using Monod.ECS.Systems;
 
 namespace DerelictDimension.ECS.Ai.Damage;
 
-public class DamageCleaupSystem : BaseSystem
+public class DamageCleaupSystem : SystemBase
 {
-    public ArchetypeQuery Query;
-
-    protected override void OnAddStore(EntityStore store)
+    public override void Update(SystemCtx ctx)
     {
-        Query = store.QueryRelation<DamageRelation>();
-        base.OnAddStore(store);
-    }
-
-    protected override void OnUpdateGroup()
-    {
-        foreach (var entity in Query.Entities)
+        foreach (var entity in ctx.GetQuery(Queries.DamageRelation).Entities)
         {
             foreach (var relation in entity.GetRelations<DamageRelation>())
             {

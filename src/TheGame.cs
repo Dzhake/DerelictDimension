@@ -64,8 +64,6 @@ public class TheGame : MonodGame
         IsFixedTimeStep = true;
         MaxElapsedTime = TimeSpan.FromMilliseconds(1000f / WantedFPS * 60);
         TargetElapsedTime = TimeSpan.FromMilliseconds(1000f / WantedFPS);
-        PrefabsStore = new(PidType.RandomPids);
-        EditorStore = new(PidType.RandomPids);
     }
 
 
@@ -73,10 +71,12 @@ public class TheGame : MonodGame
     {
         base.Initialize();
         InputActions.Initialize();
-        EcsMain.Initialize();
     }
 
-    public override void CreateStore() => Store = new(PidType.RandomPids);
+    public override void InitializeEcs()
+    {
+        EcsMain.Initialize();
+    }
 
     ///<inheritdoc/>
     protected override void LoadContent()

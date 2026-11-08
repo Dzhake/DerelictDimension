@@ -1,7 +1,7 @@
 ﻿using Box2D.NET;
 using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.Utils.Extensions;
-using Friflo.Engine.ECS.Systems;
+using Monod.ECS.Systems;
 using Monod.Graphics;
 using Monod.Graphics.Fonts;
 using System;
@@ -10,22 +10,14 @@ using static Box2D.NET.B2Worlds;
 
 namespace DerelictDimension.ECS.Drawing;
 
-public class DrawHitboxesSystem : BaseSystem
+public class DrawHitboxesSystem : SystemBase
 {
-    public static B2DebugDraw draw = b2DefaultDebugDraw();
-    public static bool Enabled;
+    public static B2DebugDraw draw;
+    public static bool EnableB2DebugDraw;
 
-    protected override void OnUpdateGroup()
+    public DrawHitboxesSystem()
     {
-        if (!Enabled) return;
-        Renderer.ShapeBegin();
-        b2World_Draw(Physics.WorldId, in draw);
-        Renderer.ShapeEnd();
-        base.OnUpdateGroup();
-    }
-
-    protected override void OnAddStore(EntityStore store)
-    {
+        draw = b2DefaultDebugDraw();
         draw.DrawPointFcn = DrawPoint;
         draw.DrawLineFcn = DrawLine;
         draw.DrawTransformFcn = DrawTransform;
@@ -35,9 +27,16 @@ public class DrawHitboxesSystem : BaseSystem
         draw.DrawSolidPolygonFcn = DrawSolidPolygon;
         draw.DrawSolidCapsuleFcn = DrawSolidCapsule;
         draw.DrawStringFcn = DrawString;
-
-        base.OnAddStore(store);
     }
+
+    public override void Update(SystemCtx ctx)
+    {
+        if (!EnableB2DebugDraw) return;
+        Renderer.ShapeBegin();
+        b2World_Draw(Physics.WorldId, in draw);
+        Renderer.ShapeEnd();
+    }
+
 
     // Size is in screen pixels.
     // Box2D draws solid dots, hence FillCircle.
@@ -57,9 +56,9 @@ public class DrawHitboxesSystem : BaseSystem
     {
         const float axisScale = 0.3f; // meters, same as Box2D's own k_axisScale
 
-        B2Vec2 p = transform.p;
-        B2Vec2 px = p + axisScale * B2MathFunction.b2Rot_GetXAxis(transform.q);
-        B2Vec2 py = p + axisScale * B2MathFunction.b2Rot_GetYAxis(transform.q);
+        var p = transform.p;
+        var px = p + (axisScale * B2MathFunction.b2Rot_GetXAxis(transform.q));
+        var py = p + (axisScale * B2MathFunction.b2Rot_GetYAxis(transform.q));
 
         Renderer.shapeBatch.FillLine(p.ToXNA() * Physics.PixelsInMeter, px.ToXNA() * Physics.PixelsInMeter, 1f, B2HexColor.b2_colorRed.ToXNA());
         Renderer.shapeBatch.FillLine(p.ToXNA() * Physics.PixelsInMeter, py.ToXNA() * Physics.PixelsInMeter, 1f, B2HexColor.b2_colorGreen.ToXNA());

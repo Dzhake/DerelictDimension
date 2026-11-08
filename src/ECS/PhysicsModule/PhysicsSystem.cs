@@ -4,8 +4,8 @@ using DerelictDimension.ECS.Ai.Damage;
 using DerelictDimension.ECS.Ai.Objects;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using DerelictDimension.Utils.Extensions;
-using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
+using Monod.ECS.Systems;
 using Monod.Shared.Exceptions;
 using Monod.TimeModule;
 using Monod.Utils.Extensions;
@@ -19,55 +19,29 @@ using static Box2D.NET.B2Worlds;
 
 namespace DerelictDimension.ECS.PhysicsModule;
 
-public sealed class PhysicsSystem : BaseSystem
+public sealed class PhysicsSystem : SystemBase
 {
-    public ArchetypeQuery<PhysicsBodyComponent> PhysicsBodyQuery;
-    public ArchetypeQuery<PhysicsShapeComponent> PhysicsShapeQuery;
-    public ArchetypeQuery<HitboxComponent> HitboxQuery;
-    public ArchetypeQuery<Transform2D> TransformQuery;
-
-    public EntityStore Store;
-
-    public CommandBuffer cb;
-
-    protected override void OnAddStore(EntityStore store)
+    public override void OnCtxChanged(SystemCtx ctx)
     {
-        base.OnAddStore(store);
-
-        Store = store;
-
-        PhysicsBodyQuery = store.Query<PhysicsBodyComponent>();
-        PhysicsShapeQuery = store.Query<PhysicsShapeComponent>();
-        TransformQuery = store.Query<Transform2D>();
-        HitboxQuery = store.Query<HitboxComponent>();
-
-        cb = store.GetCommandBuffer();
-        cb.ReuseBuffer = true;
-    }
-
-    protected override void OnRemoveStore(EntityStore store)
-    {
-        cb.ReturnBuffer();
         //TODO (perf: mid) probably should clear the world instead of fully destroying it, but i'm not sure how
-        b2DestroyWorld(Physics.WorldId);
-        base.OnRemoveStore(store);
+        if (b2World_IsValid(Physics.WorldId)) b2DestroyWorld(Physics.WorldId);
     }
 
-    protected override void OnUpdateGroup()
+    public override void Update(SystemCtx ctx)
     {
         EnsureWorld();
 
-        SynchronizeBox2d();
-        cb.Playback();
+        SynchronizeBox2d(ctx);
+        ctx.cb.Playback();
 
         b2World_Step(Physics.WorldId, Time.DeltaTime, 4);
 
-        SynchronizeEcs();
-        cb.Playback();
+        SynchronizeEcs(ctx);
+        ctx.cb.Playback();
 
-        ResolveEvents();
+        ResolveEvents(ctx);
 
-        UnsetDirty();
+        UnsetDirty(ctx);
     }
 
     private void EnsureWorld()
@@ -80,17 +54,17 @@ public sealed class PhysicsSystem : BaseSystem
         }
     }
 
-    private void SynchronizeBox2d()
+    private void SynchronizeBox2d(SystemCtx ctx)
     {
-        PhysicsBodyQuery.ForEachEntity(SynchronizeBodyToBox2d);
-        PhysicsShapeQuery.ForEachEntity(SynchronizeShapeToBox2d);
+        ctx.GetQuery(Queries.PhysicsBodyComponent).ForEachEntityM(SynchronizeBodyToBox2d, ctx);
+        ctx.GetQuery(Queries.PhysicsShapeComponent).ForEachEntityM(SynchronizeShapeToBox2d, ctx);
     }
 
 
-    private void SynchronizeBodyToBox2d(ref PhysicsBodyComponent physicsBody, Entity entity)
+    private void SynchronizeBodyToBox2d(ref PhysicsBodyComponent physicsBody, Entity entity, SystemCtx ctx)
     {
         var data = entity.Data;
-        ref var transform = ref data.Ensure<Transform2D>(cb);
+        ref var transform = ref data.Ensure<Transform2D>(ctx.cb);
 
         if (!b2Body_IsValid(physicsBody.BodyId))
         {
@@ -131,10 +105,10 @@ public sealed class PhysicsSystem : BaseSystem
         return b2CreateBody(Physics.WorldId, in bodyDef);
     }
 
-    private void SynchronizeShapeToBox2d(ref PhysicsShapeComponent physicsShape, Entity entity)
+    private void SynchronizeShapeToBox2d(ref PhysicsShapeComponent physicsShape, Entity entity, SystemCtx ctx)
     {
         var data = entity.Data;
-        ref var hitbox = ref data.Ensure<HitboxComponent>(cb);
+        ref var hitbox = ref data.Ensure<HitboxComponent>(ctx.cb);
         bool validShape = b2Shape_IsValid(physicsShape.ShapeId);
         if (validShape && physicsShape.PhysicsDirty)
         {
@@ -219,15 +193,15 @@ public sealed class PhysicsSystem : BaseSystem
         return shapeDef;
     }
 
-    private void SynchronizeEcs()
+    private void SynchronizeEcs(SystemCtx ctx)
     {
-        PhysicsBodyQuery.ForEachEntity(SynchronizeBodyToEcs);
+        ctx.GetQuery(Queries.PhysicsBodyComponent).ForEachEntityM(SynchronizeBodyToEcs, ctx);
     }
 
-    private void SynchronizeBodyToEcs(ref PhysicsBodyComponent physicsBody, Entity entity)
+    private void SynchronizeBodyToEcs(ref PhysicsBodyComponent physicsBody, Entity entity, SystemCtx ctx)
     {
         var data = entity.Data;
-        ref var transform = ref data.Ensure<Transform2D>(cb);
+        ref var transform = ref data.Ensure<Transform2D>(ctx.cb);
 
         var b2transform = b2Body_GetTransform(physicsBody.BodyId);
         transform.Position = b2transform.p.ToXNA() - entity.GetParentPos(out float parentRotation);
@@ -240,12 +214,12 @@ public sealed class PhysicsSystem : BaseSystem
         //i think shapes are not modified by box2d?
     }
 
-    private void UnsetDirty()
+    private void UnsetDirty(SystemCtx ctx)
     {
-        TransformQuery.ForEachEntity(UnsetTransformDirty);
-        HitboxQuery.ForEachEntity(UnsetHitboxDirty);
-        PhysicsBodyQuery.ForEachEntity(UnsetPhysicsBodyDirty);
-        PhysicsShapeQuery.ForEachEntity(UnsetPhysicsShapeDirty);
+        ctx.GetQuery(Queries.Transform2D).ForEachEntity(UnsetTransformDirty);
+        ctx.GetQuery(Queries.HitboxComponent).ForEachEntity(UnsetHitboxDirty);
+        ctx.GetQuery(Queries.PhysicsBodyComponent).ForEachEntity(UnsetPhysicsBodyDirty);
+        ctx.GetQuery(Queries.PhysicsShapeComponent).ForEachEntity(UnsetPhysicsShapeDirty);
     }
 
     private void UnsetTransformDirty(ref Transform2D transform, Entity entity) => transform.PhysicsDirty = false;
@@ -254,15 +228,15 @@ public sealed class PhysicsSystem : BaseSystem
     private void UnsetPhysicsShapeDirty(ref PhysicsShapeComponent physicsShape, Entity entity) => physicsShape.PhysicsDirty = false;
 
 
-    private void ResolveEvents()
+    private void ResolveEvents(SystemCtx ctx)
     {
         var sensorEvents = b2World_GetSensorEvents(Physics.WorldId);
 
         for (int i = 0; i < sensorEvents.beginCount; i++)
         {
             var e = sensorEvents.beginEvents[i];
-            var sensorEntity = Store.GetEntityById(b2Shape_GetUserData(e.sensorShapeId).GetRef<ShapeUserData>().EntityId);
-            var visitorEntity = Store.GetEntityById(b2Shape_GetUserData(e.visitorShapeId).GetRef<ShapeUserData>().EntityId);
+            var sensorEntity = ctx.Store.GetEntityById(b2Shape_GetUserData(e.sensorShapeId).GetRef<ShapeUserData>().EntityId);
+            var visitorEntity = ctx.Store.GetEntityById(b2Shape_GetUserData(e.visitorShapeId).GetRef<ShapeUserData>().EntityId);
 
             HandleCollision(sensorEntity, visitorEntity);
         }

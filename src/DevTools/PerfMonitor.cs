@@ -1,5 +1,5 @@
-﻿using Friflo.Engine.ECS.Systems;
-using Hexa.NET.ImGui;
+﻿using Hexa.NET.ImGui;
+using Monod.ECS.Systems;
 using System;
 using System.Globalization;
 
@@ -19,8 +19,8 @@ public static class PerfMonitor
 
         ImGui.SeparatorText("Systems"u8);
 
-        DrawGroup(TheGame.Instance.LogicSystemRoot);
-        DrawGroup(TheGame.Instance.DrawSystemRoot);
+        DrawGroup(TheGame.LogicSystemRoot);
+        DrawGroup(TheGame.DrawSystemRoot);
 
         ImGui.End();
     }
@@ -35,7 +35,7 @@ public static class PerfMonitor
         {
             DrawRow(groupMs, groupMem, groupMs, groupMem);
 
-            var children = group.ChildSystems;
+            var children = group.Systems;
             int count = children.Count;
             float avgMs = count > 0 ? groupMs / count : 0f;
             float avgMem = count > 0 ? groupMem / (float)count : 0f;

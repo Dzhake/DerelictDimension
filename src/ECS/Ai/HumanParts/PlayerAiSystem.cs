@@ -1,31 +1,31 @@
 ﻿using Box2D.NET;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using DerelictDimension.Utils.Extensions;
-using Friflo.Engine.ECS.Systems;
 using Monod.ECS.DefaultComponents;
+using Monod.ECS.Systems;
 using Monod.InputModule;
 using Monod.TimeModule;
 using Monod.Utils.Extensions;
 
 namespace DerelictDimension.ECS.Ai;
 
-public class PlayerAiSystem : QuerySystem<PlayerAi>
+public class PlayerAiSystem : SystemBase
 {
-    protected override void OnUpdate()
+    public override void Update(SystemCtx ctx)
     {
-        Query.ForEachEntity(UpdatePlayer);
+        ctx.GetQuery(Queries.PlayerAi).ForEachEntityM(UpdatePlayer, ctx);
     }
 
-    private void UpdatePlayer(ref PlayerAi player, Entity entity)
+    private void UpdatePlayer(ref PlayerAi player, Entity entity, SystemCtx ctx)
     {
         var data = entity.Data;
-        ref var physicsBody = ref data.Ensure<PhysicsBodyComponent>(CommandBuffer);
+        ref var physicsBody = ref data.Ensure<PhysicsBodyComponent>(ctx.cb);
         if (!B2Worlds.b2Body_IsValid(physicsBody.BodyId)) return;
-        ref var transform = ref data.Ensure<Transform2D>(CommandBuffer);
+        ref var transform = ref data.Ensure<Transform2D>(ctx.cb);
 
-        Vector2 velocity = B2Bodies.b2Body_GetLinearVelocity(physicsBody.BodyId).ToXNA();
+        var velocity = B2Bodies.b2Body_GetLinearVelocity(physicsBody.BodyId).ToXNA();
 
-        Vector2 targetDirection = Vector2.Zero;
+        var targetDirection = Vector2.Zero;
         if (Input.ActionDown(InputActions.MoveLeft)) targetDirection.X--;
         if (Input.ActionDown(InputActions.MoveRight)) targetDirection.X++;
         if (Input.ActionDown(InputActions.MoveUp)) targetDirection.Y--;
@@ -34,7 +34,7 @@ public class PlayerAiSystem : QuerySystem<PlayerAi>
         targetDirection.NormalizeSafe();
         var targetVelocity = targetDirection * player.TargetVelocity;
         var velChange = targetVelocity - velocity;
-        var velChangeLen = velChange.Length();
+        float velChangeLen = velChange.Length();
         if (velChangeLen < player.Acceleration * Time.DeltaTime)
         {
             velocity = targetVelocity;

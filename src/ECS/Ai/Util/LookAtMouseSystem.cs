@@ -1,6 +1,6 @@
 ﻿using DerelictDimension.ECS.PhysicsModule;
-using Monod.ECS;
 using Monod.ECS.DefaultComponents;
+using Monod.ECS.Systems;
 using Monod.Graphics;
 using Monod.InputModule;
 using Monod.MathModule;
@@ -11,30 +11,16 @@ using System;
 
 namespace DerelictDimension.ECS.Ai.Visual;
 
-public class LookAtMouseSystem : TagSystem<LookAtMouseTag>
+public class LookAtMouseSystem : SystemBase
 {
-    public CommandBuffer cb;
     public static bool RelativeRotation = false;
 
-    protected override void OnAddStore(EntityStore store)
-    {
-        cb = store.GetCommandBuffer();
-        cb.ReuseBuffer = true;
-        base.OnAddStore(store);
-    }
-
-    protected override void OnRemoveStore(EntityStore store)
-    {
-        cb.ReturnBuffer();
-        base.OnRemoveStore(store);
-    }
-
-    protected override void OnUpdateGroup()
+    public override void Update(SystemCtx ctx)
     {
         SDL.SDL_SetWindowRelativeMouseMode(Renderer.Window.Handle, RelativeRotation);
-        foreach (var entity in Query.Entities)
+        foreach (var entity in ctx.GetQuery(Queries.LookAtMouseTag).Entities)
         {
-            ref var transform = ref entity.Data.Ensure<Transform2D>(cb);
+            ref var transform = ref entity.Data.Ensure<Transform2D>(ctx.cb);
             float rotation;
             if (RelativeRotation)
             {
@@ -55,9 +41,6 @@ public class LookAtMouseSystem : TagSystem<LookAtMouseTag>
                 entity.SetTransformDirtyRecursive();
             }
         }
-
-        base.OnUpdateGroup();
-        cb.Playback();
     }
 
 }

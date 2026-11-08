@@ -1,20 +1,20 @@
 ﻿using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.PhysicsModule.Components;
-using Monod.ECS;
+using Monod.ECS.Systems;
 
 namespace DerelictDimension.ECS.Ai;
 
 
-public class LegsSystem : TagSystem<LegsTag>
+public class LegsSystem : SystemBase
 {
-    protected override void OnUpdateGroup()
+    public override void Update(SystemCtx ctx)
     {
-        foreach (var entity in Query.Entities)
+        foreach (var entity in ctx.GetQuery(Queries.LegsTag).Entities)
         {
             var parent = entity.Parent;
             if (parent.IsNull) continue;
             if (!entity.HasComponent<AnimatedSpriteComponent>()) continue;
-            var velocity = parent.GetComponent<PhysicsBodyComponent>().LinearVelocity.Length();
+            float velocity = parent.GetComponent<PhysicsBodyComponent>().LinearVelocity.Length();
             if (velocity > 0.1f)
                 continue;
             ref var animatedSprite = ref entity.GetComponent<AnimatedSpriteComponent>();

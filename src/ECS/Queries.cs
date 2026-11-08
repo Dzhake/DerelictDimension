@@ -1,6 +1,7 @@
 ﻿using DerelictDimension.ECS.Ai;
 using DerelictDimension.ECS.Ai.Damage;
 using DerelictDimension.ECS.Ai.Visual;
+using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
@@ -13,10 +14,14 @@ namespace DerelictDimension.ECS;
 [MQuery<PhysicsShapeComponent>]
 [MQuery<PhysicsBodyComponent>]
 [MQuery<HitboxComponent>]
+[MQuery<PlayerAi>]
+[MQuery<BodyComponent>]
+[MQuery<AnimatedSpriteComponent>]
 
 [MQuery<DamageRelation>]
 
 [MQuery<LegsTag>]
 [MQuery<ParentVelocityDirTag>]
 [MQuery<LookAtMouseTag>]
+[MQuery<KickLegComponent>]
 public static partial class Queries;

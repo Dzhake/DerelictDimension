@@ -1,7 +1,6 @@
 ﻿using DerelictDimension.ECS.Rewinding;
-using Friflo.Engine.ECS.Systems;
+using Monod.ECS.Systems;
 using Monod.Graphics;
-using Monod.Graphics.ECS.Sprite;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.TimeModule;
@@ -13,27 +12,19 @@ public class DrawSystem : SystemGroup
     public RenderTarget2D? MainRT;
     public static Vector2 Upscale = Vector2.One;
 
-    public ArchetypeQuery<Sprite2D> SpriteQuery;
-
     public DrawSystem(string name = "DrawSystem") : base(name) { }
 
 
-    protected override void OnAddStore(EntityStore store)
+    public override void Update(SystemCtx ctx)
     {
-        base.OnAddStore(store);
-        SpriteQuery = store.Query<Sprite2D>();
-    }
-
-    protected override void OnUpdateGroup()
-    {
-        Point renderSize = Renderer.RenderSize;
+        var renderSize = Renderer.RenderSize;
         LoadMissingAssets();
         Upscale = new(renderSize.X / TheGame.GameSize.X, renderSize.Y / TheGame.GameSize.Y);
 
         Renderer.SetRenderTarget(MainRT);
         Renderer.Clear(Color.Green);
 
-        base.OnUpdateGroup();
+        base.Update(ctx);
 
         DrawFinal();
     }
@@ -41,20 +32,20 @@ public class DrawSystem : SystemGroup
     private void DrawFinal()
     {
         Renderer.SetRenderTarget(null);
-        Vector2 renderOffset = Renderer.RenderOffset;
+        var renderOffset = Renderer.RenderOffset;
 
         Renderer.Begin();
         Renderer.DrawTexture(MainRT!, renderOffset, Color.White);
         Renderer.End();
 
         Renderer.Begin();
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Time:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nEntities:{TheGame.Store.Count}\nMousePos:{Input.MousePos()}", renderOffset, Color.White);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Time:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nEntities:{EcsMain.Store.Count}\nMousePos:{Input.MousePos()}", renderOffset, Color.White);
         Renderer.End();
     }
 
     private void LoadMissingAssets()
     {
-        Point renderSize = Renderer.RenderSize;
+        var renderSize = Renderer.RenderSize;
 
         if (MainRT is null || MainRT.Bounds.Size != renderSize)
         {

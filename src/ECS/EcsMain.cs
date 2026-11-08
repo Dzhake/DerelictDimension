@@ -47,7 +47,9 @@ public static class EcsMain
         MonodGame.PrefabsStore = PrefabsStore;
 
         StoreCtx = new(Store);
+        StoreCtx.MonitorPerf = true;
         EditorStoreCtx = new(EditorStore);
+        EditorStoreCtx.MonitorPerf = true;
         CurrentCtx = StoreCtx;
 
         LogicSystemRoot.SetContext(CurrentCtx);

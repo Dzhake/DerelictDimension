@@ -35,7 +35,7 @@ public static class PerfMonitor
         {
             DrawRow(groupMs, groupMem, groupMs, groupMem);
 
-            var children = group.Systems;
+            var children = group.ChildSystems;
             int count = children.Count;
             float avgMs = count > 0 ? groupMs / count : 0f;
             float avgMem = count > 0 ? groupMem / (float)count : 0f;

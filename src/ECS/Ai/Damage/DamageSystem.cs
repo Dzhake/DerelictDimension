@@ -176,8 +176,6 @@ public class DamageSystem : SystemBase
 
     private static Vector2 Rotate(Vector2 v, float cos, float sin) => new((v.X * cos) - (v.Y * sin), (v.X * sin) + (v.Y * cos));
 
-    private static float Jitter(float amplitude) => ((Random.Shared.NextSingle() * 2f) - 1f) * amplitude;
-
     private void KillHuman(in Entity victimBase, in EntityData victimBaseData, ref MortalComponent mortal, Vector2 direction, CommandBuffer cb)
     {
         if (!victimBaseData.Has<HumanBody>()) Guard.Exception($"Tried to kill a human without body, human id: {victimBase.Id}");
@@ -205,7 +203,7 @@ public class DamageSystem : SystemBase
         ref var bodyAnim = ref body.Data.Ensure<AnimatedSpriteComponent>(cb);
         bodyAnim.SetAnim(Anims.HumanDeath);
         ref var bodyShape = ref body.Data.Ensure<PhysicsShapeComponent>(cb);
-        bodyShape.CollisionMask &= CollisionLayer.Walls;
+        bodyShape.CollisionMask &= CollisionLayer.Walls | CollisionLayer.Environment;
         bodyShape.PhysicsDirty = true;
         Log.Information("Killed {Id}", victimBase.Id);
     }

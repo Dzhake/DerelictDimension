@@ -15,7 +15,7 @@ public static class CodePrefabs
 {
     public static Entity CreateHuman(Vector2 position, float rotation, string baseTexturePath, out Entity body, out Entity head, out Entity leftLeg, out Entity rightLeg)
     {
-        var store = EcsMain.Store;
+        var store = EcsMain.MainStore;
 
         body = store.CreateEntity(new EntityName("Body"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanBodyBreathe), new RenderDepth(0.2f), new HitboxComponent(new Capsule(new(-.25f, 0), new(.25f, 0), 0.1f)), new PhysicsShapeComponent(categories: CollisionLayer.Enemy, mask: CollisionLayer.Walls | CollisionLayer.PlayerAttacks | CollisionLayer.Environment), new BodyComponent());
 
@@ -39,7 +39,7 @@ public static class CodePrefabs
 
     public static Entity CreateDoor(Vector2 position, float rotation, Vector2 hitboxSize, string texturePath, in DoorComponent doorComponent)
     {
-        return EcsMain.Store.CreateEntity(new EntityName("Door"), new Transform2D(position, rotation: rotation),
+        return EcsMain.MainStore.CreateEntity(new EntityName("Door"), new Transform2D(position, rotation: rotation),
             new HitboxComponent(new OrientedRect(Vector2.Zero, hitboxSize)), new Sprite2D(texturePath),
             new PhysicsBodyComponent(type: B2BodyType.b2_staticBody), new PhysicsShapeComponent(categories: CollisionLayer.Environment, mask: CollisionLayer.All),
             doorComponent);

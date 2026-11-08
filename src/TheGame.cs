@@ -26,7 +26,7 @@ public class TheGame : MonodGame
     /// <summary>
     /// Static singleton instance of the <see cref="TheGame"/>.
     /// </summary>
-    public static TheGame Instance;
+    public static TheGame I;
 
     public string text = "None";
 
@@ -59,7 +59,7 @@ public class TheGame : MonodGame
     public TheGame()
     {
         IsMouseVisible = true;
-        Instance = this;
+        I = this;
         GameSize = new(1280, 720);
         IsFixedTimeStep = true;
         MaxElapsedTime = TimeSpan.FromMilliseconds(1000f / WantedFPS * 60);

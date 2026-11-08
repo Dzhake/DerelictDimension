@@ -32,7 +32,7 @@ public static class Settings
     {
         ImGui.Begin("Reload"u8);
         if (ImGui.Button("Reload world"u8))
-            TheGame.Instance.Reload();
+            TheGame.I.Reload();
         if (ImGui.Button("Reload asset users"u8))
             Assets.ReloadThisFrame = true;
         if (ImGui.Button("Reload assets"u8))

@@ -27,7 +27,7 @@ public static class DevConsole
     /// <param name="command">Command to run.</param>
     public static void Run(string command)
     {
-        if (TheGame.Instance is null) return;
-        TheGame.Instance.text = command;
+        if (TheGame.I is null) return;
+        TheGame.I.text = command;
     }
 }

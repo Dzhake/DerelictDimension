@@ -18,15 +18,15 @@ public static class EcsMain
     public static SystemRoot LogicSystemRoot;
     public static SystemRoot DrawSystemRoot;
 
-    public static SystemCtx StoreCtx;
-    public static SystemCtx EditorStoreCtx;
+    public static SystemCtx MainCtx;
+    public static SystemCtx EditorCtx;
     public static SystemCtx CurrentCtx;
 
 
     /// <summary>
     /// Main <see cref="EntityStore"/> of the game.
     /// </summary>
-    public static EntityStore Store;
+    public static EntityStore MainStore;
 
     public static EntityStore PrefabsStore;
 
@@ -35,7 +35,7 @@ public static class EcsMain
 
     public static void Initialize()
     {
-        Store = new(PidType.RandomPids);
+        MainStore = new(PidType.RandomPids);
         PrefabsStore = new(PidType.RandomPids);
         EditorStore = new(PidType.RandomPids);
 
@@ -46,16 +46,16 @@ public static class EcsMain
 
         MonodGame.PrefabsStore = PrefabsStore;
 
-        StoreCtx = new(Store);
-        StoreCtx.MonitorPerf = true;
-        EditorStoreCtx = new(EditorStore);
-        EditorStoreCtx.MonitorPerf = true;
-        CurrentCtx = StoreCtx;
+        MainCtx = new(MainStore);
+        MainCtx.MonitorPerf = true;
+        EditorCtx = new(EditorStore);
+        EditorCtx.MonitorPerf = true;
+        CurrentCtx = MainCtx;
 
         LogicSystemRoot.SetContext(CurrentCtx);
         DrawSystemRoot.SetContext(CurrentCtx);
 
-        EcGui.AddExplorerStore("Main", Store);
+        EcGui.AddExplorerStore("Main", MainStore);
         EcGui.AddExplorerStore("Prefabs", PrefabsStore);
     }
 
@@ -73,7 +73,7 @@ public static class EcsMain
         player.AddComponent(new PlayerAi());
         body.AddTag<LookAtMouseTag>();
         body.GetComponent<PhysicsShapeComponent>().CollisionCategories = CollisionLayer.Player;
-        var kickLeg = Store.CreateEntity(new EntityName("Kick leg"), new PhysicsShapeComponent(isSensor: true, categories: CollisionLayer.PlayerAttacks, mask: CollisionLayer.Environment | CollisionLayer.Enemy | CollisionLayer.EnemyAttacks), new HitboxComponent(new OrientedRect(-.14f, -.28f, .14f, .38f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid, rightLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/", Anims.HumanLegKick), new Transform2D(), new RenderDepth(0.25f), new DamagerComponent());
+        var kickLeg = MainStore.CreateEntity(new EntityName("Kick leg"), new PhysicsShapeComponent(isSensor: true, categories: CollisionLayer.PlayerAttacks, mask: CollisionLayer.Environment | CollisionLayer.Enemy | CollisionLayer.EnemyAttacks), new HitboxComponent(new OrientedRect(-.14f, -.28f, .14f, .38f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid, rightLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/", Anims.HumanLegKick), new Transform2D(), new RenderDepth(0.25f), new DamagerComponent());
         body.AddChild(kickLeg);
 
         CodePrefabs.CreateHuman(new(3, 4.2f), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
@@ -83,8 +83,8 @@ public static class EcsMain
         CodePrefabs.CreateDoor(new(3, 4), 0, new(2, 0.1f), "Sprites/WoodenDoor", new("Sprites/WoodenDoorDebris"));
 
 
-        Store.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 2.55f, 1)), new PhysicsShapeComponent(categories: CollisionLayer.Walls));
-        Store.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 0.3f, 2)), new PhysicsShapeComponent(categories: CollisionLayer.Walls));
+        MainStore.CreateEntity(new Transform2D(5, 5), new Sprite2D("Sprites/Wall"), new RenderDepth(0.05f), new NineSliceComponent(new(255, 100)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 2.55f, 1)), new PhysicsShapeComponent(categories: CollisionLayer.Walls));
+        MainStore.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(0.05f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 0.3f, 2)), new PhysicsShapeComponent(categories: CollisionLayer.Walls));
         //var json = entitySerializer.WriteEntity(entity);
         //Log.Information($"\n{json}");
 
@@ -95,8 +95,8 @@ public static class EcsMain
 
     private static void ClearStore()
     {
-        var commandBuffer = Store.GetCommandBuffer();
-        foreach (var entity in Store.Entities)
+        var commandBuffer = MainStore.GetCommandBuffer();
+        foreach (var entity in MainStore.Entities)
             commandBuffer.DeleteEntity(entity.Id);
         commandBuffer.Playback();
     }

@@ -39,7 +39,7 @@ public class DrawSystem : SystemGroup
         Renderer.End();
 
         Renderer.Begin();
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Time:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nEntities:{EcsMain.Store.Count}\nMousePos:{Input.MousePos()}", renderOffset, Color.White);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Time:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nEntities:{EcsMain.MainStore.Count}\nMousePos:{Input.MousePos()}", renderOffset, Color.White);
         Renderer.End();
     }
 

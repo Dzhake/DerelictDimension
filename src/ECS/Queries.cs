@@ -8,22 +8,15 @@ using Monod.Graphics.ECS.Sprite;
 
 namespace DerelictDimension.ECS;
 
-[GenerateQueryRegistration]
-public static partial class Queries
-{
-    public static QueryKey<ArchetypeQuery<Transform2D>> Transform2D;
-    public static QueryKey<ArchetypeQuery<Sprite2D>> Sprite2D;
-    public static QueryKey<ArchetypeQuery<PhysicsShapeComponent>> PhysicsShape;
-    public static QueryKey<ArchetypeQuery<PhysicsBodyComponent>> PhysicsBody;
-    public static QueryKey<ArchetypeQuery<HitboxComponent>> Hitbox;
+[MQuery<Transform2D>]
+[MQuery<Sprite2D>]
+[MQuery<PhysicsShapeComponent>]
+[MQuery<PhysicsBodyComponent>]
+[MQuery<HitboxComponent>]
 
-    [QueryRelation]
-    public static QueryKey<ArchetypeQuery<DamageRelation>> DamageRelation;
+[MQuery<DamageRelation>]
 
-    [QueryTag<LegsTag>]
-    public static QueryKey<ArchetypeQuery> LegsTag;
-    [QueryTag<ParentVelocityDirTag>]
-    public static QueryKey<ArchetypeQuery> ParentVelocityDirTag;
-    [QueryTag<LookAtMouseTag>]
-    public static QueryKey<ArchetypeQuery> LookAtMouseTag;
-}
+[MQuery<LegsTag>]
+[MQuery<ParentVelocityDirTag>]
+[MQuery<LookAtMouseTag>]
+public static partial class Queries;

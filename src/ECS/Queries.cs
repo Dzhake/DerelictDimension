@@ -5,7 +5,6 @@ using DerelictDimension.ECS.PhysicsModule.Components;
 using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
 using Monod.Graphics.ECS.Sprite;
-using Monod.SourceGenerators.Queries;
 
 namespace DerelictDimension.ECS;
 
@@ -21,24 +20,10 @@ public static partial class Queries
     [QueryRelation]
     public static QueryKey<ArchetypeQuery<DamageRelation>> DamageRelation;
 
+    [QueryTag<LegsTag>]
     public static QueryKey<ArchetypeQuery> LegsTag;
+    [QueryTag<ParentVelocityDirTag>]
     public static QueryKey<ArchetypeQuery> ParentVelocityDirTag;
+    [QueryTag<LookAtMouseTag>]
     public static QueryKey<ArchetypeQuery> LookAtMouseTag;
-
-
-    public static void Register(SystemCtx ctx)
-    {
-        var store = ctx.Store;
-        Transform2D = ctx.RegisterQuery(store.Query<Transform2D>());
-        Sprite2D = ctx.RegisterQuery(store.Query<Sprite2D>());
-        PhysicsShape = ctx.RegisterQuery(store.Query<PhysicsShapeComponent>());
-        PhysicsBody = ctx.RegisterQuery(store.Query<PhysicsBodyComponent>());
-        Hitbox = ctx.RegisterQuery(store.Query<HitboxComponent>());
-
-        DamageRelation = ctx.RegisterQuery(store.QueryRelation<DamageRelation>());
-
-        LegsTag = ctx.RegisterQuery(store.Query().AllTags(Tags.Get<LegsTag>()));
-        ParentVelocityDirTag = ctx.RegisterQuery(store.Query().AllTags(Tags.Get<ParentVelocityDirTag>()));
-        LookAtMouseTag = ctx.RegisterQuery(store.Query().AllTags(Tags.Get<LookAtMouseTag>()));
-    }
 }

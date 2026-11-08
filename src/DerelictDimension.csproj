@@ -56,7 +56,7 @@
 		<!--  Monod repo clone next to DerelictDimension repo  -->
 		<!-- Build in the TasksDebug/Release configuration first, then in normal Debug/Release -->
 		<ProjectReference Include="../../Monod/src/Main/Monod.csproj" />
-		<ProjectReference Include="../../Monod/src/Monod.SourceGenerators/Monod.SourceGenerators.csproj" OutputItemType="Analyzer"/>
+		<ProjectReference Include="../../Monod/src/Monod.SourceGenerators/Monod.SourceGenerators.csproj" OutputItemType="Analyzer" PrivateAssets="All"/>
 		<ProjectReference Include="../Box2D.NET/src/Box2D.NET/Box2D.NET.csproj" />
 
 		<!--  Nuget packages  -->

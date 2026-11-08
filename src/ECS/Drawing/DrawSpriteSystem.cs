@@ -21,8 +21,8 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
     {
         if (sprite.Texture is null || !sprite.Visible) return;
 
-        EntityData data = entity.Data;
-        GetDrawArgs(ref sprite, ref entity, ref data, out Vector2 position, out float rotation, out Vector2 scale, out float depth, out Vector2 origin);
+        var data = entity.Data;
+        GetDrawArgs(ref sprite, ref entity, ref data, out var position, out float rotation, out var scale, out float depth, out var origin);
         position *= Physics.PixelsInMeter;
 
         if (data.Has<NineSliceComponent>())
@@ -37,12 +37,12 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
 
     private void DrawNineSlice(ref Sprite2D sprite, ref NineSliceComponent nineSlice, ref Vector2 position, float rotation, Vector2 scale, float depth, ref Vector2 origin)
     {
-        MTexture mTex = sprite.Texture!;
+        var mTex = sprite.Texture!;
         if (mTex.Base is null)
             return;
 
-        Texture2D texture = mTex.Base;
-        Rectangle region = mTex.GetBounds();
+        var texture = mTex.Base;
+        var region = mTex.GetBounds();
 
         float drawW = nineSlice.DrawSize.X;
         float drawH = nineSlice.DrawSize.Y;
@@ -73,14 +73,14 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
         float oX = localOrigin.X * scale.X;
         float oY = localOrigin.Y * scale.Y;
 
-        float baseX = position.X - cos * oX + sin * oY;
-        float baseY = position.Y - sin * oX - cos * oY;
+        float baseX = position.X - (cos * oX) + (sin * oY);
+        float baseY = position.Y - (sin * oX) - (cos * oY);
         float kx = cos * scale.X, lx = sin * scale.X;
         float ky = -sin * scale.Y, ly = cos * scale.Y;
 
 
-        Color color = sprite.color;
-        SpriteEffects effects = sprite.spriteEffects;
+        var color = sprite.color;
+        var effects = sprite.spriteEffects;
         bool flipH = (effects & SpriteEffects.FlipHorizontally) != 0;
         bool flipV = (effects & SpriteEffects.FlipVertically) != 0;
         if (flipH) (leftSrcX, rightSrcX) = (rightSrcX, leftSrcX);
@@ -89,7 +89,7 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
 
         void Tile(int srcX, int srcY, int srcW, int srcH, float dstX, float dstY)
         {
-            Renderer.DrawTexture(texture, new Vector2(baseX + kx * dstX + ky * dstY, baseY + lx * dstX + ly * dstY), color, new Rectangle(srcX, srcY, srcW, srcH), rotation, Vector2.Zero, scale, effects, depth);
+            Renderer.DrawTexture(texture, new Vector2(baseX + (kx * dstX) + (ky * dstY), baseY + (lx * dstX) + (ly * dstY)), color, new Rectangle(srcX, srcY, srcW, srcH), rotation, Vector2.Zero, scale, effects, depth);
         }
 
         void Band(int srcY, int srcH, float dstY)
@@ -106,7 +106,7 @@ public class DrawSpriteSystem : QuerySystem<Sprite2D>
         Band(topSrcY, tileHeight, 0f);
 
         for (int j = 0; j < middleRows; j++)
-            Band(midSrcY, tileHeight, tileHeight + j * tileHeight);
+            Band(midSrcY, tileHeight, tileHeight + (j * tileHeight));
 
         Band(bottomSrcY, tileHeight, drawH - tileHeight);
     }

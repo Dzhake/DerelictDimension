@@ -24,7 +24,7 @@ public class RewindPreUpdateSystem : BaseSystem
     {
         base.OnUpdateGroup();
 
-        foreach (Entity entity in NotRegisteredAsCreatedQuery.Entities)
+        foreach (var entity in NotRegisteredAsCreatedQuery.Entities)
             cb.AddComponent<CreatedAtComponent>(entity.Id, new CreatedAtComponent());
         cb.Playback();
 

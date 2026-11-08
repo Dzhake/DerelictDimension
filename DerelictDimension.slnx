@@ -51,6 +51,10 @@
     <Build Solution="TasksDebug|*" Project="false" />
     <Build Solution="TasksRelease|*" Project="false" />
   </Project>
+  <Project Path="../Monod/src/Monod.SourceGenerators/Monod.SourceGenerators.csproj" Id="6cb8e3d8-c443-4544-8111-74a440ed9ae8">
+    <BuildType Solution="TasksDebug|*" Project="Release" />
+    <BuildType Solution="TasksRelease|*" Project="Release" />
+  </Project>
   <Project Path="../Monod/src/Monod.Tests/Monod.Tests.csproj">
     <BuildType Solution="TasksDebug|*" Project="Debug" />
     <BuildType Solution="TasksRelease|*" Project="Release" />

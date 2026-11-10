@@ -13,20 +13,20 @@ namespace DerelictDimension.ECS.Prefabs;
 
 public static class CodePrefabs
 {
-    public static Entity CreateHuman(Vector2 position, float rotation, string baseTexturePath, out Entity body, out Entity head, out Entity leftLeg, out Entity rightLeg)
+    public static Entity CreateHuman(Vector2 position, float rotation, string baseTexturePath, out Entity body, out Entity head, out Entity leftLeg, out Entity rightLeg, float baseDepth = 100f)
     {
         var store = EcsMain.MainStore;
 
-        body = store.CreateEntity(new EntityName("Body"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanBodyBreathe), new RenderDepth(0.2f), new HitboxComponent(new Capsule(new(-.25f, 0), new(.25f, 0), 0.1f)), new PhysicsShapeComponent(categories: CollisionLayer.Enemy, mask: CollisionLayer.Walls | CollisionLayer.PlayerAttacks | CollisionLayer.Environment), new BodyComponent());
+        body = store.CreateEntity(new EntityName("Body"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanBodyBreathe), new RenderDepth(baseDepth, 10), new HitboxComponent(new Capsule(new(-.25f, 0), new(.25f, 0), 0.1f)), new PhysicsShapeComponent(categories: CollisionLayer.Enemy, mask: CollisionLayer.Walls | CollisionLayer.PlayerAttacks | CollisionLayer.Environment), new BodyComponent(), Tags.Get<YSortParentTag>());
 
-        head = store.CreateEntity(new EntityName("Head"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanHeadBreathe), new RenderDepth(0.1f));
+        head = store.CreateEntity(new EntityName("Head"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanHeadBreathe), new RenderDepth(baseDepth, 0), Tags.Get<YSortParentTag>());
 
-        leftLeg = store.CreateEntity(new EntityName("Left leg"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanLeftLeg), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag, LegsTag>());
+        leftLeg = store.CreateEntity(new EntityName("Left leg"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanLeftLeg), new RenderDepth(baseDepth, 20), Tags.Get<ParentVelocityDirTag, LegsTag, YSortParentTag>());
 
-        rightLeg = store.CreateEntity(new EntityName("Right leg"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanRightLeg), new RenderDepth(0.3f), Tags.Get<ParentVelocityDirTag, LegsTag>());
+        rightLeg = store.CreateEntity(new EntityName("Right leg"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanRightLeg), new RenderDepth(baseDepth, 21), Tags.Get<ParentVelocityDirTag, LegsTag, YSortParentTag>());
 
 
-        var entity = store.CreateEntity(new EntityName("Human base"), new Transform2D(position, rotation: rotation), new MortalComponent(), new PhysicsBodyComponent(B2BodyType.b2_dynamicBody, fixedRotation: true), new HumanBody(body), new HumanHead(head), new HumanLeftLeg(leftLeg), new HumanRightLeg(rightLeg));
+        var entity = store.CreateEntity(new EntityName("Human base"), new Transform2D(position, rotation: rotation), new MortalComponent(), new PhysicsBodyComponent(B2BodyType.b2_dynamicBody, fixedRotation: true), new HumanBody(body), new HumanHead(head), new HumanLeftLeg(leftLeg), new HumanRightLeg(rightLeg), Tags.Get<YSortSelfTag>());
 
 
         entity.AddChild(body);

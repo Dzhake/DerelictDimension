@@ -1,4 +1,5 @@
-﻿using DerelictDimension.ECS.PhysicsModule;
+﻿using DerelictDimension.ECS.Drawing.Batching;
+using DerelictDimension.ECS.PhysicsModule;
 using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
 using Monod.Graphics;
@@ -8,20 +9,25 @@ using System;
 
 namespace DerelictDimension.ECS.Drawing;
 
-public class DrawSpriteSystem : SystemBase
+public class DrawSpriteSystem : SystemBase, IDrawer
 {
     public override void Update(SystemCtx ctx)
     {
-        Renderer.Begin(SpriteSortMode.BackToFront, samplerState: SamplerState.PointWrap);
-        ctx.GetQuery(Queries.Sprite2D).ForEachEntityM(Draw, ctx);
-        Renderer.End();
+        ctx.GetQuery(Queries.Sprite2D).ForEachEntityM(AddEntity, ctx);
     }
 
-    private void Draw(ref Sprite2D sprite, Entity entity, SystemCtx ctx)
+    private void AddEntity(ref Sprite2D sprite, Entity entity, SystemCtx ctx)
     {
         if (sprite.Texture is null || !sprite.Visible) return;
+        ctx.drawBatcher.Add(entity, this, ctx);
+    }
 
+    public void Draw(Entity entity, SystemCtx ctx)
+    {
         var data = entity.Data;
+        ref var sprite = ref data.Get<Sprite2D>();
+        if (sprite.Texture is null || !sprite.Visible) return;
+
         GetDrawArgs(ref sprite, ref entity, ref data, ctx, out var position, out float rotation, out var scale, out float depth, out var origin);
         position *= Physics.PixelsInMeter;
 
@@ -119,7 +125,10 @@ public class DrawSpriteSystem : SystemBase
         scale = transform.Scale;
 
         if (data.Has<RenderDepth>())
-            depth = data.Get<RenderDepth>().Depth;
+        {
+            depth = data.Get<RenderDepth>().BaseDepth;
+            depth = (depth / 20000) + 0.5f;
+        }
         else
             depth = 0;
 

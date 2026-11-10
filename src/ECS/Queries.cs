@@ -24,4 +24,6 @@ namespace DerelictDimension.ECS;
 [MQuery<ParentVelocityDirTag>]
 [MQuery<LookAtMouseTag>]
 [MQuery<KickLegComponent>]
+[MQuery<YSortSelfTag>]
+[MQuery<YSortParentTag>]
 public static partial class Queries;

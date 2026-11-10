@@ -25,6 +25,9 @@ public class DrawSystem : SystemGroup
         Renderer.Clear(Color.Green);
 
         base.Update(ctx);
+        ctx.cb.Playback();
+
+        ctx.drawBatcher.Flush(ctx);
 
         DrawFinal();
     }

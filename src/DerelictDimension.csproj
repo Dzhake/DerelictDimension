@@ -35,7 +35,7 @@
 		<!--  Removes lotsa dirs with localization files for System.CommandLine from output dir (on build)  -->
 		<SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
 
-		<!-- Disale 'fast up to date check' that prevents action from executing when running the game project -->
+		<!-- Disable 'fast up to date check' that prevents action from executing when running the game project -->
 		<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
 
 		<BuildProjectReferences>true</BuildProjectReferences>
@@ -56,7 +56,6 @@
 		<!--  Monod repo clone next to DerelictDimension repo  -->
 		<!-- Build in the TasksDebug/Release configuration first, then in normal Debug/Release -->
 		<ProjectReference Include="../../Monod/src/Main/Monod.csproj" />
-		<ProjectReference Include="../../Monod/src/Monod.SourceGenerators/Monod.SourceGenerators.csproj" OutputItemType="Analyzer" PrivateAssets="All"/>
 		<ProjectReference Include="../Box2D.NET/src/Box2D.NET/Box2D.NET.csproj" />
 
 		<!--  Nuget packages  -->
@@ -68,11 +67,6 @@
 
 		<!-- Native libraries -->
 		<Content Include="$(NativeLibsDir)**" CopyToOutputDirectory="PreserveNewest" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" Version="18.12.1" />
-		<PackageReference Update="Roslynator.Analyzers" Version="5.0.1" />
 	</ItemGroup>
 
 

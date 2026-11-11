@@ -1,5 +1,6 @@
 ﻿using DerelictDimension.Debug;
 using DerelictDimension.ECS;
+using DerelictDimension.ECS.Prefabs;
 using DerelictDimension.ECS.Rewinding;
 using FontStashSharp;
 using MLEM.Extended.Font;
@@ -125,6 +126,10 @@ public class TheGame : MonodGame
     protected override void UpdateM()
     {
         if (Input.KeyPressed(Key.R)) Reload();
+        if (Input.KeyPressed(Key.Mouse2))
+        {
+            CodePrefabs.CreateHuman(Coords.ScreenToWorld(Input.MousePos()), 0, "Sprites/Swordsman/", out var _, out var _, out var _, out var _);
+        }
 
         /* Mod manager:
          * 
@@ -154,8 +159,8 @@ public class TheGame : MonodGame
         if (Input.KeyPressed(Key.F6)) Settings.ShowPerfMonitor = !Settings.ShowPerfMonitor;
         if (Input.KeyPressed(Key.F10))
         {
-            if (EcsMain.CurrentStore == EcsStores.Main) EcsMain.SetStore(EcsStores.Editor);
-            else if (EcsMain.CurrentStore == EcsStores.Editor) EcsMain.SetStore(EcsStores.Main);
+            if (EcsMain.CurrentStores == EcsStores.Main) EcsMain.SetStore(EcsStores.Editor);
+            else if (EcsMain.CurrentStores == EcsStores.Editor) EcsMain.SetStore(EcsStores.Main);
         }
 
         if (Input.KeyPressed(Key.M))

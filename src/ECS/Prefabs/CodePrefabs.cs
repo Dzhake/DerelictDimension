@@ -7,7 +7,9 @@ using DerelictDimension.ECS.Links;
 using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using Monod.ECS.DefaultComponents;
+using Monod.Graphics.ECS;
 using Monod.Graphics.ECS.Sprite;
+using Monod.MathModule;
 
 namespace DerelictDimension.ECS.Prefabs;
 
@@ -15,7 +17,7 @@ public static class CodePrefabs
 {
     public static Entity CreateHuman(Vector2 position, float rotation, string baseTexturePath, out Entity body, out Entity head, out Entity leftLeg, out Entity rightLeg, float baseDepth = 100f)
     {
-        var store = EcsMain.MainStore;
+        var store = EcsMain.CurrentStore;
 
         body = store.CreateEntity(new EntityName("Body"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanBodyBreathe), new RenderDepth(baseDepth, 10), new HitboxComponent(new Capsule(new(-.25f, 0), new(.25f, 0), 0.1f)), new PhysicsShapeComponent(categories: CollisionLayer.Enemy, mask: CollisionLayer.Walls | CollisionLayer.PlayerAttacks | CollisionLayer.Environment), new BodyComponent(), Tags.Get<YSortParentTag>());
 
@@ -39,7 +41,7 @@ public static class CodePrefabs
 
     public static Entity CreateDoor(Vector2 position, float rotation, Vector2 hitboxSize, string texturePath, in DoorComponent doorComponent)
     {
-        return EcsMain.MainStore.CreateEntity(new EntityName("Door"), new Transform2D(position, rotation: rotation),
+        return EcsMain.CurrentStore.CreateEntity(new EntityName("Door"), new Transform2D(position, rotation: rotation),
             new HitboxComponent(new OrientedRect(Vector2.Zero, hitboxSize)), new Sprite2D(texturePath),
             new PhysicsBodyComponent(type: B2BodyType.b2_staticBody), new PhysicsShapeComponent(categories: CollisionLayer.Environment, mask: CollisionLayer.All),
             doorComponent);

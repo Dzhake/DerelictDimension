@@ -1,5 +1,6 @@
 ﻿using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
+using Monod.Graphics.ECS;
 using Monod.Utils.Extensions;
 
 namespace DerelictDimension.ECS.Drawing;

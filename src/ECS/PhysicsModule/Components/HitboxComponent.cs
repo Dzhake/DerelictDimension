@@ -1,4 +1,5 @@
 ﻿using Box2D.NET;
+using Monod.MathModule;
 using System;
 using System.Runtime.InteropServices;
 
@@ -27,7 +28,7 @@ public record struct HitboxComponent : IComponent, IEquatable<HitboxComponent>
     [FieldOffset(14)]
     public Capsule Capsule;
 
-    public readonly override string? ToString() => $"Hitbox: {Rect}, Collidable: {Collidable}";
+    public override readonly string? ToString() => $"Hitbox: {Rect}, Collidable: {Collidable}";
 
     public HitboxComponent(OrientedRect hitbox)
     {
@@ -44,6 +45,6 @@ public record struct HitboxComponent : IComponent, IEquatable<HitboxComponent>
     public static bool operator ==(in HitboxComponent h1, in HitboxComponent h2) => h1.Rect == h2.Rect && h1.Collidable == h2.Collidable;
     public static bool operator !=(in HitboxComponent h1, in HitboxComponent h2) => !(h1 == h2);
 
-    public readonly override int GetHashCode() => Rect.GetHashCode();
+    public override readonly int GetHashCode() => Rect.GetHashCode();
     public readonly bool Equals(HitboxComponent other) => Rect == other.Rect && Collidable == other.Collidable;
 }

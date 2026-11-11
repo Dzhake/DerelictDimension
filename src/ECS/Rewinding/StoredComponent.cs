@@ -1,5 +1,5 @@
 ﻿using Monod.ECS;
-using Monod.Shared.Exceptions;
+using Monod.Utils.Exceptions;
 using System;
 using System.Runtime.InteropServices;
 

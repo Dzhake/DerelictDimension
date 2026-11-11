@@ -12,7 +12,8 @@ using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
 using Monod.Graphics.ECS;
 using Monod.Graphics.ECS.Sprite;
-using Monod.Shared.Exceptions;
+using Monod.MathModule;
+using Monod.Utils.Exceptions;
 
 namespace DerelictDimension.ECS;
 
@@ -23,8 +24,9 @@ public static class EcsMain
 
     public static SystemCtx MainCtx;
     public static SystemCtx EditorCtx;
-    public static SystemCtx CurrentCtx => GetCtx(CurrentStore);
-    public static Stores CurrentStore;
+    public static SystemCtx CurrentCtx => GetCtx(CurrentStores);
+    public static EntityStore CurrentStore => CurrentCtx.Store;
+    public static Stores CurrentStores;
 
 
     /// <summary>
@@ -41,7 +43,7 @@ public static class EcsMain
     {
         EcsStores.Main = Stores.Info.AddOrGetValue("Main");
         EcsStores.Editor = Stores.Info.AddOrGetValue("Editor");
-        CurrentStore = EcsStores.Main;
+        CurrentStores = EcsStores.Main;
 
         MainStore = new(PidType.RandomPids);
         PrefabsStore = new(PidType.RandomPids);
@@ -169,7 +171,7 @@ public static class EcsMain
 
     public static void SetStore(Stores store)
     {
-        CurrentStore = store;
+        CurrentStores = store;
         OnCtxChanged();
     }
 }

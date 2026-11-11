@@ -1,4 +1,4 @@
-using Monod.Shared.Extensions;
+using Monod.Utils.Extensions;
 using Serilog.Events;
 using System.Collections.Generic;
 using System.CommandLine;

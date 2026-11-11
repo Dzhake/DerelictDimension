@@ -5,6 +5,7 @@ using DerelictDimension.ECS.Drawing;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
+using Monod.Graphics.ECS;
 using Monod.Graphics.ECS.Sprite;
 
 namespace DerelictDimension.ECS;

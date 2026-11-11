@@ -1,5 +1,5 @@
-﻿using DerelictDimension.ECS.PhysicsModule;
-using Monod.Graphics;
+﻿using Monod.Graphics;
+using Monod.MathModule;
 
 namespace DerelictDimension;
 

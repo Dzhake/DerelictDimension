@@ -1,8 +1,8 @@
-﻿using DerelictDimension.ECS.Drawing.Batching;
-using DerelictDimension.ECS.PhysicsModule;
+﻿using DerelictDimension.ECS.PhysicsModule;
 using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
 using Monod.Graphics;
+using Monod.Graphics.Batching;
 using Monod.Graphics.ECS.Sprite;
 using Monod.Utils.Extensions;
 using System;

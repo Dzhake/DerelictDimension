@@ -9,6 +9,7 @@ using Monod.ECS.Systems;
 using Monod.Shared.Exceptions;
 using Monod.TimeModule;
 using Monod.Utils.Extensions;
+using System;
 using System.Runtime.CompilerServices;
 using static Box2D.NET.B2Bodies;
 using static Box2D.NET.B2Geometries;
@@ -19,13 +20,29 @@ using static Box2D.NET.B2Worlds;
 
 namespace DerelictDimension.ECS.PhysicsModule;
 
-public sealed class PhysicsSystem : SystemBase
+public sealed class PhysicsSystem : SystemBase, IDisposable
 {
     public override void OnCtxChanged(SystemCtx ctx)
     {
         //TODO (perf: mid) probably should clear the world instead of fully destroying it, but i'm not sure how
-        if (b2World_IsValid(Physics.WorldId)) b2DestroyWorld(Physics.WorldId);
+        TryDestroyWorld(ctx);
     }
+
+    private static void TryDestroyWorld(SystemCtx ctx)
+    {
+        if (b2World_IsValid(Physics.WorldId)) b2DestroyWorld(Physics.WorldId);
+        Physics.WorldId = B2Ids.b2_nullWorldId;
+        ctx.GetQuery(Queries.PhysicsBodyComponent).ForEachEntity(ClearBodyId);
+        ctx.GetQuery(Queries.PhysicsShapeComponent).ForEachEntity(ClearShapeId);
+    }
+
+    private static void ClearBodyId(ref PhysicsBodyComponent physicsBody, Entity _)
+    => physicsBody.BodyId = B2Ids.b2_nullBodyId;
+
+    private static void ClearShapeId(ref PhysicsShapeComponent physicsShape, Entity _)
+        => physicsShape.ShapeId = B2Ids.b2_nullShapeId;
+
+
 
     public override void Update(SystemCtx ctx)
     {
@@ -250,5 +267,10 @@ public sealed class PhysicsSystem : SystemBase
         {
             visitorEntity.AddRelation(new DamageRelation(sensorEntity));
         }
+    }
+
+    public void Dispose()
+    {
+        TryDestroyWorld(EcsMain.CurrentCtx);
     }
 }

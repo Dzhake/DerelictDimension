@@ -152,6 +152,11 @@ public class TheGame : MonodGame
         if (Input.KeyPressed(Key.F4)) Settings.ShowB2Debug = !Settings.ShowB2Debug;
         if (Input.KeyPressed(Key.F5)) Settings.ShowReloadWindow = !Settings.ShowReloadWindow;
         if (Input.KeyPressed(Key.F6)) Settings.ShowPerfMonitor = !Settings.ShowPerfMonitor;
+        if (Input.KeyPressed(Key.F10))
+        {
+            if (EcsMain.CurrentStore == EcsStores.Main) EcsMain.SetStore(EcsStores.Editor);
+            else if (EcsMain.CurrentStore == EcsStores.Editor) EcsMain.SetStore(EcsStores.Main);
+        }
 
         if (Input.KeyPressed(Key.M))
         {

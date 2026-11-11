@@ -2,6 +2,7 @@
 using DerelictDimension.ECS.Ai.Damage;
 using DerelictDimension.ECS.Ai.Visual;
 using DerelictDimension.ECS.Drawing;
+using DerelictDimension.ECS.Editor;
 using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.ECS.PhysicsModule.Components;
 using DerelictDimension.ECS.Prefabs;
@@ -9,7 +10,9 @@ using Friflo.EcGui;
 using Monod;
 using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
+using Monod.Graphics.ECS;
 using Monod.Graphics.ECS.Sprite;
+using Monod.Shared.Exceptions;
 
 namespace DerelictDimension.ECS;
 
@@ -20,7 +23,8 @@ public static class EcsMain
 
     public static SystemCtx MainCtx;
     public static SystemCtx EditorCtx;
-    public static SystemCtx CurrentCtx;
+    public static SystemCtx CurrentCtx => GetCtx(CurrentStore);
+    public static Stores CurrentStore;
 
 
     /// <summary>
@@ -35,6 +39,10 @@ public static class EcsMain
 
     public static void Initialize()
     {
+        EcsStores.Main = Stores.Info.AddOrGetValue("Main");
+        EcsStores.Editor = Stores.Info.AddOrGetValue("Editor");
+        CurrentStore = EcsStores.Main;
+
         MainStore = new(PidType.RandomPids);
         PrefabsStore = new(PidType.RandomPids);
         EditorStore = new(PidType.RandomPids);
@@ -46,14 +54,12 @@ public static class EcsMain
 
         MonodGame.PrefabsStore = PrefabsStore;
 
-        MainCtx = new(MainStore);
+        MainCtx = new(MainStore, EcsStores.Main);
         MainCtx.MonitorPerf = true;
-        EditorCtx = new(EditorStore);
+        EditorCtx = new(EditorStore, EcsStores.Editor);
         EditorCtx.MonitorPerf = true;
-        CurrentCtx = MainCtx;
 
-        LogicSystemRoot.SetContext(CurrentCtx);
-        DrawSystemRoot.SetContext(CurrentCtx);
+        OnCtxChanged();
 
         EcGui.AddExplorerStore("Main", MainStore);
         EcGui.AddExplorerStore("Prefabs", PrefabsStore);
@@ -61,13 +67,20 @@ public static class EcsMain
 
     public static void Load()
     {
-        InitWorld();
+        InitWorld(MainCtx);
+        InitWorld(EditorCtx);
+        PopulateMainStore();
+        InitializeSystems();
     }
 
-    public static void InitWorld()
+    public static void InitWorld(SystemCtx ctx)
     {
-        ClearStore();
+        ClearStore(ctx.Store);
+        RegisterQueries(ctx);
+    }
 
+    private static void PopulateMainStore()
+    {
         var player = CodePrefabs.CreateHuman(new(3, 1), 0, "Sprites/Player/", out var body, out _, out var leftLeg, out var rightLeg, 0);
         player.Name.value = "Player";
         player.AddComponent(new PlayerAi());
@@ -87,16 +100,12 @@ public static class EcsMain
         MainStore.CreateEntity(new Transform2D(8, 3, rotation: (float)Math.PI / 6), new Sprite2D("Sprites/Wall", spriteEffects: SpriteEffects.FlipHorizontally), new RenderDepth(10f), new NineSliceComponent(new(30, 200)), new PhysicsBodyComponent(), new HitboxComponent(new OrientedRect(0, 0, 0.3f, 2)), new PhysicsShapeComponent(categories: CollisionLayer.Walls));
         //var json = entitySerializer.WriteEntity(entity);
         //Log.Information($"\n{json}");
-
-
-        RegisterQueries(CurrentCtx);
-        InitializeSystems();
     }
 
-    private static void ClearStore()
+    private static void ClearStore(EntityStore store)
     {
-        var commandBuffer = MainStore.GetCommandBuffer();
-        foreach (var entity in MainStore.Entities)
+        var commandBuffer = store.GetCommandBuffer();
+        foreach (var entity in store.Entities)
             commandBuffer.DeleteEntity(entity.Id);
         commandBuffer.Playback();
     }
@@ -127,18 +136,40 @@ public static class EcsMain
             new YSortSystem(),
         });
 
+        LogicSystemRoot.Add(new SystemGroup("Editor", EcsStores.Editor)
+        {
+            new EditorSelectionSystem(),
+        });
+
         DrawSystemRoot.Add(new DrawSystem()
         {
             new DrawSpriteSystem(),
             new DrawHitboxesSystem(),
         });
-
-        LogicSystemRoot.OnCtxChanged(CurrentCtx);
-        DrawSystemRoot.OnCtxChanged(CurrentCtx);
     }
 
     public static void RegisterQueries(SystemCtx ctx)
     {
         Queries.Register(ctx);
+    }
+
+    public static SystemCtx? GetCtx(Stores store)
+    {
+        if ((store & EcsStores.Main) != Stores.None) return MainCtx;
+        if ((store & EcsStores.Editor) != Stores.None) return EditorCtx;
+        Guard.Exception($"Unknown store: {store}");
+        return null!;
+    }
+
+    public static void OnCtxChanged()
+    {
+        LogicSystemRoot.SetContext(CurrentCtx);
+        DrawSystemRoot.SetContext(CurrentCtx);
+    }
+
+    public static void SetStore(Stores store)
+    {
+        CurrentStore = store;
+        OnCtxChanged();
     }
 }

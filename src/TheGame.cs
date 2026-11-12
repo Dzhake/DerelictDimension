@@ -181,14 +181,9 @@ public class TheGame : MonodGame
     protected override void DrawM()
     {
         UpdateDrawSystems();
+        Settings.Draw();
         //GenericFont? font = GlobalFonts.MenuFont;
         //DrawModMenu(font, ref transform);
-    }
-
-    public override void DrawImGui()
-    {
-        base.DrawImGui();
-        Settings.Draw();
     }
 
     private void DrawModMenu(GenericFont font, ref Vector2 pos)

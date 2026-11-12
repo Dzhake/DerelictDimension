@@ -147,6 +147,10 @@ public static class EcsMain
         {
             new DrawSpriteSystem(),
             new DrawHitboxesSystem(),
+            new SystemGroup("Editor")
+            {
+                new EditorSelectionDrawSystem(),
+            },
         });
     }
 

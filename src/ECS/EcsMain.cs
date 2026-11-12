@@ -73,6 +73,7 @@ public static class EcsMain
         InitWorld(EditorCtx);
         PopulateMainStore();
         InitializeSystems();
+        OnCtxChanged();
     }
 
     public static void InitWorld(SystemCtx ctx)

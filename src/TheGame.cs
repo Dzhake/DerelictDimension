@@ -88,6 +88,7 @@ public class TheGame : MonodGame
         base.LoadContent();
 
         Renderer.deviceManager.PreferMultiSampling = true;
+        Renderer.DefaultSamplerState = SamplerState.PointClamp;
         Assets.OnLoad += LoadFont;
         Assets.OnLoad += OnAssetsLoaded;
         EcsMain.Load();

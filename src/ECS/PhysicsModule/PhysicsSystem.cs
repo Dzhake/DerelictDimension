@@ -186,7 +186,7 @@ public sealed class PhysicsSystem : SystemBase, IDisposable
             }
             break;
         default:
-            Guard.Exception($"Hitbox component on entity with id {entity.Id} is not a valid type: {hitbox.Type}");
+            Guard.InvalidEnumValue($"Hitbox component on entity with id {entity.Id} is not a valid type: {hitbox.Type}", hitbox.Type);
             break;
         }
 

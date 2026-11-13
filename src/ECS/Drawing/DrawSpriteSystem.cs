@@ -19,7 +19,7 @@ public class DrawSpriteSystem : SystemBase, IDrawer
     private void AddEntity(ref Sprite2D sprite, Entity entity, SystemCtx ctx)
     {
         if (sprite.Texture is null || !sprite.Visible) return;
-        ctx.drawBatcher.Add(entity, this, ctx);
+        ctx.drawBatcher.Add(entity, this, entity.Data.Ensure<RenderDepth>(ctx.cb), ctx);
     }
 
     public void Draw(Entity entity, SystemCtx ctx)

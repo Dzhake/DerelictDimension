@@ -27,4 +27,12 @@ namespace DerelictDimension.ECS;
 [MQuery<KickLegComponent>]
 [MQuery<YSortSelfTag>]
 [MQuery<YSortParentTag>]
-public static partial class Queries;
+public static partial class Queries
+{
+    public static QueryKey<ArchetypeQuery> All;
+
+    public static void RegisterManual(SystemCtx ctx)
+    {
+        All = ctx.RegisterQuery(ctx.Store.Query());
+    }
+}

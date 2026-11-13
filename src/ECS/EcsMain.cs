@@ -164,7 +164,7 @@ public static class EcsMain
     {
         if ((store & EcsStores.Main) != Stores.None) return MainCtx;
         if ((store & EcsStores.Editor) != Stores.None) return EditorCtx;
-        Guard.Exception($"Unknown store: {store}");
+        Guard.InvalidEnumValue(store);
         return null!;
     }
 

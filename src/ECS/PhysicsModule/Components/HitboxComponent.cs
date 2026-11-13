@@ -1,5 +1,6 @@
 ﻿using Box2D.NET;
 using Monod.MathModule;
+using Monod.Utils.Exceptions;
 using System;
 using System.Runtime.InteropServices;
 
@@ -47,4 +48,20 @@ public record struct HitboxComponent : IComponent, IEquatable<HitboxComponent>
 
     public override readonly int GetHashCode() => Rect.GetHashCode();
     public readonly bool Equals(HitboxComponent other) => Rect == other.Rect && Collidable == other.Collidable;
+
+    public OrientedRect GetBoundingBox()
+    {
+        switch (Type)
+        {
+        case HitboxType.None:
+            return new();
+        case HitboxType.OrientedRect:
+            return Rect;
+        case HitboxType.Capsule:
+            return Capsule.GetBoundingBox();
+        }
+
+        Guard.InvalidEnumValue(Type);
+        return default;
+    }
 }

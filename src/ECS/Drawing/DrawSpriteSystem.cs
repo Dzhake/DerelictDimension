@@ -2,14 +2,13 @@
 using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
 using Monod.Graphics;
-using Monod.Graphics.Batching;
 using Monod.Graphics.ECS.Sprite;
 using Monod.Utils.Extensions;
 using System;
 
 namespace DerelictDimension.ECS.Drawing;
 
-public class DrawSpriteSystem : SystemBase, IDrawer
+public class DrawSpriteSystem : SystemBase
 {
     public override void Update(SystemCtx ctx)
     {
@@ -19,7 +18,7 @@ public class DrawSpriteSystem : SystemBase, IDrawer
     private void AddEntity(ref Sprite2D sprite, Entity entity, SystemCtx ctx)
     {
         if (sprite.Texture is null || !sprite.Visible) return;
-        ctx.drawBatcher.Add(entity, this, entity.Data.Ensure<RenderDepth>(ctx.cb), ctx);
+        ctx.drawBatcher.Add(entity, Draw, entity.Data.Ensure<RenderDepth>(ctx.cb), ctx);
     }
 
     public void Draw(Entity entity, SystemCtx ctx)

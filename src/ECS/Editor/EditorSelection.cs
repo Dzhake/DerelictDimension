@@ -8,6 +8,7 @@ namespace DerelictDimension.ECS.Editor;
 public static class EditorSelection
 {
     public static long SelectedPid = -1;
+    public static long HoveredPid = -1;
     public static HashSet<long> LastSelectedPids = new();
 
     //todo: serialize

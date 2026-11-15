@@ -1,11 +1,11 @@
 ﻿using DerelictDimension.ECS.PhysicsModule;
 using Monod.ECS.Systems;
-using Monod.Graphics.Batching;
+using Monod.Graphics;
 using Monod.Utils.Extensions;
 
 namespace DerelictDimension.ECS.Editor;
 
-public class EditorSelectionDrawSystem : SystemBase, IDrawer
+public class EditorSelectionDrawSystem : SystemBase
 {
     public override void Update(SystemCtx ctx)
     {
@@ -13,11 +13,25 @@ public class EditorSelectionDrawSystem : SystemBase, IDrawer
         {
             var entity = ctx.Store.GetEntityByPid(EditorSelection.SelectedPid);
 
-            ctx.drawBatcher.Add(entity, this, new(-2000), ctx);
+            ctx.drawBatcher.Add(entity, DrawSelection, new(-2000), ctx);
+        }
+
+        if (EditorSelection.HoveredPid != -1)
+        {
+            var entity = ctx.Store.GetEntityByPid(EditorSelection.HoveredPid);
+
+            ctx.drawBatcher.Add(entity, DrawHover, new(-2005), ctx);
         }
     }
 
-    public void Draw(Entity entity, SystemCtx ctx)
+    public void DrawSelection(Entity entity, SystemCtx ctx)
+    {
+        var boundingBox = GetBoundingBox(entity);
+        Renderer.DrawRotRect(boundingBox, Color.Purple * 0.5f);
+        Renderer.DrawHollowRotRect(boundingBox, Color.LightPink * 0.5f, 4);
+    }
+
+    private static Monod.MathModule.OrientedRect GetBoundingBox(Entity entity)
     {
         var boundingBox = EditorSelection.GetBoundingBox(entity.Data);
         var pos = entity.GetWorldPos(out float rotation);
@@ -27,6 +41,12 @@ public class EditorSelectionDrawSystem : SystemBase, IDrawer
 
         boundingBox.Center *= Physics.PixelsInMeter;
         boundingBox.Size *= Physics.PixelsInMeter;
-        RendererExt.DrawRotRect(boundingBox, Color.Purple * 0.5f);
+        return boundingBox;
+    }
+
+    public void DrawHover(Entity entity, SystemCtx ctx)
+    {
+        var boundingBox = GetBoundingBox(entity);
+        Renderer.DrawHollowRotRect(boundingBox, Color.Yellow * 0.5f);
     }
 }

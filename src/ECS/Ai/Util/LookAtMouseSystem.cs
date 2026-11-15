@@ -1,5 +1,4 @@
-﻿using DerelictDimension.ECS.PhysicsModule;
-using Monod.ECS.DefaultComponents;
+﻿using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
 using Monod.Graphics;
 using Monod.InputModule;
@@ -17,21 +16,28 @@ public class LookAtMouseSystem : SystemBase
 
     public override void Update(SystemCtx ctx)
     {
-        SDL.SDL_SetWindowRelativeMouseMode(Renderer.Window.Handle, RelativeRotation);
+        SDL.SetWindowRelativeMouseMode(Renderer.Window.Handle, RelativeRotation);
+        Vector2 mousePos;
+        if (RelativeRotation)
+        {
+            SDL.GetRelativeMouseState(out mousePos.X, out mousePos.Y);
+        }
+        else
+        {
+            mousePos = Coords.ScreenToWorld(Input.MousePos());
+        }
         foreach (var entity in ctx.GetQuery(Queries.LookAtMouseTag).Entities)
         {
             ref var transform = ref entity.Data.Ensure<Transform2D>(ctx.cb);
             float rotation;
             if (RelativeRotation)
             {
-                SDL.SDL_GetRelativeMouseState(out float x, out float y);
-                var mouseOffset = new Vector2(x, y);
                 float rotspeed = 0.003f; //TODO (QOL:low) make this a setting 'mouse sensitivity'
-                rotation = (transform.Rotation + (mouseOffset.X * rotspeed)) % MathF.Tau;
+                rotation = (transform.Rotation + (mousePos.X * rotspeed)) % MathF.Tau;
             }
             else
             {
-                var mouseOffset = Input.MousePos() - (entity.GetWorldPos() * Physics.PixelsInMeter);
+                var mouseOffset = mousePos - entity.GetWorldPos();
                 rotation = mouseOffset.ToAngle();
             }
 

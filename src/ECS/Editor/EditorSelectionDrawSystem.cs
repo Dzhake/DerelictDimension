@@ -28,7 +28,7 @@ public class EditorSelectionDrawSystem : SystemBase
     {
         var boundingBox = GetBoundingBox(entity);
         Renderer.DrawRotRect(boundingBox, Color.Purple * 0.5f);
-        Renderer.DrawHollowRotRect(boundingBox, Color.LightPink * 0.5f, 4);
+        Renderer.DrawHollowRotRect(boundingBox, Color.LightPink, 2);
     }
 
     private static Monod.MathModule.OrientedRect GetBoundingBox(Entity entity)

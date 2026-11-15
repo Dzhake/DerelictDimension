@@ -31,11 +31,6 @@ public static class SettingsWindow
     private static void WindowModeSelect()
     {
         ImGui.SeparatorText("Window mode"u8);
-        if (ImGui.RadioButton("Fullscreen"u8, GraphicsSettings.windowMode == WindowMode.Fullscreen))
-        {
-            GraphicsSettings.windowMode = WindowMode.Fullscreen;
-            GraphicsSettings.ApplyWindowMode();
-        }
         if (ImGui.RadioButton("Windowed"u8, GraphicsSettings.windowMode == WindowMode.Windowed))
         {
             GraphicsSettings.windowMode = WindowMode.Windowed;
@@ -44,6 +39,11 @@ public static class SettingsWindow
         if (ImGui.RadioButton("Borderless"u8, GraphicsSettings.windowMode == WindowMode.Borderless))
         {
             GraphicsSettings.windowMode = WindowMode.Borderless;
+            GraphicsSettings.ApplyWindowMode();
+        }
+        if (ImGui.RadioButton("Exclusive Fullscreen"u8, GraphicsSettings.windowMode == WindowMode.ExclusiveFullscreen))
+        {
+            GraphicsSettings.windowMode = WindowMode.ExclusiveFullscreen;
             GraphicsSettings.ApplyWindowMode();
         }
         if (ImGui.RadioButton("Maximized"u8, GraphicsSettings.windowMode == WindowMode.Maximized))
@@ -71,6 +71,9 @@ public static class SettingsWindow
 
             ImGui.EndListBox();
         }
+
+        if (ImGui.Button("Refresh displays list"u8))
+            GraphicsSettings.RefreshDisplays();
     }
 
     private static void WindowSettings()
@@ -79,16 +82,14 @@ public static class SettingsWindow
             GraphicsSettings.ApplyVSync();
 
         bool windowed = GraphicsSettings.windowMode == WindowMode.Windowed;
+
         if (!windowed)
-        {
             ImGui.BeginDisabled();
-            ImGui.Text("Available only in windowed mode"u8);
-            ImGui.Spacing();
-        }
-        ImGui.SeparatorText("Common window sizes"u8);
+        ImGui.SeparatorText("Windowed mode settings");
+        ImGui.Text("Common window sizes:"u8);
         ImGui.Text("16x9: "u8);
         WindowSizeSelector(GraphicsSettings.CommonResolutions16x9);
-        ImGui.SeparatorText("Window settings"u8);
+
         if (ImGui.InputInt2("Window Size"u8, ref GraphicsSettings.WindowSize.X))
             GraphicsSettings.ApplyWindowSize();
         if (ImGui.InputInt2("Window Position"u8, ref GraphicsSettings.WindowPosition.X))
@@ -96,10 +97,11 @@ public static class SettingsWindow
         if (ImGui.Checkbox("Center window"u8, ref GraphicsSettings.CenterWindow))
             GraphicsSettings.ApplyWindowPosition();
 
+        if (!windowed) ImGui.EndDisabled();
+
+        ImGui.SeparatorText("General window settings"u8);
         if (ImGui.Checkbox("Lock mouse inside window"u8, ref GraphicsSettings.MouseLock))
             GraphicsSettings.ApplyMouseLock();
-
-        if (!windowed) ImGui.EndDisabled();
     }
 
     private static void WindowSizeSelector(Point[] sizes)

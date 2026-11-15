@@ -1,3 +1,4 @@
+using DerelictDimension.DevTools.Perf;
 using Friflo.EcGui;
 using Hexa.NET.ImGui;
 using Monod.AssetsModule;

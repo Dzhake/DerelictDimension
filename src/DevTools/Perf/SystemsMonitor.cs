@@ -3,29 +3,13 @@ using Monod.ECS.Systems;
 using System;
 using System.Globalization;
 
-namespace DerelictDimension.Debug;
+namespace DerelictDimension.DevTools.Perf;
 
-/// <summary>
-/// Heap-allocation-free perf monitor. Every string handed to ImGui is a NUL-terminated
-/// UTF-8 span: numbers are formatted into stack buffers, system names are encoded once and cached.
-/// </summary>
-public static class PerfMonitor
+public static class SystemsMonitor
 {
     private const int AvgFrameCount = 60;
 
-    public static void Draw()
-    {
-        ImGui.Begin("Perf monitor"u8);
-
-        ImGui.SeparatorText("Systems"u8);
-
-        DrawGroup(TheGame.LogicSystemRoot);
-        DrawGroup(TheGame.DrawSystemRoot);
-
-        ImGui.End();
-    }
-
-    private static void DrawGroup(SystemGroup group)
+    public static void DrawGroup(SystemGroup group)
     {
         var perf = group.Perf;
         float groupMs = perf.LastAvgMs(AvgFrameCount);
@@ -135,5 +119,11 @@ public static class PerfMonitor
         }
         dst[src.Length] = 0;
         return src.Length;
+    }
+
+    public static void Draw()
+    {
+        DrawGroup(TheGame.LogicSystemRoot);
+        DrawGroup(TheGame.DrawSystemRoot);
     }
 }

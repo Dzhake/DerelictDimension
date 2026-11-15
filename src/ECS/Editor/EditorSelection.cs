@@ -16,7 +16,10 @@ public static class EditorSelection
 
     public static OrientedRect GetBoundingBox(EntityData data)
     {
-        if (data.Has<HitboxComponent>()) return data.Get<HitboxComponent>().GetBoundingBox();
+        if (data.Has<HitboxComponent>())
+        {
+            return data.Get<HitboxComponent>().GetBoundingBox();
+        }
 
         if (data.Has<Sprite2D>())
         {

@@ -34,11 +34,11 @@ public record struct Capsule
 
     public B2Capsule ToB2() => Unsafe.As<Capsule, B2Capsule>(ref this);
 
-    public OrientedRect GetBoundingBox()
+    public readonly OrientedRect GetBoundingBox()
     {
         var diff = Center2 - Center1;
         float angle = diff.ToAngle();
         float diameter = 2 * Radius;
-        return new((Center1 + Center2) / 2, new((diff.X + diameter) * MathF.Sin(angle), (diff.Y + diameter) * MathF.Cos(angle)), angle);
+        return new((Center1 + Center2) / 2, new((diff.Y * MathF.Cos(angle)) + diameter, (diff.X * MathF.Sin(angle)) + diameter), angle);
     }
 }

@@ -64,6 +64,7 @@ public static class EcsMain
         OnCtxChanged();
 
         EcGui.AddExplorerStore("Main", MainStore);
+        EcGui.AddExplorerStore("Editor", EditorStore);
         EcGui.AddExplorerStore("Prefabs", PrefabsStore);
     }
 

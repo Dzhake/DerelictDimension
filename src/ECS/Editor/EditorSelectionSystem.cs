@@ -10,11 +10,12 @@ public class EditorSelectionSystem : SystemBase
 {
     public override void Update(SystemCtx ctx)
     {
-        bool isSelecting = Input.KeyDown(Key.Mouse1);
+        bool isSelecting = Input.KeyPressed(Key.Mouse1);
 
         var mouseWorld = Coords.ScreenToWorld(Input.MousePos());
-        Entity? firstMatch = null;
-        Entity? firstUnselected = null;
+        (Entity ent, float dist)? closestMatch = null;
+        (Entity ent, float dist)? closestUnselected = null;
+
 
         foreach (var entity in ctx.GetQuery(Queries.All).Entities)
         {
@@ -26,16 +27,20 @@ public class EditorSelectionSystem : SystemBase
             if (!Collide.IsPointInsideRect(mouseWorld, boundingBox))
                 continue;
 
-            firstMatch ??= entity;
+            float dist = (mouseWorld - pos).Length();
 
-            if (!EditorSelection.LastSelectedPids.Contains(entity.Pid))
+            if (closestMatch is null || dist < closestMatch.Value.dist)
             {
-                firstUnselected = entity;
-                break;
+                closestMatch = (entity, dist);
+            }
+
+            if (!EditorSelection.LastSelectedPids.Contains(entity.Pid) && (closestUnselected is null || dist < closestUnselected.Value.dist))
+            {
+                closestUnselected = (entity, dist);
             }
         }
 
-        if (firstMatch == null)
+        if (closestMatch == null)
         {
             if (isSelecting)
                 Deselect();
@@ -45,16 +50,16 @@ public class EditorSelectionSystem : SystemBase
         }
 
         // All matching entities have already been selected.
-        if (firstUnselected == null)
+        if (closestUnselected == null)
         {
             EditorSelection.LastSelectedPids.Clear();
-            firstUnselected = firstMatch;
+            closestUnselected = closestMatch;
         }
 
         if (isSelecting)
-            Select(firstUnselected.Value);
+            Select(closestUnselected.Value.ent);
         else
-            Hover(firstUnselected.Value);
+            Hover(closestUnselected.Value.ent);
     }
 
 

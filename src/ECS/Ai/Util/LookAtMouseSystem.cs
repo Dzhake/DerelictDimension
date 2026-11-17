@@ -4,7 +4,6 @@ using Monod.Graphics;
 using Monod.InputModule;
 using Monod.MathModule;
 using Monod.Utils.Extensions;
-using MonoGame.Extended;
 using SDL3;
 using System;
 
@@ -38,7 +37,7 @@ public class LookAtMouseSystem : SystemBase
             else
             {
                 var mouseOffset = mousePos - entity.GetWorldPos();
-                rotation = mouseOffset.ToAngle();
+                rotation = mouseOffset.ToAngleM();
             }
 
             if (MathF.Abs(rotation - transform.Rotation) > MathM.Epsilon)

@@ -12,7 +12,6 @@ using Monod.MathModule;
 using Monod.Utils;
 using Monod.Utils.Exceptions;
 using Monod.Utils.Extensions;
-using MonoGame.Extended;
 using System;
 using static Box2D.NET.B2Distances;
 using static Box2D.NET.B2Geometries;
@@ -128,7 +127,7 @@ public class DamageSystem : SystemBase
         const float spreadAngle = 120f * (MathF.PI / 180f);
 
         var spawnPosition = rectCenterWorld;
-        float baseAngle = breakDir.ToAngle();
+        float baseAngle = breakDir.ToAngleM();
 
         for (int i = 0; i < debrisCount; i++)
         {
@@ -198,7 +197,7 @@ public class DamageSystem : SystemBase
 
         ref var victimTransform = ref victimBaseData.Ensure<Transform2D>(cb);
         victimTransform.PhysicsDirty = true;
-        victimTransform.Rotation = direction.ToAngle();
+        victimTransform.Rotation = direction.ToAngleM();
         ref var physicsBody = ref victimBaseData.Ensure<PhysicsBodyComponent>(cb);
         physicsBody.LinearVelocity = direction * 5;
         physicsBody.PhysicsDirty = true;

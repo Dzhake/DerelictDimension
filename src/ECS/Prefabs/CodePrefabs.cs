@@ -19,7 +19,7 @@ public static class CodePrefabs
     {
         var store = EcsMain.CurrentStore;
 
-        body = store.CreateEntity(new EntityName("Body"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanBodyBreathe), new RenderDepth(baseDepth, 10), new HitboxComponent(new Capsule(new(-.25f, 0), new(.25f, 0), 0.1f)), new PhysicsShapeComponent(categories: CollisionLayer.Enemy, mask: CollisionLayer.Walls | CollisionLayer.PlayerAttacks | CollisionLayer.Environment), new BodyComponent(), Tags.Get<YSortParentTag>());
+        body = store.CreateEntity(new EntityName("Body"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanBodyBreathe), new RenderDepth(baseDepth, 10), new HitboxComponent(new Capsule(new(0, -0.25f), new(0, 0.25f), 0.1f)), new PhysicsShapeComponent(categories: CollisionLayer.Enemy, mask: CollisionLayer.Walls | CollisionLayer.PlayerAttacks | CollisionLayer.Environment), new BodyComponent(), Tags.Get<YSortParentTag>());
 
         head = store.CreateEntity(new EntityName("Head"), new AnimatedSpriteComponent(baseTexturePath, Anims.HumanHeadBreathe), new RenderDepth(baseDepth, 0), Tags.Get<YSortParentTag>());
 

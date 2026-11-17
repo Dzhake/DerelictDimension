@@ -1,7 +1,6 @@
 ﻿using Box2D.NET;
 using Monod.MathModule;
-using MonoGame.Extended;
-using System;
+using Monod.Utils.Extensions;
 using System.Runtime.CompilerServices;
 
 namespace DerelictDimension.ECS.PhysicsModule;
@@ -37,8 +36,8 @@ public record struct Capsule
     public readonly OrientedRect GetBoundingBox()
     {
         var diff = Center2 - Center1;
-        float angle = diff.ToAngle();
+        float angle = diff.ToAngleM();
         float diameter = 2 * Radius;
-        return new((Center1 + Center2) / 2, new((diff.Y * MathF.Cos(angle)) + diameter, (diff.X * MathF.Sin(angle)) + diameter), angle);
+        return new((Center1 + Center2) / 2, new(diff.Length() + diameter, diameter), angle);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Box2D.NET;
 using DerelictDimension.ECS.PhysicsModule;
 using DerelictDimension.Utils.Extensions;
+using Monod.ECS.DefaultComponents;
 using Monod.ECS.Systems;
 using Monod.Graphics;
 using Monod.Graphics.Fonts;
@@ -10,10 +11,11 @@ using static Box2D.NET.B2Worlds;
 
 namespace DerelictDimension.ECS.Drawing;
 
-public class DrawHitboxesSystem : SystemBase
+public sealed class DrawHitboxesSystem : SystemBase
 {
     public static B2DebugDraw draw;
     public static bool EnableB2DebugDraw;
+    public static RenderDepth Depth;
 
     public DrawHitboxesSystem()
     {
@@ -27,11 +29,17 @@ public class DrawHitboxesSystem : SystemBase
         draw.DrawSolidPolygonFcn = DrawSolidPolygon;
         draw.DrawSolidCapsuleFcn = DrawSolidCapsule;
         draw.DrawStringFcn = DrawString;
+        Depth = new(-1000);
     }
 
     public override void Update(SystemCtx ctx)
     {
         if (!EnableB2DebugDraw) return;
+        ctx.drawBatcher.Add(default, Draw, Depth, ctx);
+    }
+
+    private void Draw(Entity entity, SystemCtx ctx)
+    {
         Renderer.ShapeBegin();
         b2World_Draw(Physics.WorldId, in draw);
         Renderer.ShapeEnd();

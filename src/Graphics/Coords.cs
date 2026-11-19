@@ -11,4 +11,9 @@ public static class Coords
     {
         return (screen - Renderer.RenderOffset) / Physics.PixelsInMeter;
     }
+
+    public static Vector2 WorldToScreen(Vector2 world)
+    {
+        return (world * Physics.PixelsInMeter) + Renderer.RenderOffset;
+    }
 }

@@ -18,29 +18,29 @@ public class DrawSpriteSystem : SystemBase
     private void AddEntity(ref Sprite2D sprite, Entity entity, SystemCtx ctx)
     {
         if (sprite.Texture is null || !sprite.Visible) return;
-        ctx.drawBatcher.Add(entity, Draw, entity.Data.Ensure<RenderDepth>(ctx.cb), ctx);
+        ctx.drawBatcher.Add(entity, Draw, entity.Data.Ensure<RenderDepth>(ctx.cb));
     }
 
-    public void Draw(Entity entity, SystemCtx ctx)
+    public static void Draw(Entity entity, SystemCtx ctx)
     {
         var data = entity.Data;
         ref var sprite = ref data.Get<Sprite2D>();
         if (sprite.Texture is null || !sprite.Visible) return;
 
-        GetDrawArgs(ref sprite, ref entity, ref data, ctx, out var position, out float rotation, out var scale, out float depth, out var origin);
+        GetDrawArgs(ref sprite, ref entity, ref data, ctx, out var position, out float rotation, out var scale, out var origin);
         position *= Physics.PixelsInMeter;
 
         if (data.Has<NineSliceComponent>())
         {
-            DrawNineSlice(ref sprite, ref data.Get<NineSliceComponent>(), ref position, rotation, scale, depth, ref origin);
+            DrawNineSlice(ref sprite, ref data.Get<NineSliceComponent>(), ref position, rotation, scale, ref origin);
         }
         else
         {
-            Renderer.DrawTexture(sprite.Texture!.Base, position, sprite.color, sprite.Texture.Region, rotation, origin, scale, sprite.spriteEffects, depth);
+            Renderer.DrawTexture(sprite.Texture!.Base, position, sprite.color, sprite.Texture.Region, rotation, origin, scale, sprite.spriteEffects);
         }
     }
 
-    private void DrawNineSlice(ref Sprite2D sprite, ref NineSliceComponent nineSlice, ref Vector2 position, float rotation, Vector2 scale, float depth, ref Vector2 origin)
+    private static void DrawNineSlice(ref Sprite2D sprite, ref NineSliceComponent nineSlice, ref Vector2 position, float rotation, Vector2 scale, ref Vector2 origin)
     {
         var mTex = sprite.Texture!;
         if (mTex.Base is null)
@@ -94,7 +94,7 @@ public class DrawSpriteSystem : SystemBase
 
         void Tile(int srcX, int srcY, int srcW, int srcH, float dstX, float dstY)
         {
-            Renderer.DrawTexture(texture, new Vector2(baseX + (kx * dstX) + (ky * dstY), baseY + (lx * dstX) + (ly * dstY)), color, new Rectangle(srcX, srcY, srcW, srcH), rotation, Vector2.Zero, scale, effects, depth);
+            Renderer.DrawTexture(texture, new Vector2(baseX + (kx * dstX) + (ky * dstY), baseY + (lx * dstX) + (ly * dstY)), color, new Rectangle(srcX, srcY, srcW, srcH), rotation, Vector2.Zero, scale, effects);
         }
 
         void Band(int srcY, int srcH, float dstY)
@@ -116,20 +116,12 @@ public class DrawSpriteSystem : SystemBase
         Band(bottomSrcY, tileHeight, drawH - tileHeight);
     }
 
-    private void GetDrawArgs(ref Sprite2D sprite, ref Entity entity, ref EntityData data, SystemCtx ctx, out Vector2 position, out float rotation, out Vector2 scale, out float depth, out Vector2 origin)
+    private static void GetDrawArgs(ref Sprite2D sprite, ref Entity entity, ref EntityData data, SystemCtx ctx, out Vector2 position, out float rotation, out Vector2 scale, out Vector2 origin)
     {
         position = entity.GetWorldPos(out rotation);
         rotation += sprite.Rotation;
         ref var transform = ref data.Ensure<Transform2D>(ctx.cb);
         scale = transform.Scale;
-
-        if (data.Has<RenderDepth>())
-        {
-            depth = data.Get<RenderDepth>().BaseDepth;
-            depth = (depth / 20000) + 0.5f;
-        }
-        else
-            depth = 0;
 
         origin = new(sprite.Texture!.Base.Width / 2f, sprite.Texture.Base.Height / 2f);
     }

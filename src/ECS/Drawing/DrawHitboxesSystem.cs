@@ -35,10 +35,10 @@ public sealed class DrawHitboxesSystem : SystemBase
     public override void Update(SystemCtx ctx)
     {
         if (!EnableB2DebugDraw) return;
-        ctx.drawBatcher.Add(default, Draw, Depth, ctx);
+        ctx.drawBatcher.Add(default, Draw, Depth);
     }
 
-    private void Draw(Entity entity, SystemCtx ctx)
+    private static void Draw(Entity entity, SystemCtx ctx)
     {
         Renderer.ShapeBegin();
         b2World_Draw(Physics.WorldId, in draw);

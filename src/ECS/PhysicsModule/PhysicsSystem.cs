@@ -22,7 +22,7 @@ namespace DerelictDimension.ECS.PhysicsModule;
 
 public sealed class PhysicsSystem : SystemBase, IDisposable
 {
-    public override void OnCtxChanged(SystemCtx ctx)
+    public override void OnCtxChanged(SystemCtx? oldCtx, SystemCtx ctx)
     {
         //TODO (perf: mid) probably should clear the world instead of fully destroying it, but i'm not sure how
         TryDestroyWorld(ctx);

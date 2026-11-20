@@ -61,7 +61,7 @@ public static class EcsMain
         EditorCtx = new(EditorStore, EcsStores.Editor);
         EditorCtx.MonitorPerf = true;
 
-        OnCtxChanged();
+        OnCtxChanged(null);
 
         EcGui.AddExplorerStore("Main", MainStore);
         EcGui.AddExplorerStore("Editor", EditorStore);
@@ -72,9 +72,9 @@ public static class EcsMain
     {
         InitWorld(MainCtx);
         InitWorld(EditorCtx);
-        PopulateMainStore();
+        PopulateCurrentStore();
         InitializeSystems();
-        OnCtxChanged();
+        OnCtxChanged(null);
     }
 
     public static void InitWorld(SystemCtx ctx)
@@ -83,14 +83,14 @@ public static class EcsMain
         RegisterQueries(ctx);
     }
 
-    private static void PopulateMainStore()
+    private static void PopulateCurrentStore()
     {
         var player = CodePrefabs.CreateHuman(new(3, 1), 0, "Sprites/Player/", out var body, out _, out var leftLeg, out var rightLeg, 0);
         player.Name.value = "Player";
         player.AddComponent(new PlayerAi());
         body.AddTag<LookAtMouseTag>();
         body.GetComponent<PhysicsShapeComponent>().CollisionCategories = CollisionLayer.Player;
-        var kickLeg = MainStore.CreateEntity(new EntityName("Kick leg"), new PhysicsShapeComponent(isSensor: true, categories: CollisionLayer.PlayerAttacks, mask: CollisionLayer.Environment | CollisionLayer.Enemy | CollisionLayer.EnemyAttacks), new HitboxComponent(new OrientedRect(.28f, -.14f, .38f, .14f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid, rightLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/", Anims.HumanLegKick), new Transform2D(), new RenderDepth(0, 20), new DamagerComponent());
+        var kickLeg = CurrentStore.CreateEntity(new EntityName("Kick leg"), new PhysicsShapeComponent(isSensor: true, categories: CollisionLayer.PlayerAttacks, mask: CollisionLayer.Environment | CollisionLayer.Enemy | CollisionLayer.EnemyAttacks), new HitboxComponent(new OrientedRect(.28f, -.14f, .38f, .14f)) { Collidable = false }, new KickLegComponent(leftLeg.Pid, rightLeg.Pid), new AnimatedSpriteComponent("Sprites/Player/", Anims.HumanLegKick), new Transform2D(), new RenderDepth(0, 20), new DamagerComponent());
         body.AddChild(kickLeg);
 
         CodePrefabs.CreateHuman(new(3, 4.2f), 0, "Sprites/Swordsman/", out _, out _, out _, out _);
@@ -161,7 +161,7 @@ public static class EcsMain
         Queries.Register(ctx);
     }
 
-    public static SystemCtx? GetCtx(Stores store)
+    public static SystemCtx GetCtx(Stores store)
     {
         if ((store & EcsStores.Main) != Stores.None) return MainCtx;
         if ((store & EcsStores.Editor) != Stores.None) return EditorCtx;
@@ -169,15 +169,16 @@ public static class EcsMain
         return null!;
     }
 
-    public static void OnCtxChanged()
+    public static void OnCtxChanged(SystemCtx? oldCtx)
     {
-        LogicSystemRoot.SetContext(CurrentCtx);
-        DrawSystemRoot.SetContext(CurrentCtx);
+        LogicSystemRoot.SetContext(oldCtx, CurrentCtx);
+        DrawSystemRoot.SetContext(oldCtx, CurrentCtx);
     }
 
     public static void SetStore(Stores store)
     {
+        var oldCtx = CurrentCtx;
         CurrentStores = store;
-        OnCtxChanged();
+        OnCtxChanged(oldCtx);
     }
 }

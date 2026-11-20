@@ -28,7 +28,7 @@ public class DamageSystem : SystemBase
     private readonly DoorKillContext _killContext = new();
 
 
-    public override void OnCtxChanged(SystemCtx ctx)
+    public override void OnCtxChanged(SystemCtx? oldCtx, SystemCtx ctx)
     {
         _killContext.cb = ctx.cb;
         _killContext.Store = ctx.Store;

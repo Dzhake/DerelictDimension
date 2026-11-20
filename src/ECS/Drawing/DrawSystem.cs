@@ -1,10 +1,12 @@
 ﻿using DerelictDimension.ECS.Editor;
 using DerelictDimension.ECS.Rewinding;
+using HarmonyLib;
 using Monod.ECS.Systems;
 using Monod.Graphics;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.TimeModule;
+using System.Linq;
 
 namespace DerelictDimension.ECS.Drawing;
 
@@ -43,7 +45,7 @@ public class DrawSystem : SystemGroup
         Renderer.End();
 
         Renderer.Begin();
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Time:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nEntities:{EcsMain.CurrentStore.Count}\nMousePos:{Input.MousePos()}\nSelected Entity Pid:{EditorSelection.SelectedPid}", renderOffset, Color.White);
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Time:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nEntities:{EcsMain.CurrentStore.Count}\nMousePos:{Input.MousePos()}\nSelected Entity Pids:{EditorSelection.SelectedPids.Join()}", renderOffset, Color.White);
         Renderer.End();
     }
 

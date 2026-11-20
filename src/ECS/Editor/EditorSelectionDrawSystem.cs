@@ -14,26 +14,53 @@ public class EditorSelectionDrawSystem : SystemBase
 
     public override void Update(SystemCtx ctx)
     {
-        if (EditorSelection.SelectedPid != -1)
+        foreach (long pid in EditorSelection.SelectedPids)
         {
-            var entity = ctx.Store.GetEntityByPid(EditorSelection.SelectedPid);
-
-            ctx.drawBatcher.Add(entity, DrawSelection, SelectedDepth);
+            var entity = ctx.Store.GetEntityByPid(pid);
+            ctx.drawBatcher.Add(entity, DrawSelection, SelectedDepth with { PartOffset = pid });
         }
 
-        if (EditorSelection.HoveredPid != -1)
+        foreach (long pid in EditorSelection.HoveredPids)
         {
-            var entity = ctx.Store.GetEntityByPid(EditorSelection.HoveredPid);
-
-            ctx.drawBatcher.Add(entity, DrawHover, HoveredDepth);
+            var entity = ctx.Store.GetEntityByPid(pid);
+            ctx.drawBatcher.Add(entity, DrawHover, HoveredDepth with { PartOffset = pid });
         }
+
+        foreach (long pid in EditorSelection.MarqueeSelected)
+        {
+            var entity = ctx.Store.GetEntityByPid(pid);
+            ctx.drawBatcher.Add(entity, DrawPreview, HoveredDepth with { PartOffset = pid });
+        }
+
+        if (EditorSelection.IsBoxSelecting)
+        {
+            ctx.drawBatcher.Add(default, DrawMarquee, SelectedDepth);
+        }
+    }
+
+    public static void DrawMarquee(Entity entity, SystemCtx ctx)
+    {
+        Renderer.DrawHollowRect(MathM.RectangleBetween(EditorSelection.MarqueeStart * Physics.PixelsInMeter, EditorSelection.MarqueeEnd * Physics.PixelsInMeter), Color.White, 3);
     }
 
     public static void DrawSelection(Entity entity, SystemCtx ctx)
     {
         var boundingBox = GetBoundingBox(entity);
-        Renderer.DrawRotRect(boundingBox, Color.Purple * 0.5f);
-        Renderer.DrawHollowRotRect(boundingBox, Color.LightPink, 2);
+        Renderer.DrawRotRect(boundingBox, Color.Purple * 0.3f);
+        Renderer.DrawHollowRotRect(boundingBox, Color.MediumPurple * 0.5f, 4);
+    }
+
+    public static void DrawHover(Entity entity, SystemCtx ctx)
+    {
+        var boundingBox = GetBoundingBox(entity);
+        Renderer.DrawHollowRotRect(boundingBox, Color.Yellow * 0.5f);
+    }
+
+    public static void DrawPreview(Entity entity, SystemCtx ctx)
+    {
+        var boundingBox = GetBoundingBox(entity);
+        Renderer.DrawRotRect(boundingBox, Color.YellowGreen * 0.2f);
+        Renderer.DrawHollowRotRect(boundingBox, Color.Yellow * 0.2f);
     }
 
     private static OrientedRect GetBoundingBox(Entity entity)
@@ -49,9 +76,4 @@ public class EditorSelectionDrawSystem : SystemBase
         return boundingBox;
     }
 
-    public static void DrawHover(Entity entity, SystemCtx ctx)
-    {
-        var boundingBox = GetBoundingBox(entity);
-        Renderer.DrawHollowRotRect(boundingBox, Color.Yellow * 0.5f);
-    }
 }

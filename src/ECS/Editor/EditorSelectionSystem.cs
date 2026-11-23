@@ -85,9 +85,11 @@ public class EditorSelectionSystem : SystemBase
 
     private static void UpdateHover(SystemCtx ctx, Vector2 mouseWorld)
     {
-        long target = PickClickTarget(ctx, mouseWorld);
-
         EditorSelection.HoveredPids.Clear();
+
+        if (Input.IsMouseCaptured()) return;
+
+        long target = PickClickTarget(ctx, mouseWorld);
         if (target != -1)
             EditorSelection.HoveredPids.Add(target);
     }

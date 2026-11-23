@@ -152,6 +152,7 @@ public static class EcsMain
             new SystemGroup("Editor", EcsStores.Editor)
             {
                 new EditorSelectionDrawSystem(),
+                new EditorTreeSystem(),
             },
         });
     }

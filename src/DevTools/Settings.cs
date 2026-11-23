@@ -18,9 +18,8 @@ public static class Settings
 
     public static void Draw()
     {
-        var io = ImGui.GetIO();
         if (ShowSettingsWindow) SettingsWindow.Draw();
-        if (ShowReloadWindow) DrawReloadWindow(io);
+        if (ShowReloadWindow) DrawReloadWindow();
         if (ShowDemoWindow) ImGui.ShowDemoWindow();
         if (ShowExplorer) EcGui.ExplorerWindow();
         if (ShowInspector) EcGui.InspectorWindow();
@@ -29,7 +28,7 @@ public static class Settings
         if (ShowPerfMonitor) PerfMonitor.Draw();
     }
 
-    private static void DrawReloadWindow(ImGuiIOPtr io)
+    private static void DrawReloadWindow()
     {
         ImGui.Begin("Reload"u8);
         if (ImGui.Button("Reload world"u8))

@@ -19,6 +19,9 @@ public enum SelectionModifier
     Intersect,
 }
 
+/// <summary>
+/// Setting that describes how entities can be selected.
+/// </summary>
 public enum EditorSelectionMode
 {
     /// <summary>
@@ -164,6 +167,24 @@ public static class EditorSelection
             return new(Vector2.Zero, Settings.MinEntitySelectionBox);
 
         return new(Vector2.Zero, Vector2.Zero);
+    }
+
+    public static void SelectRange(IReadOnlyList<long> pids, int from, int to, SelectionModifier modifier)
+    {
+        switch (modifier)
+        {
+        case SelectionModifier.Replace:
+            SelectedPids.Clear();
+            goto case SelectionModifier.Add;
+        case SelectionModifier.Add:
+            for (int i = from; i <= to; i++)
+                SelectedPids.Add(pids[i]);
+            break;
+        case SelectionModifier.Remove:
+            for (int i = from; i <= to; i++)
+                SelectedPids.Remove(pids[i]);
+            break;
+        }
     }
 }
 

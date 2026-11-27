@@ -10,10 +10,6 @@ namespace DerelictDimension.ECS.Editor;
 public class EditorSelectionDrawSystem : SystemBase
 {
     public static RenderDepth SelectedDepth = new(-2000);
-    public static Color SelectedColor = Color.Purple * 0.3f;
-    public static uint SelectedColorV = SelectedColor.PackedValue;
-    public static Color HoveredColor = Color.Yellow * 0.5f;
-    public static uint HoveredColorV = HoveredColor.PackedValue;
     public static RenderDepth HoveredDepth = new(-2005);
 
     public override void Update(SystemCtx ctx)
@@ -50,14 +46,14 @@ public class EditorSelectionDrawSystem : SystemBase
     public static void DrawSelection(Entity entity, SystemCtx ctx)
     {
         var boundingBox = GetBoundingBox(entity);
-        Renderer.DrawRotRect(boundingBox, SelectedColor);
+        Renderer.DrawRotRect(boundingBox, Color.Purple * 0.3f);
         Renderer.DrawHollowRotRect(boundingBox, Color.MediumPurple * 0.5f, 4);
     }
 
     public static void DrawHover(Entity entity, SystemCtx ctx)
     {
         var boundingBox = GetBoundingBox(entity);
-        Renderer.DrawHollowRotRect(boundingBox, HoveredColor);
+        Renderer.DrawHollowRotRect(boundingBox, Color.Yellow * 0.5f);
     }
 
     public static void DrawPreview(Entity entity, SystemCtx ctx)

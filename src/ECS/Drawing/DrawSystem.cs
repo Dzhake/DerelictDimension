@@ -1,12 +1,11 @@
 ﻿using DerelictDimension.ECS.Editor;
 using DerelictDimension.ECS.Rewinding;
-using HarmonyLib;
 using Monod.ECS.Systems;
 using Monod.Graphics;
 using Monod.Graphics.Fonts;
 using Monod.InputModule;
 using Monod.TimeModule;
-using System.Linq;
+using Monod.Utils.General;
 
 namespace DerelictDimension.ECS.Drawing;
 
@@ -45,7 +44,21 @@ public class DrawSystem : SystemGroup
         Renderer.End();
 
         Renderer.Begin();
-        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, $"Time:{Time.TotalTimeSpan}\nCurrent Frame:{Rewind.CurrentFrame}\nEntities:{EcsMain.CurrentStore.Count}\nMousePos:{Input.MousePos()}\nSelected Entity Pids:{EditorSelection.SelectedPids.Join()}", renderOffset, Color.White);
+        var sb = StringBuilderG.I;
+        sb.Clear();
+        sb.Append($"Time:{Time.TotalTimeSpan}\n");
+        sb.Append($"Current Frame:{Rewind.CurrentFrame}\n");
+        sb.Append($"Entities: {EcsMain.CurrentStore.Count}\n");
+        var mousePos = Input.MousePos();
+        sb.Append($"MousePos: {mousePos.X}, {mousePos.Y}\n");
+
+        sb.Append("Selected Entity Pids: ");
+        foreach (long pid in EditorSelection.SelectedPids)
+        {
+            sb.Append($"{pid}, ");
+        }
+
+        GlobalFonts.MenuFont.DrawString(Renderer.spriteBatch, sb, renderOffset, Color.White);
         Renderer.End();
     }
 

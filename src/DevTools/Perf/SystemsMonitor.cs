@@ -73,7 +73,7 @@ public static class SystemsMonitor
 
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - memWidth - gap - msWidth);
-        ImGui.TextColored(new(memRatio, 1f - memRatio, 0f, 1f), memText);   // digits only -> printf-safe
+        ImGui.TextColored(new(memRatio, 1f - memRatio, 0f, 1f), memText);
         ImGui.SameLine();
         ImGui.TextColored(new(msRatio, 1f - msRatio, 0f, 1f), msText);
     }

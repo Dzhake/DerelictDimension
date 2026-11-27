@@ -102,7 +102,7 @@ public class EditorSelectionSystem : SystemBase
         if (target == -1)
         {
             // When clicking empty space, plain click and intersect clear the selection, add and subtract are no-ops.
-            var modifier = GetModifier();
+            var modifier = GetSelectionModifier();
             if (modifier is SelectionModifier.Replace or SelectionModifier.Intersect)
             {
                 EditorSelection.ClearSelection();
@@ -111,7 +111,7 @@ public class EditorSelectionSystem : SystemBase
             return;
         }
 
-        EditorSelection.Select([target], GetModifier());
+        EditorSelection.Select([target], GetSelectionModifier());
         EditorSelection.ClickCyclePids.Add(target);
     }
 
@@ -132,7 +132,7 @@ public class EditorSelectionSystem : SystemBase
 
     private void CommitMarquee(SystemCtx ctx, Vector2 mouseWorld)
     {
-        var modifier = GetModifier();
+        var modifier = GetSelectionModifier();
         EditorSelection.Select(EditorSelection.MarqueeSelected, modifier);
 
         EndDrag();
@@ -144,18 +144,6 @@ public class EditorSelectionSystem : SystemBase
         IsDragging = false;
         EditorSelection.IsBoxSelecting = false;
         EditorSelection.MarqueeSelected.Clear();
-    }
-
-
-    private static SelectionModifier GetModifier()
-    {
-        bool ctrl = Input.IsCtrlDown();
-        bool shift = Input.IsShiftDown();
-
-        if (ctrl && shift) return SelectionModifier.Intersect;
-        if (ctrl) return SelectionModifier.Remove;
-        if (shift) return SelectionModifier.Add;
-        return SelectionModifier.Replace;
     }
 
     private bool ExceedsDragThreshold(Vector2 mouseScreen, float thresholdPixels)
@@ -195,7 +183,7 @@ public class EditorSelectionSystem : SystemBase
             }
         }
 
-        // Everything under the cursor was already clicked through: restart the cycle.
+        // Everything under the cursor was already clicked through.
         if (closest != -1 && closestNew == -1)
             EditorSelection.ClickCyclePids.Clear();
 
@@ -210,5 +198,18 @@ public class EditorSelectionSystem : SystemBase
         boundingBox.Center += pos;
         boundingBox.Angle += rotation;
         return boundingBox;
+    }
+
+    //TODO (qol: low) - use rebindable actions instead of hard-coding ctrl&shift, do the same for the EditorTreeSystem. Those actions should probably be per-profile and hidden by default, i.e. not per save file or anything like that.
+    //tho if i just check something like "if (intersect) else if (remove)...", that might not work if the user i.e. sets intersect to shift and remove to shift+ctrl. So i need to allow changing the order of operations, or i somehow need to have a "more/less" specific action metric. Probably just the amount of modifiers.
+    public static SelectionModifier GetSelectionModifier()
+    {
+        bool ctrl = Input.IsCtrlDown();
+        bool shift = Input.IsShiftDown();
+
+        if (ctrl && shift) return SelectionModifier.Intersect;
+        if (ctrl) return SelectionModifier.Remove;
+        if (shift) return SelectionModifier.Add;
+        return SelectionModifier.Replace;
     }
 }

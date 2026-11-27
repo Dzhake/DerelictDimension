@@ -151,8 +151,8 @@ public static class EcsMain
             new DrawHitboxesSystem(),
             new SystemGroup("Editor", EcsStores.Editor)
             {
-                new EditorSelectionDrawSystem(),
                 new EditorTreeSystem(),
+                new EditorSelectionDrawSystem(),
             },
         });
     }
